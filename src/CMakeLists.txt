@@ -1,0 +1,5 @@
+file(GLOB_RECURSE src "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(OBSCURE_SOURCE
+	${src} 
+	PARENT_SCOPE
+)
