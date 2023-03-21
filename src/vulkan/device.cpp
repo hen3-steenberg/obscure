@@ -7,6 +7,7 @@ void free_device(VkDevice device)
 }
 
 obscure::vulkan::device::device(VkPhysicalDevice device, surface surface)
+	: physical_device(device), vk_surface(surface)
 {
 
 	VkPhysicalDeviceFeatures deviceFeatures{};

@@ -3,7 +3,7 @@
 
 VkPhysicalDevice obscure::application_2d::pick_device()
 {
-	vulkan::device_picker picker(vk_instance);
+	vulkan::device_picker picker(vk_instance, vk_surface);
 	return picker.pick_device();
 }
 
@@ -11,7 +11,8 @@ obscure::application_2d::application_2d(int width, int height, const char* title
 	: window(width, height, title),
 	vk_instance(title, Version),
 	vk_surface(vk_instance, window),
-	vk_device(pick_device(), vk_surface)
+	vk_device(pick_device(), vk_surface),
+	swap_chain(vk_device)
 #if ENABLE_VALIDATION_LAYERS
 	, console_logger(vk_instance),
 	csv_logger(vk_instance, "vulkan_log.csv")

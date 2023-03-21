@@ -6,6 +6,7 @@
 #include "vulkan/device.h"
 #include "properties.hpp"
 #include "vulkan/logger.h"
+#include "vulkan/swap_chain.h"
 
 namespace obscure
 {
@@ -17,6 +18,7 @@ namespace obscure
 		vulkan::instance vk_instance;
 		vulkan::surface vk_surface;
 		vulkan::device vk_device;
+		vulkan::swap_chain swap_chain;
 #if ENABLE_VALIDATION_LAYERS
 		vulkan::verbose_console_logger console_logger;
 		vulkan::verbose_csv_logger csv_logger;

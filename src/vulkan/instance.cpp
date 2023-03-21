@@ -20,7 +20,7 @@ std::vector<const char*> LoadLayers()
 	std::vector<VkLayerProperties> properties = obscure::vulkan::vulkan_load(vkEnumerateInstanceLayerProperties);
 
 	std::vector<const char*> res;
-	for (auto p : properties)
+	for (auto const& p : properties)
 	{
 		for (const char* layer_name : requested_layers)
 		{
@@ -57,7 +57,7 @@ std::span<const char*> obscure::vulkan::instance::GetRequiredDeviceExtensions()
 
 obscure::vulkan::instance::instance(const char* AppName, version AppVersion)
 {
-	constexpr const uint32_t obscure_ver = obscure::obscure_version().get_vk_version();
+	constexpr const uint32_t obscure_ver = obscure::obscure_version().get_version();
 	VkApplicationInfo appInfo;
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.pNext = nullptr;
@@ -65,7 +65,7 @@ obscure::vulkan::instance::instance(const char* AppName, version AppVersion)
 	appInfo.engineVersion = obscure_ver;
 	appInfo.apiVersion = VK_API_VERSION_1_3;
 	appInfo.pApplicationName = AppName;
-	appInfo.applicationVersion = AppVersion.get_vk_version();
+	appInfo.applicationVersion = AppVersion.get_version();
 
 	VkInstanceCreateInfo createInfo;
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

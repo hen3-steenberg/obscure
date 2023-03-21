@@ -27,3 +27,11 @@ bool obscure::vulkan::window_reference::should_close() const&
 {
 	return glfwWindowShouldClose(window_ptr.get()) == GLFW_TRUE;
 }
+
+VkExtent2D obscure::vulkan::window_reference::get_native_resolution() const&
+{
+	int width, height;
+	glfwGetFramebufferSize(window_ptr.get(), &width, &height);
+
+	return VkExtent2D{ static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+}

@@ -9,6 +9,7 @@ namespace obscure
 		struct present_queue
 		{
 			VkQueue queue;
+			uint32_t queue_family_index;
 			present_queue();
 			present_queue(VkDevice device, uint32_t family_index);
 		};

@@ -14,6 +14,8 @@ namespace obscure
 		{
 			graphics_queue g_queue;
 			present_queue p_queue;
+			VkPhysicalDevice physical_device;
+			surface vk_surface;
 
 			device(VkPhysicalDevice device, surface surface);
 		};

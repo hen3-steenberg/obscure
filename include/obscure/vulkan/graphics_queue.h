@@ -9,6 +9,7 @@ namespace obscure
 		struct graphics_queue
 		{
 			VkQueue queue;
+			uint32_t queue_family_index;
 			graphics_queue();
 			graphics_queue(VkDevice device, uint32_t family_index);
 		};

@@ -1,5 +1,6 @@
 #include "obscure/vulkan/device_picker.h"
 #include "obscure/vulkan/templates.hpp"
+#include "obscure/vulkan/swap_chain_configuration.h"
 #include <system_error>
 
 bool is_equal(VkExtensionProperties p, const char* name)
@@ -7,8 +8,8 @@ bool is_equal(VkExtensionProperties p, const char* name)
 	return strcmp(p.extensionName, name) == 0;
 }
 
-obscure::vulkan::device_picker::device_picker(instance instance)
-	: vk_instance(instance)
+obscure::vulkan::device_picker::device_picker(instance instance, surface surface)
+	: vk_instance(instance), vk_surface(surface)
 {}
 
 std::vector<VkPhysicalDevice> obscure::vulkan::device_picker::load_devices()
@@ -58,6 +59,12 @@ float obscure::vulkan::device_picker::score_device(VkPhysicalDevice device, VkPh
 	{
 		return -1;
 	}
+	//needs the swap chain extension to work
+	else if (!swap_chain_configuration::make_configuration(device, vk_surface)->meets_swap_chain_requirements())
+	{
+		return -1;
+	}
+
 	//needs the geometry shader to work
 	else if (!device_features.geometryShader) {
 		return -1;

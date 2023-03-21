@@ -11,7 +11,8 @@ namespace obscure
 	{
 		struct surface : public reference<VkSurfaceKHR>
 		{
-			surface(instance instance, window_reference window);
+			window_reference window;
+			surface(instance instance, window_reference _window);
 		};
 	}
 }

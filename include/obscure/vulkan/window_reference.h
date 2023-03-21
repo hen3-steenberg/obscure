@@ -3,6 +3,7 @@
 
 #include "glfw_vulkan_include.h"
 #include <memory>
+#include <tuple>
 
 namespace obscure
 {
@@ -18,6 +19,8 @@ namespace obscure
 			void poll_events() const&;
 
 			bool should_close() const&;
+
+			VkExtent2D get_native_resolution() const&;
 		};
 	}
 }

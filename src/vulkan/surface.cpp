@@ -1,6 +1,7 @@
 #include "obscure/vulkan/surface.h"
 
-obscure::vulkan::surface::surface(instance instance, window_reference window)
+obscure::vulkan::surface::surface(instance instance, window_reference _window)
+	: window(_window)
 {
 	VkWin32SurfaceCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;

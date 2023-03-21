@@ -11,6 +11,9 @@ namespace obscure
 		struct swap_chain : public reference<VkSwapchainKHR>
 		{
 			std::vector<VkImage> swap_chain_images;
+			VkFormat image_format;
+			VkExtent2D extent;
+
 			swap_chain(device device);
 		};
 	}
