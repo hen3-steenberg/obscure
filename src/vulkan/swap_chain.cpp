@@ -34,4 +34,11 @@ obscure::vulkan::swap_chain::swap_chain(device device)
 		});
 
 	swap_chain_images = vulkan_load(device.get_handle(), swap_chain, vkGetSwapchainImagesKHR);
+
+	swap_chain_views.reserve(swap_chain_images.size());
+
+	for (auto image : swap_chain_images)
+	{
+		swap_chain_views.emplace_back(device, image, image_format);
+	}
 }
