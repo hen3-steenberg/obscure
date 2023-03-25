@@ -13,3 +13,8 @@ bool obscure::vulkan::vulkan_context::should_close() const noexcept
 {
 	return data->window.should_close();
 }
+
+obscure::vulkan::command_sequence obscure::vulkan::vulkan_context::get_next_frame_context()
+{
+	return obscure::vulkan::command_sequence(data.get());
+}

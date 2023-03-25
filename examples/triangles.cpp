@@ -11,9 +11,11 @@ struct triangles_app : obscure::application_2d
 		: obscure::application_2d(obscure::configuration::default_configuration(800, 800, "triangles", app_version))
 	{}
 
-	void loop(obscure::stopwatch::seconds elapsed_time)
+	void loop(obscure::vulkan::command_sequence draw_context, obscure::stopwatch::seconds elapsed_time)
 	{
-
+		draw_context.begin_rendering().draw_static_triangle().end_rendering();
+		draw_context.submit_commands();
+		draw_context.display();
 	}
 };
 

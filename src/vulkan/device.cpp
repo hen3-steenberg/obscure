@@ -46,3 +46,22 @@ VkDevice obscure::vulkan::device::get_handle() const noexcept
 {
 	return vk_device;
 }
+
+VkQueue obscure::vulkan::device::get_graphics_queue() const
+{
+	VkQueue result;
+	vkGetDeviceQueue(vk_device, graphics_queue_index, 0, &result);
+	return result;
+}
+
+VkQueue obscure::vulkan::device::get_present_queue() const
+{
+	VkQueue result;
+	vkGetDeviceQueue(vk_device, graphics_queue_index, 0, &result);
+	return result;
+}
+
+void obscure::vulkan::device::wait_for_idle()
+{
+	vkDeviceWaitIdle(vk_device);
+}

@@ -5,7 +5,7 @@ void obscure::application_2d::run()
 	stopwatch sw;
 	while (!do_exit)
 	{
-		loop(sw.lap_time());
+		loop(context.get_next_frame_context(), sw.lap_time());
 		context.poll_events();
 		if (context.should_close())
 		{

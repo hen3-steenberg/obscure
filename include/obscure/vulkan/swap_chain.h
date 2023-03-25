@@ -3,6 +3,7 @@
 
 #include "obscure/vulkan/frame_buffer.h"
 #include "obscure/vulkan/render_pass.h"
+#include "obscure/vulkan/semaphore.h"
 #include <vector>
 
 namespace obscure
@@ -23,7 +24,10 @@ namespace obscure
 			swap_chain(device device, VkSwapchainCreateInfoKHR create_info, VkAllocationCallbacks const* allocator = nullptr);
 
 			VkSwapchainKHR get_handle() const noexcept;
+			VkSwapchainKHR const* get_handle_address() const noexcept;
 			void free(device device, VkAllocationCallbacks const* allocator = nullptr) noexcept;
+
+			uint32_t get_next_image_index(device device, semaphore image_ready_signal);
 		};
 	}
 }

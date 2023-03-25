@@ -15,6 +15,13 @@ namespace obscure
 			device() noexcept;
 			device(VkPhysicalDevice device, surface surface, VkAllocationCallbacks const* allocator = nullptr);
 			VkDevice get_handle() const noexcept;
+
+			VkQueue get_graphics_queue() const;
+
+			VkQueue get_present_queue() const;
+
+			void wait_for_idle();
+
 			void free(VkAllocationCallbacks const* allocator = nullptr) noexcept;
 		};
 	}

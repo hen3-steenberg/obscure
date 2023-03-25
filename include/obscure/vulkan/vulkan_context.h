@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "obscure/vulkan/application_context.h"
+#include "obscure/vulkan/command_sequence.h"
 
 namespace obscure
 {
@@ -19,6 +20,8 @@ namespace obscure
 
 			void poll_events() const noexcept;
 			bool should_close() const noexcept;
+
+			vulkan::command_sequence get_next_frame_context();
 		};
 	}
 }

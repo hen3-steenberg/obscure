@@ -21,17 +21,41 @@ obscure::vulkan::application_context::application_context(obscure::configuration
 
 	device = vulkan::device(physical_device, surface);
 
+	graphics_queue = device.get_graphics_queue();
+
+	present_queue = device.get_present_queue();
+
+	draw_complete = vulkan::fence(device, true);
+
+	ready_to_draw = vulkan::semaphore(device);
+
+	ready_to_display = vulkan::semaphore(device);
+
 	swap_chain = vulkan::swap_chain(device, vulkan_config->configure_swap_chain());
 
 	pipelines = vulkan::pipeline_collection{ this };
+
+	graphics_command_pool = vulkan::command_pool(device, device.graphics_queue_index);
+
+	graphics_command_buffer = graphics_command_pool.allocate_primary_command_buffer(device);
 
 }
 
 obscure::vulkan::application_context::~application_context()
 {
+	device.wait_for_idle();
+
+	graphics_command_pool.free(device);
+
 	pipelines.free(device);
 
 	swap_chain.free(device);
+
+	ready_to_display.free(device);
+
+	ready_to_draw.free(device);
+
+	draw_complete.free();
 
 	device.free();
 

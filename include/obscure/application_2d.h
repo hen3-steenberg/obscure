@@ -6,6 +6,7 @@
 #include "obscure/vulkan/vulkan_context.h"
 #include "obscure/utilities/stopwatch.h"
 #include "obscure/configuration/configuration_container.hpp"
+#include "obscure/vulkan/command_sequence.h"
 
 namespace obscure
 {
@@ -20,7 +21,7 @@ namespace obscure
 			: context(config.get())
 		{}
 
-		virtual void loop(stopwatch::seconds elapsed_time) = 0;
+		virtual void loop(vulkan::command_sequence draw_context, stopwatch::seconds elapsed_time) = 0;
 		void run();
 
 		void exit() noexcept;

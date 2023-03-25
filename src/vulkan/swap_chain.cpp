@@ -20,6 +20,16 @@ obscure::vulkan::render_pass create_render_pass(obscure::vulkan::device dev, VkF
 	colorAttachmentRef.attachment = 0;
 	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+	VkSubpassDependency dependency{};
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0;
+
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask = 0;
+
+	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 	VkSubpassDescription subpass{};
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
@@ -34,6 +44,9 @@ obscure::vulkan::render_pass create_render_pass(obscure::vulkan::device dev, VkF
 	create_info.pAttachments = &colorAttachment;
 	create_info.subpassCount = 1;
 	create_info.pSubpasses = &subpass;
+
+	create_info.dependencyCount = 1;
+	create_info.pDependencies = &dependency;
 
 	return obscure::vulkan::render_pass(dev, create_info, allocator);
 }
@@ -71,6 +84,11 @@ VkSwapchainKHR obscure::vulkan::swap_chain::get_handle() const noexcept
 	return vk_swap_chain;
 }
 
+VkSwapchainKHR const* obscure::vulkan::swap_chain::get_handle_address() const noexcept
+{
+	return &vk_swap_chain;
+}
+
 void obscure::vulkan::swap_chain::free(device device, VkAllocationCallbacks const* allocator) noexcept
 {
 
@@ -87,4 +105,11 @@ void obscure::vulkan::swap_chain::free(device device, VkAllocationCallbacks cons
 	render_pass.free(device, allocator);
 
 	vkDestroySwapchainKHR(device.get_handle(), vk_swap_chain, allocator);
+}
+
+uint32_t obscure::vulkan::swap_chain::get_next_image_index(device device, semaphore image_ready_signal)
+{
+	uint32_t imageIndex;
+	vkAcquireNextImageKHR(device.get_handle(), vk_swap_chain, UINT64_MAX, image_ready_signal.get_handle(), VK_NULL_HANDLE, &imageIndex);
+	return imageIndex;
 }

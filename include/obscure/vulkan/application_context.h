@@ -8,6 +8,8 @@
 #include "obscure/vulkan/swap_chain.h"
 #include "obscure/vulkan/pipeline_collection.h"
 #include "obscure/vulkan/logger_collection.h"
+#include "obscure/vulkan/command_pool.h"
+#include "obscure/vulkan/fence.h"
 
 namespace obscure
 {
@@ -29,8 +31,15 @@ namespace obscure
 			vulkan::surface surface;
 			VkPhysicalDevice physical_device;
 			vulkan::device device;
+			VkQueue graphics_queue;
+			VkQueue present_queue;
 			vulkan::swap_chain swap_chain;
 			vulkan::pipeline_collection pipelines;			
+			vulkan::command_pool graphics_command_pool;
+			VkCommandBuffer graphics_command_buffer;
+			vulkan::fence draw_complete;
+			semaphore ready_to_draw;
+			semaphore ready_to_display;
 
 			application_context(obscure::configuration::configuration_provider* configuration);
 
