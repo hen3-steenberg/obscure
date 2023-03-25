@@ -1,6 +1,6 @@
 #ifndef PRESENT_QUEUE_DEFINITION
 #define PRESENT_QUEUE_DEFINITION 1
-#include "glfw_vulkan_include.h"
+#include "obscure/vulkan/glfw_vulkan_include.h"
 
 namespace obscure
 {

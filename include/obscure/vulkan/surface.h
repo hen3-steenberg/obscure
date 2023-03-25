@@ -1,18 +1,20 @@
 #ifndef OBSCURE_VULKAN_SURFACE_DEFINITION
 #define OBSCURE_VULKAN_SURFACE_DEFINITION 1
 
-#include "reference.hpp"
-#include "instance.h"
-#include "window_reference.h"
+#include "obscure/vulkan/instance.h"
+#include "obscure/vulkan/window.h"
 
 namespace obscure
 {
 	namespace vulkan
 	{
-		struct surface : public reference<VkSurfaceKHR>
+		struct surface
 		{
-			window_reference window;
-			surface(instance instance, window_reference _window);
+			VkSurfaceKHR vk_surface;
+			surface() noexcept;
+			surface(instance instance, glfw_window _window, VkAllocationCallbacks const* allocator = nullptr);
+			VkSurfaceKHR get_handle() const noexcept;
+			void free(instance inst, VkAllocationCallbacks const* allocator = nullptr) noexcept;
 		};
 	}
 }

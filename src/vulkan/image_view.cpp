@@ -1,6 +1,10 @@
 #include "obscure/vulkan/image_view.h"
 
-obscure::vulkan::image_view::image_view(device _device, VkImage image, VkFormat image_format)
+obscure::vulkan::image_view::image_view() noexcept
+	: vk_image_view(VK_NULL_HANDLE)
+{}
+
+obscure::vulkan::image_view::image_view(device _device, VkImage image, VkFormat image_format, VkAllocationCallbacks const* allocator)
 {
 	VkImageViewCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -21,12 +25,17 @@ obscure::vulkan::image_view::image_view(device _device, VkImage image, VkFormat 
 	createInfo.subresourceRange.baseArrayLayer = 0;
 	createInfo.subresourceRange.layerCount = 1;
 
-	VkImageView view;
+	vkCreateImageView(_device.get_handle(), &createInfo, allocator, &vk_image_view);
 
-	vkCreateImageView(_device.get_handle(), &createInfo, nullptr, &view);
 
-	set_value(view, [_device](VkImageView image_v)
-		{
-			vkDestroyImageView(_device.get_handle(), image_v, nullptr);
-		});
+}
+
+void obscure::vulkan::image_view::free(device _device, VkAllocationCallbacks const* allocator) noexcept
+{
+	vkDestroyImageView(_device.get_handle(), vk_image_view, allocator);
+}
+
+VkImageView obscure::vulkan::image_view::get_handle() const noexcept
+{
+	return vk_image_view;
 }

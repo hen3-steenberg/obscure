@@ -1,7 +1,7 @@
 #ifndef OBSCURE_VULKAN_TEMPLATE_DEFINITION
 #define OBSCURE_VULKAN_TEMPLATE_DEFINITION 1
 #include <vector>
-#include "glfw_vulkan_include.h"
+#include "obscure/vulkan/glfw_vulkan_include.h"
 namespace obscure
 {
 	namespace vulkan

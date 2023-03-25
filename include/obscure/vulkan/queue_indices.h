@@ -1,7 +1,7 @@
 #ifndef OBSCURE_VULKAN_QUEUE_INDICES_DEFINITION
 #define OBSCURE_VULKAN_QUEUE_INDICES_DEFINITION 1
 
-#include "surface.h"
+#include "obscure/vulkan/surface.h"
 #include <vector>
 namespace obscure
 {

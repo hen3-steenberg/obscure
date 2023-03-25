@@ -4,3 +4,5 @@
 
 /.vs
 /out/build/x64-debug
+/dummy_include/GLFW
+/src/preprocess.txt

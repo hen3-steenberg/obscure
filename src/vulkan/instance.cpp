@@ -5,14 +5,6 @@
 #include "obscure/vulkan/glfw_api_context.h"
 #include "obscure/vulkan/instance.h"
 
-void free_instance(VkInstance instance)
-{
-	if (instance)
-	{
-		vkDestroyInstance(instance, nullptr);
-	}
-}
-
 std::vector<const char*> LoadLayers()
 {
 	const std::array<const char*, 1> requested_layers = { "VK_LAYER_KHRONOS_validation" };
@@ -55,7 +47,11 @@ std::span<const char*> obscure::vulkan::instance::GetRequiredDeviceExtensions()
 	return std::span<const char*>(extensions.data(), 1);
 }
 
-obscure::vulkan::instance::instance(const char* AppName, version AppVersion)
+obscure::vulkan::instance::instance() noexcept
+	: vk_instance(VK_NULL_HANDLE)
+{}
+
+obscure::vulkan::instance::instance(const char* AppName, version AppVersion, VkAllocationCallbacks const* allocator)
 {
 	constexpr const uint32_t obscure_ver = obscure::obscure_version().get_version();
 	VkApplicationInfo appInfo;
@@ -81,16 +77,18 @@ obscure::vulkan::instance::instance(const char* AppName, version AppVersion)
 	auto extensions = glfw_api_contex::GetRequiredInstanceExtensions();
 	createInfo.enabledExtensionCount = extensions.size();
 	createInfo.ppEnabledExtensionNames = extensions.data();
-	VkInstance instance;
 
-	VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+	VkResult result = vkCreateInstance(&createInfo, allocator, &vk_instance);
 	if (result != VK_SUCCESS)
 		throw result;
+}
 
-	std::shared_ptr<VkInstance_T>::reset(instance, free_instance);
+void obscure::vulkan::instance::free(VkAllocationCallbacks const* allocator) noexcept
+{
+	vkDestroyInstance(vk_instance, allocator);
 }
 
 VkInstance obscure::vulkan::instance::get_instance() const noexcept
 {
-	return get();
+	return vk_instance;
 }

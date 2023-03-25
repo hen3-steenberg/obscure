@@ -1,23 +1,21 @@
 #ifndef OBSCURE_VULKAN_DEVICE_DEFINITION
 #define OBSCURE_VULKAN_DEVICE_DEFINITION 1
 
-#include "surface.h"
-#include "reference.hpp"
-#include "graphics_queue.h"
-#include "present_queue.h"
+#include "obscure/vulkan/surface.h"
 
 namespace obscure
 {
 	namespace vulkan
 	{
-		struct device : public reference<VkDevice>
+		struct device
 		{
-			graphics_queue g_queue;
-			present_queue p_queue;
-			VkPhysicalDevice physical_device;
-			surface vk_surface;
-
-			device(VkPhysicalDevice device, surface surface);
+			VkDevice vk_device;
+			uint32_t graphics_queue_index;
+			uint32_t present_queue_index;
+			device() noexcept;
+			device(VkPhysicalDevice device, surface surface, VkAllocationCallbacks const* allocator = nullptr);
+			VkDevice get_handle() const noexcept;
+			void free(VkAllocationCallbacks const* allocator = nullptr) noexcept;
 		};
 	}
 }

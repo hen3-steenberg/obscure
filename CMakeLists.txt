@@ -11,7 +11,7 @@ if(DEFINED ENV{VCPKG_PATH})
 endif()
 
 project ("obscure")
-
+add_subdirectory("resources")
 include_directories("include")
 add_subdirectory("src")
 add_subdirectory("examples")

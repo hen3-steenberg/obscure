@@ -41,6 +41,27 @@ VkPhysicalDevice obscure::vulkan::device_picker::pick_device()
 	else throw std::errc::no_such_device;
 }
 
+bool obscure::vulkan::device_picker::meets_minimum_requirements(VkPhysicalDevice device, VkPhysicalDeviceFeatures device_features, VkPhysicalDeviceProperties device_properties)
+{
+
+	uint32_t count = 0;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, vk_surface.get_handle(), &count, nullptr);
+	if (count)
+	{
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, vk_surface.get_handle(), &count, nullptr);
+	}
+	
+	if (count)
+	{
+
+		std::vector<VkExtensionProperties> availableExtensions = vulkan_load_data<VkExtensionProperties, VkResult, VkPhysicalDevice, const char*>(device, nullptr, vkEnumerateDeviceExtensionProperties);
+
+		return contains_all(availableExtensions, instance::GetRequiredDeviceExtensions(), is_equal) && device_features.geometryShader;
+	}
+	else return false;
+
+}
+
 float obscure::vulkan::device_picker::score_device(VkPhysicalDevice device, VkPhysicalDeviceFeatures device_features, VkPhysicalDeviceProperties device_properties)
 {
 	float score = 0.0f;
@@ -52,22 +73,6 @@ float obscure::vulkan::device_picker::score_device(VkPhysicalDevice device, VkPh
 
 	//larger images is better
 	score += device_properties.limits.maxImageDimension2D;
-
-	std::vector<VkExtensionProperties> availableExtensions = vulkan_load_data<VkExtensionProperties, VkResult, VkPhysicalDevice, const char*>(device, nullptr, vkEnumerateDeviceExtensionProperties);
-	//needs the swap chain extension to work
-	if (!contains_all(availableExtensions, instance::GetRequiredDeviceExtensions(), is_equal))
-	{
-		return -1;
-	}
-	//needs the swap chain extension to work
-	else if (!swap_chain_configuration::make_configuration(device, vk_surface)->meets_swap_chain_requirements())
-	{
-		return -1;
-	}
-
-	//needs the geometry shader to work
-	else if (!device_features.geometryShader) {
-		return -1;
-	}
-	else return score;
+	
+	return score;
 }

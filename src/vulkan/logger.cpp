@@ -47,13 +47,24 @@ VkDebugUtilsMessengerEXT CreateUtilsMessenger(obscure::vulkan::instance instance
 	return logMessenger;
 }
 
-obscure::vulkan::logger::logger(obscure::vulkan::instance instance, VkDebugUtilsMessageSeverityFlagBitsEXT acceptedSeverity, VkDebugUtilsMessageTypeFlagsEXT acceptedMessageTypes)
+obscure::vulkan::logger::logger(obscure::vulkan::instance instance, VkDebugUtilsMessageSeverityFlagBitsEXT acceptedSeverity, VkDebugUtilsMessageTypeFlagsEXT acceptedMessageTypes, VkAllocationCallbacks const* allocator)
 {
-	obscure::vulkan::reference<VkDebugUtilsMessengerEXT>::set_value(CreateUtilsMessenger(instance, acceptedSeverity, acceptedMessageTypes, this), 
-		[instance](VkDebugUtilsMessengerEXT logger) 
-		{
-			DestroyDebugUtilsMessengerEXT(instance.get_instance(), logger, nullptr); 
-		});
+	VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	createInfo.pNext = nullptr;
+	createInfo.messageSeverity = acceptedSeverity;
+	createInfo.messageType = acceptedMessageTypes;
+	createInfo.pfnUserCallback = debugCallback;
+	createInfo.pUserData = this;
+
+
+	VkResult Err = CreateDebugUtilsMessengerEXT(instance.get_instance(), &createInfo, allocator, &vk_logger);
+	if (Err != VK_SUCCESS) throw Err;
+}
+
+void obscure::vulkan::logger::free(instance instance, VkAllocationCallbacks const* allocator) noexcept
+{
+	DestroyDebugUtilsMessengerEXT(instance.get_instance(), vk_logger, allocator);
 }
 
 const char* obscure::vulkan::logger::severity_text(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity) noexcept
@@ -102,12 +113,12 @@ static const auto messageTypes = static_cast<VkDebugUtilsMessageTypeFlagsEXT>(
 	VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
 	VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT);
 
-obscure::vulkan::verbose_logger::verbose_logger(instance instance)
-	: logger(instance, severity, messageTypes)
+obscure::vulkan::verbose_logger::verbose_logger(instance instance, VkAllocationCallbacks const* allocator)
+	: logger(instance, severity, messageTypes, allocator)
 {}
 
-obscure::vulkan::verbose_console_logger::verbose_console_logger(instance instance)
-: verbose_logger(instance)
+obscure::vulkan::verbose_console_logger::verbose_console_logger(instance instance, VkAllocationCallbacks const* allocator)
+: verbose_logger(instance, allocator)
 {}
 
 VKAPI_ATTR VkBool32 VKAPI_CALL obscure::vulkan::verbose_console_logger::LogEvent(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData)
@@ -137,8 +148,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL obscure::vulkan::verbose_console_logger::LogEvent
 	return VK_FALSE;
 }
 
-obscure::vulkan::verbose_csv_logger::verbose_csv_logger(instance instance, const char* fileName)
-: verbose_logger(instance), csv_file(fileName)
+obscure::vulkan::verbose_csv_logger::verbose_csv_logger(instance instance, const char* fileName, VkAllocationCallbacks const* allocator)
+: verbose_logger(instance, allocator), csv_file(fileName)
 {}
 
 VKAPI_ATTR VkBool32 VKAPI_CALL obscure::vulkan::verbose_csv_logger::LogEvent(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData)
@@ -147,4 +158,10 @@ VKAPI_ATTR VkBool32 VKAPI_CALL obscure::vulkan::verbose_csv_logger::LogEvent(VkD
 	csv_file.flush();
 
 	return VK_FALSE;
+}
+
+void obscure::vulkan::verbose_csv_logger::free(instance instance, VkAllocationCallbacks const* allocator) noexcept
+{
+	obscure::vulkan::logger::free(instance, allocator);
+	csv_file.close();
 }

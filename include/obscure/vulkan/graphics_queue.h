@@ -1,6 +1,6 @@
 #ifndef OBSCURE_VULKAN_GRAPHICS_QUEUE_DEFINITION
 #define OBSCURE_VULKAN_GRAPHICS_QUEUE_DEFINITION 1
-#include "glfw_vulkan_include.h"
+#include "obscure/vulkan/glfw_vulkan_include.h"
 
 namespace obscure
 {

@@ -1,13 +1,11 @@
 #include "obscure/vulkan/device.h"
 #include "obscure/vulkan/queue_indices.h"
 
-void free_device(VkDevice device)
-{
-	vkDestroyDevice(device, nullptr);
-}
+obscure::vulkan::device::device() noexcept
+	: vk_device(VK_NULL_HANDLE), graphics_queue_index(-1), present_queue_index(-1)
+{}
 
-obscure::vulkan::device::device(VkPhysicalDevice device, surface surface)
-	: physical_device(device), vk_surface(surface)
+obscure::vulkan::device::device(VkPhysicalDevice device, surface surface, VkAllocationCallbacks const* allocator)
 {
 
 	VkPhysicalDeviceFeatures deviceFeatures{};
@@ -32,13 +30,19 @@ obscure::vulkan::device::device(VkPhysicalDevice device, surface surface)
 	createInfo.ppEnabledExtensionNames = extensions.data();
 	createInfo.enabledExtensionCount = extensions.size();
 
-	VkDevice logical_device;
-
-	VkResult Err = vkCreateDevice(device, &createInfo, nullptr, &logical_device);
+	VkResult Err = vkCreateDevice(device, &createInfo, allocator, &vk_device);
 	if (Err != VK_SUCCESS) throw Err;
 
-	set_value(logical_device, free_device);
+	graphics_queue_index = queue_info.graphics_index;
+	present_queue_index = queue_info.present_index;
+}
 
-	g_queue = graphics_queue(logical_device, queue_info.graphics_index);
-	p_queue = present_queue(logical_device, queue_info.present_index);
+void obscure::vulkan::device::free(VkAllocationCallbacks const* allocator) noexcept
+{
+	vkDestroyDevice(vk_device, allocator);
+}
+
+VkDevice obscure::vulkan::device::get_handle() const noexcept
+{
+	return vk_device;
 }

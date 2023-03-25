@@ -1,19 +1,19 @@
 #ifndef OBSCURE_VULKAN_SWAP_CHAIN_CONFIGURATION_DEFINITION
 #define OBSCURE_VULKAN_SWAP_CHAIN_CONFIGURATION_DEFINITION 1
-#include "surface.h"
+#include "obscure/vulkan/glfw_vulkan_include.h"
 #include <vector>
 #include <memory>
 namespace obscure
 {
 	namespace vulkan
 	{
+		struct application_context;
+
 		struct swap_chain_configuration
 		{
-			VkPhysicalDevice device;
-			surface vk_surface;
+			application_context const* ctx;
 			VkSurfaceCapabilitiesKHR surface_capabilities;
-
-			swap_chain_configuration(VkPhysicalDevice _device, surface _surface);
+			swap_chain_configuration(application_context const * context);
 
 			virtual VkSurfaceFormatKHR format();
 
@@ -23,11 +23,7 @@ namespace obscure
 
 			virtual uint32_t image_count();
 
-			virtual bool meets_swap_chain_requirements();
-
-			virtual VkSwapchainCreateInfoKHR parse_configuration(std::vector<uint32_t> const& queue_indices);
-
-			static std::unique_ptr<swap_chain_configuration> make_configuration(VkPhysicalDevice _device, surface _surface);
+			virtual VkSwapchainCreateInfoKHR parse_configuration();
 		};
 	}
 }

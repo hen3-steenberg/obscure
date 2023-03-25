@@ -1,6 +1,8 @@
 #ifndef OBSCURE_VERSION_DEFINITION
 #define OBSCURE_VERSION_DEFINITION 1
 #include <cstdint>
+#include <bit>
+#include <type_traits>
 namespace obscure
 {
 	struct version

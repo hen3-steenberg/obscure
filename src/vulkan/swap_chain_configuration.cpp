@@ -1,35 +1,19 @@
 #include "obscure/vulkan/swap_chain_configuration.h"
+#include "obscure/vulkan/application_context.h"
 #include "obscure/vulkan/templates.hpp"
 #include <vector>
 #include <limits>
 #include <algorithm>
 
-obscure::vulkan::swap_chain_configuration::swap_chain_configuration(VkPhysicalDevice _device, obscure::vulkan::surface _surface)
-	: device(_device), vk_surface(_surface)
+obscure::vulkan::swap_chain_configuration::swap_chain_configuration(application_context const* context)
+	: ctx(context)
 {
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_device, _surface.get_handle(), &surface_capabilities);
-}
-
-std::unique_ptr<obscure::vulkan::swap_chain_configuration> obscure::vulkan::swap_chain_configuration::make_configuration(VkPhysicalDevice _device, obscure::vulkan::surface _surface)
-{
-	return std::make_unique<obscure::vulkan::swap_chain_configuration>(_device, _surface);
-}
-
-
-bool obscure::vulkan::swap_chain_configuration::meets_swap_chain_requirements()
-{
-	uint32_t count = 0;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(device, vk_surface.get_handle(), &count, nullptr);
-	if (count)
-	{
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, vk_surface.get_handle(), &count, nullptr);
-	}
-	return count != 0;
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ctx->physical_device, ctx->surface.get_handle(), &surface_capabilities);
 }
 
 VkSurfaceFormatKHR obscure::vulkan::swap_chain_configuration::format()
 {
-	std::vector<VkSurfaceFormatKHR> formats = obscure::vulkan::vulkan_load(device, vk_surface.get_handle(), vkGetPhysicalDeviceSurfaceFormatsKHR);
+	std::vector<VkSurfaceFormatKHR> formats = obscure::vulkan::vulkan_load(ctx->physical_device, ctx->surface.get_handle(), vkGetPhysicalDeviceSurfaceFormatsKHR);
 	for (const auto& availableFormat : formats)
 	{
 		if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
@@ -42,7 +26,7 @@ VkSurfaceFormatKHR obscure::vulkan::swap_chain_configuration::format()
 
 VkPresentModeKHR obscure::vulkan::swap_chain_configuration::present_mode()
 {
-	std::vector<VkPresentModeKHR> present_modes = obscure::vulkan::vulkan_load(device, vk_surface.get_handle(), vkGetPhysicalDeviceSurfacePresentModesKHR);
+	std::vector<VkPresentModeKHR> present_modes = obscure::vulkan::vulkan_load(ctx->physical_device, ctx->surface.get_handle(), vkGetPhysicalDeviceSurfacePresentModesKHR);
 	for (const auto& availablePresentMode : present_modes)
 	{
 		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
@@ -60,7 +44,7 @@ VkExtent2D obscure::vulkan::swap_chain_configuration::extent()
 		return surface_capabilities.currentExtent;
 	}
 	else {
-		VkExtent2D result = vk_surface.window.get_native_resolution();
+		VkExtent2D result = ctx->window.get_native_resolution();
 
 		result.width = std::clamp(result.width, surface_capabilities.minImageExtent.width, surface_capabilities.maxImageExtent.width);
 		result.height = std::clamp(result.height, surface_capabilities.minImageExtent.height, surface_capabilities.maxImageExtent.height);
@@ -79,14 +63,19 @@ uint32_t obscure::vulkan::swap_chain_configuration::image_count()
 	else return result;
 }
 
-VkSwapchainCreateInfoKHR obscure::vulkan::swap_chain_configuration::parse_configuration(std::vector<uint32_t> const& queue_indices)
+VkSwapchainCreateInfoKHR obscure::vulkan::swap_chain_configuration::parse_configuration()
 {
-	VkSwapchainCreateInfoKHR result;
+	uint32_t queue_index_count = 1;
+	uint32_t queue_indices[2] = { ctx->device.graphics_queue_index , ctx->device.present_queue_index };
+
+	if (queue_indices[0] != queue_indices[1]) queue_index_count = 2;
+
+	VkSwapchainCreateInfoKHR result{};
 	result.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	result.pNext = nullptr;
 	result.flags = 0;
 
-	result.surface = vk_surface.get_handle();
+	result.surface = ctx->surface.get_handle();
 
 	result.minImageCount = image_count();
 
@@ -112,17 +101,17 @@ VkSwapchainCreateInfoKHR obscure::vulkan::swap_chain_configuration::parse_config
 
 	
 
-	if (queue_indices.size() <= 1)
+	if (queue_index_count <= 1)
 	{
 		result.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		result.queueFamilyIndexCount = 0; // Optional
 		result.pQueueFamilyIndices = nullptr; // Optional
 	}
-	else if (queue_indices.size() > 1)
+	else if (queue_index_count > 1)
 	{
 		result.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-		result.queueFamilyIndexCount = queue_indices.size();
-		result.pQueueFamilyIndices = queue_indices.data();
+		result.queueFamilyIndexCount = queue_index_count;
+		result.pQueueFamilyIndices = queue_indices;
 	}
 
 	

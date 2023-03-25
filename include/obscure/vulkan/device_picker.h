@@ -1,7 +1,7 @@
 #ifndef OBSCURE_VULKAN_DEVICE_PICKER_DEFINITION
 #define OBSCURE_VULKAN_DEVICE_PICKER_DEFINITION 1
 
-#include "surface.h"
+#include "obscure/vulkan/surface.h"
 #include <vector>
 
 
@@ -20,6 +20,8 @@ namespace obscure
 			virtual std::vector<VkPhysicalDevice> load_devices();
 
 			VkPhysicalDevice pick_device();
+
+			virtual bool meets_minimum_requirements(VkPhysicalDevice device, VkPhysicalDeviceFeatures device_features, VkPhysicalDeviceProperties device_properties);
 
 			virtual float score_device(VkPhysicalDevice device, VkPhysicalDeviceFeatures device_features, VkPhysicalDeviceProperties device_properties);
 		};

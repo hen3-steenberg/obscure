@@ -1,39 +1,21 @@
 #include "obscure/vulkan/swap_chain.h"
 #include "obscure/vulkan/templates.hpp"
-#include "obscure/vulkan/templates.hpp"
-#include "obscure/vulkan/swap_chain_configuration.h"
+
+ 
+obscure::vulkan::swap_chain::swap_chain() noexcept
+	: vk_swap_chain(VK_NULL_HANDLE), swap_chain_images(), swap_chain_views(), image_format(VK_FORMAT_B8G8R8A8_SRGB), extent()
+{}
 
 
-
-
-
-obscure::vulkan::swap_chain::swap_chain(device device)
+obscure::vulkan::swap_chain::swap_chain(device device, VkSwapchainCreateInfoKHR create_info, VkAllocationCallbacks const* allocator)
 {
-	std::unique_ptr<swap_chain_configuration> configuration = swap_chain_configuration::make_configuration(device.physical_device, device.vk_surface);
+	image_format = create_info.imageFormat;
+	extent = create_info.imageExtent;
 
-	std::vector<uint32_t> queue_families;
-	queue_families.reserve(2);
-	queue_families.push_back(device.g_queue.queue_family_index);
-	if (device.g_queue.queue_family_index != device.p_queue.queue_family_index)
-	{
-		queue_families.push_back(device.p_queue.queue_family_index);
-	}
-
-	VkSwapchainCreateInfoKHR createInfo = configuration->parse_configuration(queue_families);
-
-	image_format = createInfo.imageFormat;
-	extent = createInfo.imageExtent;
-
-	VkSwapchainKHR swap_chain;
-	VkResult Err = vkCreateSwapchainKHR(device.get_handle(), &createInfo, nullptr, &swap_chain);
+	VkResult Err = vkCreateSwapchainKHR(device.get_handle(), &create_info, nullptr, &vk_swap_chain);
 	if (Err != VK_SUCCESS) throw Err;
 
-	set_value(swap_chain, [device](VkSwapchainKHR swap)
-		{
-			vkDestroySwapchainKHR(device.get_handle(), swap, nullptr);
-		});
-
-	swap_chain_images = vulkan_load(device.get_handle(), swap_chain, vkGetSwapchainImagesKHR);
+	swap_chain_images = vulkan_load(device.get_handle(), vk_swap_chain, vkGetSwapchainImagesKHR);
 
 	swap_chain_views.reserve(swap_chain_images.size());
 
@@ -41,4 +23,20 @@ obscure::vulkan::swap_chain::swap_chain(device device)
 	{
 		swap_chain_views.emplace_back(device, image, image_format);
 	}
+}
+
+VkSwapchainKHR obscure::vulkan::swap_chain::get_handle() const noexcept
+{
+	return vk_swap_chain;
+}
+
+void obscure::vulkan::swap_chain::free(device device, VkAllocationCallbacks const* allocator) noexcept
+{
+
+	for (auto image_view : swap_chain_views)
+	{
+		image_view.free(device, allocator);
+	}
+
+	vkDestroySwapchainKHR(device.get_handle(), vk_swap_chain, allocator);
 }

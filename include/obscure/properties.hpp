@@ -8,7 +8,7 @@
 
 #ifndef OBSCURE_PROPERTIES_DEFINITION
 #define OBSCURE_PROPERTIES 1
-#include "utilities/version.hpp"
+#include "obscure/utilities/version.hpp"
 
 namespace obscure
 {
