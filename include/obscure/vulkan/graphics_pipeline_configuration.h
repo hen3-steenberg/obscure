@@ -13,8 +13,6 @@ namespace obscure
 		struct graphics_pipeline_configuration
 		{
 			virtual pipeline_layout layout() = 0;
-			virtual render_pass render_pass() = 0;
-
 
 			virtual std::span<VkPipelineShaderStageCreateInfo> shader_stages() = 0;
 			virtual VkPipelineDynamicStateCreateInfo* dynamic_state() = 0;
@@ -26,7 +24,7 @@ namespace obscure
 			virtual VkPipelineColorBlendStateCreateInfo* color_blend_state() = 0;
 			virtual VkPipelineDepthStencilStateCreateInfo* depth_stencil_state() = 0;
 			
-			VkGraphicsPipelineCreateInfo parse_configuration();
+			VkGraphicsPipelineCreateInfo parse_configuration(render_pass pass);
 		};
 	}
 }

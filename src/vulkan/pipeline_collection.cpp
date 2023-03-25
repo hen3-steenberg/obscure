@@ -32,8 +32,6 @@ struct static_triangle_configuration : obscure::vulkan::graphics_pipeline_config
 
 	obscure::vulkan::pipeline_layout _layout;
 
-	obscure::vulkan::render_pass _render_pass;
-
 	obscure::vulkan::pipeline_layout layout()
 	{
 		if (_layout.get_handle() == VK_NULL_HANDLE)
@@ -50,47 +48,6 @@ struct static_triangle_configuration : obscure::vulkan::graphics_pipeline_config
 			_layout = obscure::vulkan::pipeline_layout(ctx->device, create_info, allocator);
 		}
 		return _layout;
-	}
-
-	obscure::vulkan::render_pass render_pass()
-	{
-		if (_render_pass.get_handle() == VK_NULL_HANDLE)
-		{
-			VkAttachmentDescription colorAttachment{};
-			colorAttachment.format = ctx->swap_chain.image_format;
-			colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-
-			colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-			colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-			colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-			VkAttachmentReference colorAttachmentRef{};
-			colorAttachmentRef.attachment = 0;
-			colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-			VkSubpassDescription subpass{};
-			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-
-			subpass.colorAttachmentCount = 1;
-			subpass.pColorAttachments = &colorAttachmentRef;
-
-			VkRenderPassCreateInfo create_info{};
-
-			create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-			create_info.pNext = nullptr;
-			create_info.attachmentCount = 1;
-			create_info.pAttachments = &colorAttachment;
-			create_info.subpassCount = 1;
-			create_info.pSubpasses = &subpass;
-
-			_render_pass = obscure::vulkan::render_pass(ctx->device, create_info, allocator);
-		}
-		return _render_pass;
 	}
 
 	std::span<VkPipelineShaderStageCreateInfo> shader_stages()
@@ -232,9 +189,11 @@ struct static_triangle_configuration : obscure::vulkan::graphics_pipeline_config
 	}
 };
 
+
+
 obscure::vulkan::pipeline_collection::pipeline_collection()
 	: static_triangle_vertex(), static_triangle_fragment(),
-	static_triangle_layout(), static_triangle_render_pass(),
+	static_triangle_layout(),
 	static_triangle_pipeline(VK_NULL_HANDLE)
 {}
 
@@ -246,17 +205,16 @@ obscure::vulkan::pipeline_collection::pipeline_collection(application_context co
 
 	static_triangle_layout = static_triangle_config.layout();
 
-	static_triangle_render_pass = static_triangle_config.render_pass();
-
-	std::array<VkGraphicsPipelineCreateInfo, 1> pipeline_create_infos = { static_triangle_config.parse_configuration() };
+	std::array<VkGraphicsPipelineCreateInfo, 1> pipeline_create_infos = { static_triangle_config.parse_configuration(context->swap_chain.render_pass) };
 	
 	vkCreateGraphicsPipelines(context->device.get_handle(), VK_NULL_HANDLE, static_cast<uint32_t>(pipeline_create_infos.size()), pipeline_create_infos.data(), allocator, pipelines);
+
+
 }
 
 void obscure::vulkan::pipeline_collection::free(device device, VkAllocationCallbacks const* allocator) noexcept
 {
 	vkDestroyPipeline(device.get_handle(), static_triangle_pipeline, allocator);
-	static_triangle_render_pass.free(device, allocator);
 	static_triangle_layout.free(device, allocator);
 	static_triangle_fragment.free(device, allocator);
 	static_triangle_vertex.free(device, allocator);

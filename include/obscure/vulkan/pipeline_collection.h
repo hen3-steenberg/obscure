@@ -3,6 +3,8 @@
 #include "obscure/vulkan/shader_module.h"
 #include "obscure/vulkan/pipeline_layout.h"
 #include "obscure/vulkan/render_pass.h"
+#include "obscure/vulkan/frame_buffer.h"
+#include <vector>
 
 namespace obscure
 {
@@ -15,8 +17,6 @@ namespace obscure
 			shader_module static_triangle_vertex;
 			shader_module static_triangle_fragment;
 			pipeline_layout static_triangle_layout;
-			render_pass static_triangle_render_pass;
-
 
 
 			union

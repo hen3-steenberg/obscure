@@ -1,7 +1,8 @@
 #ifndef OBSCURE_VULKAN_SWAP_CHAIN_DEFINITION
 #define OBSCURE_VULKAN_SWAP_CHAIN_DEFINITION 1
 
-#include "obscure/vulkan/image_view.h"
+#include "obscure/vulkan/frame_buffer.h"
+#include "obscure/vulkan/render_pass.h"
 #include <vector>
 
 namespace obscure
@@ -11,10 +12,13 @@ namespace obscure
 		struct swap_chain
 		{
 			VkSwapchainKHR vk_swap_chain;
-			std::vector<VkImage> swap_chain_images;
-			std::vector<image_view> swap_chain_views;
 			VkFormat image_format;
 			VkExtent2D extent;
+			render_pass render_pass;
+			std::vector<VkImage> swap_chain_images;
+			std::vector<image_view> swap_chain_views;
+			std::vector<frame_buffer> frame_buffers;
+			
 			swap_chain() noexcept;
 			swap_chain(device device, VkSwapchainCreateInfoKHR create_info, VkAllocationCallbacks const* allocator = nullptr);
 

@@ -11,6 +11,7 @@ namespace obscure
 			image_view() noexcept;
 			image_view(device _device, VkImage image, VkFormat image_format, VkAllocationCallbacks const* allocator = nullptr);
 			VkImageView get_handle() const noexcept;
+			VkImageView const* get_handle_address() const noexcept;
 			void free(device _device, VkAllocationCallbacks const* allocator = nullptr) noexcept;
 		};
 	}

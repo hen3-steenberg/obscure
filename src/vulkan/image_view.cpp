@@ -39,3 +39,8 @@ VkImageView obscure::vulkan::image_view::get_handle() const noexcept
 {
 	return vk_image_view;
 }
+
+VkImageView const* obscure::vulkan::image_view::get_handle_address() const noexcept
+{
+	return &vk_image_view;
+}

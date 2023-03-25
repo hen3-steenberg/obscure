@@ -1,6 +1,6 @@
 #include "obscure/vulkan/graphics_pipeline_configuration.h"
 
-VkGraphicsPipelineCreateInfo obscure::vulkan::graphics_pipeline_configuration::parse_configuration()
+VkGraphicsPipelineCreateInfo obscure::vulkan::graphics_pipeline_configuration::parse_configuration(render_pass pass)
 {
 	VkGraphicsPipelineCreateInfo result{};
 	result.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -22,7 +22,7 @@ VkGraphicsPipelineCreateInfo obscure::vulkan::graphics_pipeline_configuration::p
 	 
 	result.layout = layout().get_handle();
 
-	result.renderPass = render_pass().get_handle();
+	result.renderPass = pass.get_handle();
 	result.subpass = 0;
 
 	result.basePipelineHandle = VK_NULL_HANDLE; // Optional
