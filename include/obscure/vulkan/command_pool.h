@@ -1,6 +1,8 @@
 #ifndef OBSCURE_VULKAN_COMMAND_POOL_DEFINITION
 #define OBSCURE_VULKAN_COMMAND_POOL_DEFINITION 1
 #include "obscure/vulkan/device.h"
+#include <span>
+
 namespace obscure
 {
 	namespace vulkan
@@ -14,6 +16,7 @@ namespace obscure
 			VkCommandPool get_handle() const noexcept;
 			void free(device device, VkAllocationCallbacks const* allocator = nullptr) noexcept;
 			VkCommandBuffer allocate_primary_command_buffer(device device) const;
+			void allocate_primary_command_buffers(device device, std::span<VkCommandBuffer> command_buffers) const;
 
 		};
 	}

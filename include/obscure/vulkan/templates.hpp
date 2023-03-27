@@ -1,6 +1,8 @@
 #ifndef OBSCURE_VULKAN_TEMPLATE_DEFINITION
 #define OBSCURE_VULKAN_TEMPLATE_DEFINITION 1
 #include <vector>
+#include <array>
+#include <span>
 #include "obscure/vulkan/glfw_vulkan_include.h"
 namespace obscure
 {
@@ -56,6 +58,28 @@ namespace obscure
 				if (!found) return false;
 			}
 			return true;
+		}
+
+		template<typename T, size_t N, typename ... ARG_T>
+		std::array<T, N> initialize_array(ARG_T... args)
+		{
+			std::array<T, N> result;
+			for (size_t index = 0; index < N; ++index)
+			{
+				//new (&result[index]) T{ std::forward(args)... };
+
+				result[index] = T{ args... };
+			}
+			return result;
+		}
+
+		template<typename T, typename ... ARG_T>
+		void free_collection(std::span<T> collection, ARG_T... args)
+		{
+			for (T t : collection)
+			{
+				t.free(args...);
+			}
 		}
 	}
 }

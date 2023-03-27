@@ -91,16 +91,9 @@ VkSwapchainKHR const* obscure::vulkan::swap_chain::get_handle_address() const no
 
 void obscure::vulkan::swap_chain::free(device device, VkAllocationCallbacks const* allocator) noexcept
 {
+	free_collection<frame_buffer>(frame_buffers, device, allocator);
 
-	for (auto buffer : frame_buffers)
-	{
-		buffer.free(device, allocator);
-	}
-
-	for (auto image_view : swap_chain_views)
-	{
-		image_view.free(device, allocator);
-	}
+	free_collection<image_view>(swap_chain_views, device, allocator);
 
 	render_pass.free(device, allocator);
 

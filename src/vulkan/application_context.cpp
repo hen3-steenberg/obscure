@@ -1,7 +1,9 @@
 #include "obscure/vulkan/application_context.h"
 #include "obscure/configuration/configuration_provider.h"
+#include "obscure/vulkan/templates.hpp"
 
 obscure::vulkan::application_context::application_context(obscure::configuration::configuration_provider* configuration)
+	: current_frame(0)
 {
 	configuration::application_configuration* app_configuration = configuration->load_application_configuration();
 
@@ -25,11 +27,11 @@ obscure::vulkan::application_context::application_context(obscure::configuration
 
 	present_queue = device.get_present_queue();
 
-	draw_complete = vulkan::fence(device, true);
+	draw_complete_fences = initialize_array<vulkan::fence, maximum_frames_in_flight()>(device, true);
 
-	ready_to_draw = vulkan::semaphore(device);
+	ready_to_draw_semaphores = initialize_array<vulkan::semaphore, maximum_frames_in_flight()>(device);
 
-	ready_to_display = vulkan::semaphore(device);
+	ready_to_display_semaphores = initialize_array<vulkan::semaphore, maximum_frames_in_flight()>(device);
 
 	swap_chain = vulkan::swap_chain(device, vulkan_config->configure_swap_chain());
 
@@ -37,7 +39,7 @@ obscure::vulkan::application_context::application_context(obscure::configuration
 
 	graphics_command_pool = vulkan::command_pool(device, device.graphics_queue_index);
 
-	graphics_command_buffer = graphics_command_pool.allocate_primary_command_buffer(device);
+	graphics_command_pool.allocate_primary_command_buffers(device, graphics_command_buffers);
 
 }
 
@@ -51,11 +53,12 @@ obscure::vulkan::application_context::~application_context()
 
 	swap_chain.free(device);
 
-	ready_to_display.free(device);
 
-	ready_to_draw.free(device);
+	free_collection<semaphore>(ready_to_display_semaphores, device);
 
-	draw_complete.free();
+	free_collection<semaphore>(ready_to_draw_semaphores, device);
+
+	free_collection<fence>(draw_complete_fences);
 
 	device.free();
 

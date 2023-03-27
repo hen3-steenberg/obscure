@@ -1,6 +1,7 @@
 #ifndef OBSCURE_VULKAN_FENCE_DEFINITION
 #define OBSCURE_VULKAN_FENCE_DEFINITION 1
 #include "obscure/vulkan/device.h"
+#include <array>
 namespace obscure
 {
 	namespace vulkan

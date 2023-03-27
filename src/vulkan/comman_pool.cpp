@@ -44,3 +44,17 @@ VkCommandBuffer obscure::vulkan::command_pool::allocate_primary_command_buffer(d
 	return result;
 
 }
+
+void obscure::vulkan::command_pool::allocate_primary_command_buffers(device device, std::span<VkCommandBuffer> command_buffers) const
+{
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.pNext = nullptr;
+
+	allocInfo.commandPool = vk_command_pool;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandBufferCount = static_cast<uint32_t>(command_buffers.size());
+
+	vkAllocateCommandBuffers(device.get_handle(), &allocInfo, command_buffers.data());
+
+}
