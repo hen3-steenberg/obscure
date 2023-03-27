@@ -8,10 +8,10 @@ struct triangles_app : obscure::application_2d
 {
 	static constexpr obscure::version app_version{ 1,0,0 };
 	triangles_app()
-		: obscure::application_2d(obscure::configuration::default_configuration(800, 800, "triangles", app_version))
+		: obscure::application_2d(obscure::configuration::default_configuration(800, 800, "triangles", app_version, true))
 	{}
 
-	void loop(obscure::vulkan::command_sequence draw_context, obscure::stopwatch::seconds elapsed_time)
+	void loop(obscure::vulkan::command_sequence draw_context)
 	{
 		draw_context.begin_rendering().draw_static_triangle().end_rendering();
 		draw_context.submit_commands();

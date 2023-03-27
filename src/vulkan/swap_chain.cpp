@@ -1,4 +1,6 @@
 #include "obscure/vulkan/swap_chain.h"
+#include "obscure/vulkan/swap_chain_configuration.h"
+#include "obscure/vulkan/application_context.h"
 #include "obscure/vulkan/templates.hpp"
 
 obscure::vulkan::render_pass create_render_pass(obscure::vulkan::device dev, VkFormat format, VkAllocationCallbacks const* allocator)
@@ -56,26 +58,34 @@ obscure::vulkan::swap_chain::swap_chain() noexcept
 {}
 
 
-obscure::vulkan::swap_chain::swap_chain(device device, VkSwapchainCreateInfoKHR create_info, VkAllocationCallbacks const* allocator)
-	: image_format(create_info.imageFormat), extent(create_info.imageExtent), render_pass(create_render_pass(device, create_info.imageFormat, allocator))
+obscure::vulkan::swap_chain::swap_chain(application_context const* context, VkAllocationCallbacks const* allocator)
 {
-	VkResult Err = vkCreateSwapchainKHR(device.get_handle(), &create_info, nullptr, &vk_swap_chain);
+	swap_chain_configuration config{ context };
+
+	VkSwapchainCreateInfoKHR create_info = config.parse_configuration();
+
+	image_format = create_info.imageFormat;
+	extent = create_info.imageExtent;
+
+	render_pass = create_render_pass(context->device, image_format, allocator);
+
+	VkResult Err = vkCreateSwapchainKHR(context->device.get_handle(), &create_info, nullptr, &vk_swap_chain);
 	if (Err != VK_SUCCESS) throw Err;
 
-	swap_chain_images = vulkan_load(device.get_handle(), vk_swap_chain, vkGetSwapchainImagesKHR);
+	swap_chain_images = vulkan_load(context->device.get_handle(), vk_swap_chain, vkGetSwapchainImagesKHR);
 
 	swap_chain_views.reserve(swap_chain_images.size());
 
 	for (auto image : swap_chain_images)
 	{
-		swap_chain_views.emplace_back(device, image, image_format);
+		swap_chain_views.emplace_back(context->device, image, image_format);
 	}
 
 	frame_buffers.reserve(swap_chain_images.size());
 
 	for (auto view : swap_chain_views)
 	{
-		frame_buffers.emplace_back(device, view, render_pass, extent, allocator);
+		frame_buffers.emplace_back(context->device, view, render_pass, extent, allocator);
 	}
 }
 
@@ -100,9 +110,26 @@ void obscure::vulkan::swap_chain::free(device device, VkAllocationCallbacks cons
 	vkDestroySwapchainKHR(device.get_handle(), vk_swap_chain, allocator);
 }
 
+
+void obscure::vulkan::swap_chain::recreate(application_context * context, VkAllocationCallbacks const* allocator)
+{
+	context->device.wait_for_idle();
+	free(context->device, allocator);
+	frame_buffers.clear();
+	swap_chain_views.clear();
+	swap_chain_images.clear();
+
+	new (this) swap_chain{ context, allocator };//placement new to construct the new swap_chain in place
+	context->frame_buffer_resized = false;
+}
+
 uint32_t obscure::vulkan::swap_chain::get_next_image_index(device device, semaphore image_ready_signal)
 {
 	uint32_t imageIndex;
-	vkAcquireNextImageKHR(device.get_handle(), vk_swap_chain, UINT64_MAX, image_ready_signal.get_handle(), VK_NULL_HANDLE, &imageIndex);
+	VkResult Err = vkAcquireNextImageKHR(device.get_handle(), vk_swap_chain, UINT64_MAX, image_ready_signal.get_handle(), VK_NULL_HANDLE, &imageIndex);
+	if (Err != VK_SUCCESS)
+	{
+		throw Err;
+	}
 	return imageIndex;
 }

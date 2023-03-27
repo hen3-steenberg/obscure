@@ -1,16 +1,31 @@
 #include "obscure/vulkan/window.h"
 #include "obscure/vulkan/glfw_api_context.h"
+#include "obscure/vulkan/application_context.h"
 
 
-obscure::vulkan::glfw_window::glfw_window(int width, int height, const char* title)
+void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+	auto app = reinterpret_cast<obscure::vulkan::application_context*>(glfwGetWindowUserPointer(window));
+	app->frame_buffer_resized = true;
+}
+
+obscure::vulkan::glfw_window::glfw_window(obscure::configuration::application_configuration* config, application_context* context)
 {
 	//Initialize glfw with the first call and clean up glfw when application exits
 	static glfw_api_contex glfw_api_ctx;
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-	window_ptr = glfwCreateWindow(width, height, title, nullptr, nullptr);
+
+	glfwWindowHint(GLFW_RESIZABLE, (config->allow_resizing() ? GLFW_TRUE : GLFW_FALSE));
+
+
+	window_ptr = glfwCreateWindow(config->window_width(), config->window_height(), config->application_title(), nullptr, nullptr);
+
+	if (config->allow_resizing())
+	{
+		glfwSetWindowUserPointer(window_ptr, context);
+		glfwSetFramebufferSizeCallback(window_ptr, framebufferResizeCallback);
+	}
 }
 
 obscure::vulkan::glfw_window::glfw_window() noexcept
@@ -45,4 +60,12 @@ VkExtent2D obscure::vulkan::glfw_window::get_native_resolution() const&
 	glfwGetFramebufferSize(window_ptr, &width, &height);
 
 	return VkExtent2D{ static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+}
+
+bool obscure::vulkan::glfw_window::is_minimized() const&
+{
+	int width = 0, height = 0;
+	glfwGetFramebufferSize(window_ptr, &width, &height);
+
+	return width == 0 || height == 0;
 }

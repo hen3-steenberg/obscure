@@ -21,7 +21,8 @@ namespace obscure
 			: context(config.get())
 		{}
 
-		virtual void loop(vulkan::command_sequence draw_context, stopwatch::seconds elapsed_time) = 0;
+		virtual void minimized_loop();
+		virtual void loop(vulkan::command_sequence draw_context) = 0;
 		void run();
 
 		void exit() noexcept;

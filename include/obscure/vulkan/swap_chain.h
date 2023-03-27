@@ -10,6 +10,8 @@ namespace obscure
 {
 	namespace vulkan
 	{
+		struct application_context;
+
 		struct swap_chain
 		{
 			VkSwapchainKHR vk_swap_chain;
@@ -21,11 +23,14 @@ namespace obscure
 			std::vector<frame_buffer> frame_buffers;
 			
 			swap_chain() noexcept;
-			swap_chain(device device, VkSwapchainCreateInfoKHR create_info, VkAllocationCallbacks const* allocator = nullptr);
+			swap_chain(application_context const* context, VkAllocationCallbacks const* allocator = nullptr);
+
+
 
 			VkSwapchainKHR get_handle() const noexcept;
 			VkSwapchainKHR const* get_handle_address() const noexcept;
 			void free(device device, VkAllocationCallbacks const* allocator = nullptr) noexcept;
+			void recreate(application_context * context, VkAllocationCallbacks const* allocator = nullptr);
 
 			uint32_t get_next_image_index(device device, semaphore image_ready_signal);
 		};

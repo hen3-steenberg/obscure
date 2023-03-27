@@ -20,6 +20,7 @@ namespace obscure
 
 			void poll_events() const noexcept;
 			bool should_close() const noexcept;
+			bool is_minimized() const;
 
 			vulkan::command_sequence get_next_frame_context();
 		};

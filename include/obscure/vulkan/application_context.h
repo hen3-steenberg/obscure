@@ -43,6 +43,7 @@ namespace obscure
 			std::array<semaphore, maximum_frames_in_flight()>  ready_to_draw_semaphores;
 			std::array<semaphore, maximum_frames_in_flight()>  ready_to_display_semaphores;
 			uint32_t current_frame;
+			bool frame_buffer_resized = false;
 
 			application_context(obscure::configuration::configuration_provider* configuration);
 

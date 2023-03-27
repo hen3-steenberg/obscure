@@ -18,3 +18,8 @@ obscure::vulkan::command_sequence obscure::vulkan::vulkan_context::get_next_fram
 {
 	return obscure::vulkan::command_sequence(data.get());
 }
+
+bool obscure::vulkan::vulkan_context::is_minimized() const
+{
+	return data->window.is_minimized();
+}

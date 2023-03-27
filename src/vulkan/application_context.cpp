@@ -9,17 +9,17 @@ obscure::vulkan::application_context::application_context(obscure::configuration
 
 	
 
-	window = vulkan::glfw_window(app_configuration->window_width(), app_configuration->window_height(), app_configuration->application_title());
+	window = vulkan::glfw_window(app_configuration, this);
 
 	instance = vulkan::instance(app_configuration->application_title(), app_configuration->application_version());
 
-	configuration::vulkan_configuration* vulkan_config = configuration->load_vulkan_configuration(this);
+	configuration::vulkan_configuration* vulkan_config = configuration->load_vulkan_configuration();
 
-	loggers = vulkan_config->vulkan_logging();
+	loggers = vulkan_config->vulkan_logging(instance);
 
 	surface = vulkan::surface(instance, window);
 
-	physical_device = vulkan_config->pick_device();
+	physical_device = vulkan_config->pick_device(instance, surface);
 
 	device = vulkan::device(physical_device, surface);
 
@@ -33,7 +33,7 @@ obscure::vulkan::application_context::application_context(obscure::configuration
 
 	ready_to_display_semaphores = initialize_array<vulkan::semaphore, maximum_frames_in_flight()>(device);
 
-	swap_chain = vulkan::swap_chain(device, vulkan_config->configure_swap_chain());
+	swap_chain = vulkan::swap_chain(this);
 
 	pipelines = vulkan::pipeline_collection{ this };
 

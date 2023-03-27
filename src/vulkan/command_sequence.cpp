@@ -4,10 +4,23 @@ obscure::vulkan::command_sequence::command_sequence(application_context* ctx)
 	: context(ctx)
 {
 	context->draw_complete_fences[context->current_frame].wait();
+	
+
+	try
+	{
+		if (context->frame_buffer_resized) context->swap_chain.recreate(ctx);
+
+		current_buffer_index = context->swap_chain.get_next_image_index(context->device, context->ready_to_draw_semaphores[context->current_frame]);
+	}
+	catch (VkResult Err)
+	{
+		if (Err == VK_ERROR_OUT_OF_DATE_KHR || Err == VK_SUBOPTIMAL_KHR)
+		{
+			context->swap_chain.recreate(ctx);
+		}
+		throw Err;
+	}
 	context->draw_complete_fences[context->current_frame].reset();
-
-	current_buffer_index = context->swap_chain.get_next_image_index(context->device, context->ready_to_draw_semaphores[context->current_frame]);
-
 
 	vkResetCommandBuffer(context->graphics_command_buffers[context->current_frame], 0);
 

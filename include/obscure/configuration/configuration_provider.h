@@ -10,7 +10,7 @@ namespace obscure
 		{
 			virtual application_configuration* load_application_configuration() = 0;
 
-			virtual  vulkan_configuration* load_vulkan_configuration(vulkan::application_context const* ctx) = 0;
+			virtual  vulkan_configuration* load_vulkan_configuration() = 0;
 
 			virtual ~configuration_provider() = default;
 		};
