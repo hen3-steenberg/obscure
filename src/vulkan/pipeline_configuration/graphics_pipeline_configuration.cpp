@@ -1,12 +1,12 @@
-#include "obscure/vulkan/graphics_pipeline_configuration.h"
+#include "obscure/vulkan/pipeline_configuration/graphics_pipeline_configuration.h"
 
-VkGraphicsPipelineCreateInfo obscure::vulkan::graphics_pipeline_configuration::parse_configuration(render_pass pass)
+VkGraphicsPipelineCreateInfo obscure::vulkan::graphics_pipeline_configuration::parse_configuration(render_pass pass, std::unordered_map<std::filesystem::path, shader_module> const& loaded_shaders)
 {
 	VkGraphicsPipelineCreateInfo result{};
 	result.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	result.pNext = nullptr;
 
-	std::span<VkPipelineShaderStageCreateInfo> modules = this->shader_stages();
+	std::span<VkPipelineShaderStageCreateInfo> modules = this->shader_stages(loaded_shaders);
 
 	result.stageCount = static_cast<uint32_t>(modules.size());
 	result.pStages = modules.data();

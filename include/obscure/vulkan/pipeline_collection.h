@@ -6,6 +6,7 @@
 #include "obscure/vulkan/frame_buffer.h"
 #include <vector>
 
+
 namespace obscure
 {
 	namespace vulkan
@@ -14,8 +15,9 @@ namespace obscure
 
 		struct pipeline_collection
 		{
-			shader_module static_triangle_vertex;
-			shader_module static_triangle_fragment;
+			std::vector<shader_module> shaders;
+
+
 			pipeline_layout static_triangle_layout;
 
 
