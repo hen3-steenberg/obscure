@@ -70,3 +70,10 @@ obscure::vulkan::application_context::~application_context()
 
 	window.free();
 }
+
+VkPhysicalDeviceMemoryProperties obscure::vulkan::application_context::get_device_memory_properties() const
+{
+	VkPhysicalDeviceMemoryProperties result;
+	vkGetPhysicalDeviceMemoryProperties(physical_device, &result);
+	return result;
+}

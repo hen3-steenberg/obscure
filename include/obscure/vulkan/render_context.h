@@ -1,6 +1,8 @@
 #ifndef OBSCURE_VULKAN_RENDER_CONTEXT_DEFINITION
 #define OBSCURE_VULKAN_RENDER_CONTEXT_DEFINITION 1
 #include "obscure/vulkan/application_context.h"
+#include "obscure/vulkan/owning_buffer.h"
+#include "obscure/shape/colored_vertex.hpp"
 
 namespace obscure
 {
@@ -15,6 +17,7 @@ namespace obscure
 		public:
 			render_context(VkCommandBuffer _command_buffer, frame_buffer buffer, application_context const* context);
 			render_context& draw_static_triangle();
+			render_context& draw_colored_triangle_list(std::span<obscure::shape::colored_vertex> vertices, memory_owning_buffer& empty_buffer);
 			void end_rendering();
 		};
 	}

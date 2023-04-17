@@ -1,23 +1,27 @@
-#include "obscure/vulkan/pipeline_configuration/static_triangle_configuration.h"
+#include "obscure/vulkan/pipeline_configuration/colored_triangle_list_configuration.h"
 #include "obscure/vulkan/pipeline_configuration/descriptions.hpp"
 
 static constexpr std::array<VkDynamicState, 2> _dynamic_state = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
-static std::array<std::filesystem::path, 2> shader_paths = { std::filesystem::absolute("shaders/static.vert.spv") , std::filesystem::absolute("shaders/color.frag.spv") };
+static std::array<std::filesystem::path, 2> shader_paths = { std::filesystem::absolute("shaders/colored_vertex.vert.spv") , std::filesystem::absolute("shaders/color.frag.spv") };
 
-obscure::vulkan::static_triangle_configuration::static_triangle_configuration(obscure::vulkan::device device, obscure::vulkan::swap_chain const& swap_chain, VkAllocationCallbacks const* allocator)
+obscure::vulkan::colored_triangle_list_configuration::colored_triangle_list_configuration(obscure::vulkan::device device, obscure::vulkan::swap_chain const& swap_chain, VkAllocationCallbacks const* allocator)
 {
 	_dynamic_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 	_dynamic_state_info.pNext = nullptr;
 	_dynamic_state_info.flags = 0;
-	_dynamic_state_info.dynamicStateCount = _dynamic_state.size();
+	_dynamic_state_info.dynamicStateCount = static_cast<uint32_t>(_dynamic_state.size());
 	_dynamic_state_info.pDynamicStates = _dynamic_state.data();
 
+	input_bindings = get_input_bining_desciptions<obscure::shape::colored_vertex>();
+	input_attributes = get_input_attribute_descriptions<obscure::shape::colored_vertex>();
+
 	_vertex_input_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	_vertex_input_state.flags = 0;
 	_vertex_input_state.pNext = nullptr;
-	_vertex_input_state.vertexBindingDescriptionCount = 0;
-	_vertex_input_state.pVertexBindingDescriptions = nullptr; // Optional
-	_vertex_input_state.vertexAttributeDescriptionCount = 0;
-	_vertex_input_state.pVertexAttributeDescriptions = nullptr; // Optional
+	_vertex_input_state.vertexBindingDescriptionCount = static_cast<uint32_t>(input_bindings.size());
+	_vertex_input_state.pVertexBindingDescriptions = input_bindings.data();
+	_vertex_input_state.vertexAttributeDescriptionCount = static_cast<uint32_t>(input_attributes.size());
+	_vertex_input_state.pVertexAttributeDescriptions = input_attributes.data();
 
 	_input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	_input_assembly.pNext = nullptr;
@@ -107,17 +111,17 @@ obscure::vulkan::static_triangle_configuration::static_triangle_configuration(ob
 	_layout = obscure::vulkan::pipeline_layout(device, create_info, allocator);
 }
 
-obscure::vulkan::pipeline_layout obscure::vulkan::static_triangle_configuration::layout()
+obscure::vulkan::pipeline_layout obscure::vulkan::colored_triangle_list_configuration::layout()
 {
 	return _layout;
 }
 
-std::span<std::filesystem::path> obscure::vulkan::static_triangle_configuration::shader_stage_paths()
+std::span<std::filesystem::path> obscure::vulkan::colored_triangle_list_configuration::shader_stage_paths()
 {
 	return shader_paths;
 }
 
-std::span<VkPipelineShaderStageCreateInfo> obscure::vulkan::static_triangle_configuration::shader_stages(std::unordered_map<std::filesystem::path, obscure::vulkan::shader_module> const& loaded_shaders)
+std::span<VkPipelineShaderStageCreateInfo> obscure::vulkan::colored_triangle_list_configuration::shader_stages(std::unordered_map<std::filesystem::path, obscure::vulkan::shader_module> const& loaded_shaders)
 {
 	shaders[0] = loaded_shaders.at(shader_paths[0]).configure_stage(VK_SHADER_STAGE_VERTEX_BIT);
 	shaders[1] = loaded_shaders.at(shader_paths[1]).configure_stage(VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -125,42 +129,42 @@ std::span<VkPipelineShaderStageCreateInfo> obscure::vulkan::static_triangle_conf
 	return shaders;
 }
 
-VkPipelineVertexInputStateCreateInfo* obscure::vulkan::static_triangle_configuration::vertex_input_state()
+VkPipelineVertexInputStateCreateInfo* obscure::vulkan::colored_triangle_list_configuration::vertex_input_state()
 {
 	return &_vertex_input_state;
 }
 
-VkPipelineDynamicStateCreateInfo* obscure::vulkan::static_triangle_configuration::dynamic_state()
+VkPipelineDynamicStateCreateInfo* obscure::vulkan::colored_triangle_list_configuration::dynamic_state()
 {
 	return &_dynamic_state_info;
 }
 
-VkPipelineInputAssemblyStateCreateInfo* obscure::vulkan::static_triangle_configuration::input_assembly_state()
+VkPipelineInputAssemblyStateCreateInfo* obscure::vulkan::colored_triangle_list_configuration::input_assembly_state()
 {
 	return &_input_assembly;
 }
 
-VkPipelineViewportStateCreateInfo* obscure::vulkan::static_triangle_configuration::viewport_state()
+VkPipelineViewportStateCreateInfo* obscure::vulkan::colored_triangle_list_configuration::viewport_state()
 {
 	return &_viewport_state;
 }
 
-VkPipelineMultisampleStateCreateInfo* obscure::vulkan::static_triangle_configuration::multisample_state()
+VkPipelineMultisampleStateCreateInfo* obscure::vulkan::colored_triangle_list_configuration::multisample_state()
 {
 	return &_multisample_state;
 }
 
-VkPipelineRasterizationStateCreateInfo* obscure::vulkan::static_triangle_configuration::rasterization_state()
+VkPipelineRasterizationStateCreateInfo* obscure::vulkan::colored_triangle_list_configuration::rasterization_state()
 {
 	return &_rasterization_state;
 }
 
-VkPipelineColorBlendStateCreateInfo* obscure::vulkan::static_triangle_configuration::color_blend_state()
+VkPipelineColorBlendStateCreateInfo* obscure::vulkan::colored_triangle_list_configuration::color_blend_state()
 {
 	return &_color_blend_state;
 }
 
-VkPipelineDepthStencilStateCreateInfo* obscure::vulkan::static_triangle_configuration::depth_stencil_state()
+VkPipelineDepthStencilStateCreateInfo* obscure::vulkan::colored_triangle_list_configuration::depth_stencil_state()
 {
 	return nullptr;
 }

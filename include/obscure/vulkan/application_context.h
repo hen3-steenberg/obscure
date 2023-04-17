@@ -49,6 +49,8 @@ namespace obscure
 
 
 			~application_context();
+
+			VkPhysicalDeviceMemoryProperties get_device_memory_properties() const;
 		};
 	}
 }

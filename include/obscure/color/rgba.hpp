@@ -8,6 +8,10 @@ namespace obscure
 	{
 		struct RGBA : public glm::fvec4
 		{
+			constexpr RGBA()
+				: glm::fvec4()
+			{}
+
 			constexpr RGBA(float r, float g, float b, float a = 1.0f)
 				: glm::fvec4(r, g, b, a)
 			{}
@@ -18,6 +22,10 @@ namespace obscure
 
 			constexpr RGBA(uint32_t rgba)
 				: glm::fvec4(((0xff000000 & rgba) >> 24) / 256.0f, ((0x00ff0000 & rgba) >> 16) / 256.0f, ((0x0000ff00 & rgba) >> 8) / 256.0f, (0x000000ff & rgba) / 256.0f)
+			{}
+
+			constexpr RGBA(const RGBA & other)
+				: glm::fvec4(other)
 			{}
 		};
 

@@ -1,5 +1,5 @@
-#ifndef OBSCURE_VULKAN_STATIC_TRIANGLE_CONFIGURATION_DEFINITION
-#define OBSCURE_VULKAN_STATIC_TRIANGLE_CONFIGURATION_DEFINITION 1
+#ifndef OBSCURE_VULKAN_COLORED_TRIANGLE_LIST_CONFIGURATION_DEFINITION
+#define OBSCURE_VULKAN_COLORED_TRIANGLE_LIST_CONFIGURATION_DEFINITION 1
 
 #include <array>
 #include "obscure/vulkan/pipeline_configuration/graphics_pipeline_configuration.h"
@@ -11,9 +11,14 @@ namespace obscure
 	namespace vulkan
 	{
 
-		struct static_triangle_configuration : obscure::vulkan::graphics_pipeline_configuration
+		struct colored_triangle_list_configuration : obscure::vulkan::graphics_pipeline_configuration
 		{
+
 			std::array<VkPipelineShaderStageCreateInfo, 2> shaders;
+
+			std::array<VkVertexInputBindingDescription, 1> input_bindings;
+
+			std::array<VkVertexInputAttributeDescription, 2> input_attributes;
 
 			VkPipelineDynamicStateCreateInfo _dynamic_state_info{};
 
@@ -35,7 +40,7 @@ namespace obscure
 			obscure::vulkan::pipeline_layout _layout;
 
 
-			static_triangle_configuration(obscure::vulkan::device _device, obscure::vulkan::swap_chain const& _swap_chain, VkAllocationCallbacks const* _allocator);
+			colored_triangle_list_configuration(obscure::vulkan::device _device, obscure::vulkan::swap_chain const& _swap_chain, VkAllocationCallbacks const* _allocator);
 
 			obscure::vulkan::pipeline_layout layout();
 

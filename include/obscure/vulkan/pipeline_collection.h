@@ -19,6 +19,7 @@ namespace obscure
 
 
 			pipeline_layout static_triangle_layout;
+			pipeline_layout colored_triangle_list_layout;
 
 
 			union
@@ -26,8 +27,9 @@ namespace obscure
 				struct
 				{
 					VkPipeline static_triangle_pipeline;
+					VkPipeline colored_triangle_list_pipeline;
 				};
-				VkPipeline pipelines[1];
+				VkPipeline pipelines[2];
 			};
 			
 			pipeline_collection();
