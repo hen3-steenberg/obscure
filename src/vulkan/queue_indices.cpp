@@ -1,10 +1,12 @@
 #include "obscure/vulkan/queue_indices.h"
 #include "obscure/vulkan/templates.hpp"
+#include <unordered_set>
 
 obscure::vulkan::queue_indices::queue_indices(VkPhysicalDevice device, surface surface)
 {
 	graphics_index = UINT32_MAX;
 	present_index = UINT32_MAX;
+	
 
 	std::vector<VkQueueFamilyProperties> properties = vulkan_load(device, vkGetPhysicalDeviceQueueFamilyProperties);
 
@@ -24,38 +26,36 @@ obscure::vulkan::queue_indices::queue_indices(VkPhysicalDevice device, surface s
 
 		if (graphics_index < properties.size() && present_index < properties.size()) break;
 	}
+	//if there is no unique transfer queue use the graphics queue
+	transfer_index = graphics_index;
+	//look for a unique transfer queue
+	for (uint32_t index = 0; index < properties.size(); ++index)
+	{
+		if (index != graphics_index && index != present_index && (properties[index].queueFlags & VkQueueFlagBits::VK_QUEUE_TRANSFER_BIT))
+		{
+			transfer_index = index;
+			break;
+		}
+	}
+
+	
 }
 
 std::vector<VkDeviceQueueCreateInfo> obscure::vulkan::queue_indices::get_queue_create_infos() const
 {
-	if (graphics_index == present_index)
+	std::unordered_set<uint32_t> indices = { graphics_index , present_index, transfer_index };
+	std::vector<VkDeviceQueueCreateInfo> result;
+	result.reserve(indices.size());
+	for (uint32_t index : indices)
 	{
-		std::vector<VkDeviceQueueCreateInfo> result(1);
-		result[0].pNext = nullptr;
-		result[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		result[0].queueFamilyIndex = graphics_index;
-		result[0].queueCount = 1;
-		result[0].pQueuePriorities = &priority;
-
-		return result;
+		VkDeviceQueueCreateInfo index_info{};
+		index_info.pNext = nullptr;
+		index_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		index_info.flags = 0;
+		index_info.queueCount = 1;
+		index_info.pQueuePriorities = &priority;
+		index_info.queueFamilyIndex = index;
+		result.push_back(index_info);
 	}
-	else
-	{
-		std::vector<VkDeviceQueueCreateInfo> result(2);
-
-		result[0].pNext = nullptr;
-		result[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		result[0].queueFamilyIndex = graphics_index;
-		result[0].queueCount = 1;
-		result[0].pQueuePriorities = &priority;
-
-		result[1].pNext = nullptr;
-		result[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		result[1].queueFamilyIndex = present_index;
-		result[1].queueCount = 1;
-		result[1].pQueuePriorities = &priority;
-
-		return result;
-	}
-
+	return result;
 }

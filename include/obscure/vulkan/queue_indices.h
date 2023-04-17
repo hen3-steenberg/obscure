@@ -12,6 +12,7 @@ namespace obscure
 			static constexpr float priority = 1.0f;
 			uint32_t graphics_index;
 			uint32_t present_index;
+			uint32_t transfer_index;
 
 			queue_indices(VkPhysicalDevice device, surface surface);
 

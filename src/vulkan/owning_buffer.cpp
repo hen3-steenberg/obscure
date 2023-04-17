@@ -69,19 +69,7 @@ VkBuffer obscure::vulkan::memory_owning_buffer::get_handle() const& noexcept
 	return vk_buffer;
 }
 
-void obscure::vulkan::memory_owning_buffer::write_data(const void* data, size_t size) &
-{
-	void* destination;
-	size_t actual = (memory.memory_size < size) ? memory.memory_size : size;
-	vkMapMemory(device.get_handle(), memory.get_handle(), 0, actual, 0, &destination);
-	memcpy_s(destination, actual, data, actual);
-	vkUnmapMemory(device.get_handle(), memory.get_handle());
-}
 
-obscure::vulkan::buffer_memory obscure::vulkan::memory_owning_buffer::map_memory(size_t size)&
-{
-	return buffer_memory(device, memory, size);
-}
 
 
 
@@ -89,3 +77,35 @@ obscure::vulkan::memory_owning_buffer::~memory_owning_buffer()
 {
 	free(this);
 }
+
+obscure::vulkan::memory_owning_staging_buffer::memory_owning_staging_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator)
+	: memory_owning_buffer(_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, properties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, allocator)
+{}
+
+void obscure::vulkan::memory_owning_staging_buffer::write_data(const void* data, size_t size)&
+{
+	void* destination;
+	size_t actual = (memory.memory_size < size) ? memory.memory_size : size;
+	vkMapMemory(device.get_handle(), memory.get_handle(), 0, actual, 0, &destination);
+	memcpy_s(destination, actual, data, actual);
+	
+	VkMappedMemoryRange range{};
+	range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+	range.pNext = nullptr;
+
+	range.memory = memory.get_handle();
+	range.offset = 0;
+	range.size = VK_WHOLE_SIZE;
+
+	vkFlushMappedMemoryRanges(device.get_handle(), 1, &range);
+	vkUnmapMemory(device.get_handle(), memory.get_handle());
+}
+
+obscure::vulkan::buffer_memory obscure::vulkan::memory_owning_staging_buffer::map_memory(size_t size)&
+{
+	return buffer_memory(device, memory, size);
+}
+
+obscure::vulkan::memory_owning_vertex_buffer::memory_owning_vertex_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator)
+	: memory_owning_buffer(_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, properties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocator)
+{}

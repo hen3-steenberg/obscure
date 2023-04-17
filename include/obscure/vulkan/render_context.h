@@ -17,7 +17,7 @@ namespace obscure
 		public:
 			render_context(VkCommandBuffer _command_buffer, frame_buffer buffer, application_context const* context);
 			render_context& draw_static_triangle();
-			render_context& draw_colored_triangle_list(std::span<obscure::shape::colored_vertex> vertices, memory_owning_buffer& empty_buffer);
+			render_context& draw_colored_triangle_list(memory_owning_vertex_buffer& vertex_buffer, size_t size);
 			void end_rendering();
 		};
 	}

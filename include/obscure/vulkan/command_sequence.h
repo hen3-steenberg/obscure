@@ -2,6 +2,7 @@
 #define OBSCURE_VULKAN_COMMAND_SEQUENCE_DEFINITION 1
 
 #include "obscure/vulkan/render_context.h"
+#include "obscure/vulkan/transfer_context.h"
 #include "obscure/vulkan/fence.h"
 #include "obscure/vulkan/semaphore.h"
 
@@ -17,6 +18,7 @@ namespace obscure
 			
 		public:
 			command_sequence(application_context * ctx);
+			transfer_context begin_transfers();
 			render_context begin_rendering();
 			void submit_commands();
 			void display();

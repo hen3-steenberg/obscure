@@ -25,23 +25,42 @@ namespace obscure
 			memory_owning_buffer& operator=(memory_owning_buffer const& other) noexcept;
 
 			template<typename T>
-			static memory_owning_buffer create_coherent_vertex_buffer(vulkan::device _device, size_t vertex_count, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr)
+			static memory_owning_buffer create_vertex_buffer(vulkan::device _device, size_t vertex_count, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr)
 			{
-				return memory_owning_buffer(_device, sizeof(T) * vertex_count, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, properties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, allocator);
+				return memory_owning_buffer(_device, sizeof(T) * vertex_count, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, properties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocator);
 			}
 
 			VkBuffer get_handle() const& noexcept;
-			void write_data(const void* data, size_t size) &;
+			
+
+			~memory_owning_buffer();
+		};
+
+		struct memory_owning_staging_buffer : public memory_owning_buffer
+		{
+			memory_owning_staging_buffer() noexcept = default;
+			memory_owning_staging_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr);
+			memory_owning_staging_buffer(memory_owning_staging_buffer const& other) noexcept = default;
+
+			memory_owning_staging_buffer& operator=(memory_owning_staging_buffer const& other) noexcept = default;
+
+			void write_data(const void* data, size_t size)&;
 
 			buffer_memory map_memory(size_t size)&;
 
 			template<typename T>
-			void write_data(std::span<T> data) &
+			void write_data(std::span<T> data)&
 			{
 				write_data(data.data(), sizeof(T) * data.size());
 			}
+		};
 
-			~memory_owning_buffer();
+		struct memory_owning_vertex_buffer : public memory_owning_buffer
+		{
+			memory_owning_vertex_buffer() noexcept = default;
+			memory_owning_vertex_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr);
+			memory_owning_vertex_buffer(memory_owning_vertex_buffer const& other) noexcept = default;
+			memory_owning_vertex_buffer& operator=(memory_owning_vertex_buffer const& other) noexcept = default;
 		};
 	}
 }

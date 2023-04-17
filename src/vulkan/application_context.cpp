@@ -27,6 +27,8 @@ obscure::vulkan::application_context::application_context(obscure::configuration
 
 	present_queue = device.get_present_queue();
 
+	transfer_queue = device.get_transfer_queue();
+
 	draw_complete_fences = initialize_array<vulkan::fence, maximum_frames_in_flight()>(device, true);
 
 	ready_to_draw_semaphores = initialize_array<vulkan::semaphore, maximum_frames_in_flight()>(device);
@@ -36,6 +38,10 @@ obscure::vulkan::application_context::application_context(obscure::configuration
 	swap_chain = vulkan::swap_chain(this);
 
 	pipelines = vulkan::pipeline_collection{ this };
+
+	transfer_command_pool = vulkan::command_pool(device, device.transfer_queue_index);
+
+	transfer_command_buffer = transfer_command_pool.allocate_primary_command_buffer(device);
 
 	graphics_command_pool = vulkan::command_pool(device, device.graphics_queue_index);
 
@@ -48,6 +54,8 @@ obscure::vulkan::application_context::~application_context()
 	device.wait_for_idle();
 
 	graphics_command_pool.free(device);
+
+	transfer_command_pool.free(device);
 
 	pipelines.free(device);
 

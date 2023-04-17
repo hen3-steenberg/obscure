@@ -32,6 +32,11 @@ obscure::vulkan::command_sequence::command_sequence(application_context* ctx)
 	vkBeginCommandBuffer(context->graphics_command_buffers[context->current_frame], &beginInfo);
 }
 
+obscure::vulkan::transfer_context obscure::vulkan::command_sequence::begin_transfers()
+{
+	return obscure::vulkan::transfer_context(context->transfer_command_buffer, context->transfer_queue);
+}
+
 obscure::vulkan::render_context obscure::vulkan::command_sequence::begin_rendering()
 {
 	return obscure::vulkan::render_context(context->graphics_command_buffers[context->current_frame], context->swap_chain.frame_buffers[current_buffer_index], context);

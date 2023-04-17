@@ -24,11 +24,17 @@ namespace obscure
 			bool is_minimized() const;
 
 			vulkan::command_sequence get_next_frame_context();
-			
+
 			template<typename VertexType>
-			vulkan::memory_owning_buffer create_coherent_vertex_buffer(size_t vertex_count)
+			vulkan::memory_owning_staging_buffer create_staging_buffer(size_t vertex_count)
 			{
-				return memory_owning_buffer::create_coherent_vertex_buffer<VertexType>(data->device, vertex_count, data->get_device_memory_properties());
+				return vulkan::memory_owning_staging_buffer(data->device, sizeof(VertexType) * vertex_count, data->get_device_memory_properties());
+			}
+
+			template<typename VertexType>
+			vulkan::memory_owning_vertex_buffer create_vertex_buffer(size_t vertex_count)
+			{
+				return vulkan::memory_owning_vertex_buffer(data->device, sizeof(VertexType) * vertex_count, data->get_device_memory_properties());
 			}
 		};
 	}

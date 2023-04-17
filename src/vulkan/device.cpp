@@ -35,6 +35,7 @@ obscure::vulkan::device::device(VkPhysicalDevice device, surface surface, VkAllo
 
 	graphics_queue_index = queue_info.graphics_index;
 	present_queue_index = queue_info.present_index;
+	transfer_queue_index = queue_info.transfer_index;
 }
 
 void obscure::vulkan::device::free(VkAllocationCallbacks const* allocator) noexcept
@@ -58,6 +59,13 @@ VkQueue obscure::vulkan::device::get_present_queue() const
 {
 	VkQueue result;
 	vkGetDeviceQueue(vk_device, graphics_queue_index, 0, &result);
+	return result;
+}
+
+VkQueue obscure::vulkan::device::get_transfer_queue() const
+{
+	VkQueue result;
+	vkGetDeviceQueue(vk_device, transfer_queue_index, 0, &result);
 	return result;
 }
 

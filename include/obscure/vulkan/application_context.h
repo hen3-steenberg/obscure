@@ -35,9 +35,13 @@ namespace obscure
 			vulkan::device device;
 			VkQueue graphics_queue;
 			VkQueue present_queue;
+			VkQueue transfer_queue;
 			vulkan::swap_chain swap_chain;
-			vulkan::pipeline_collection pipelines;			
+			vulkan::pipeline_collection pipelines;
+			vulkan::command_pool transfer_command_pool;
+			VkCommandBuffer transfer_command_buffer;
 			vulkan::command_pool graphics_command_pool;
+			
 			std::array<VkCommandBuffer, maximum_frames_in_flight()> graphics_command_buffers;
 			std::array<vulkan::fence, maximum_frames_in_flight()>  draw_complete_fences;
 			std::array<semaphore, maximum_frames_in_flight()>  ready_to_draw_semaphores;

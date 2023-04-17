@@ -47,10 +47,9 @@ obscure::vulkan::render_context& obscure::vulkan::render_context::draw_static_tr
 	return *this;
 }
 
-obscure::vulkan::render_context& obscure::vulkan::render_context::draw_colored_triangle_list(std::span<obscure::shape::colored_vertex> vertices, memory_owning_buffer& empty_buffer)
-{
-	empty_buffer.write_data(vertices);
 
+obscure::vulkan::render_context& obscure::vulkan::render_context::draw_colored_triangle_list(memory_owning_vertex_buffer& vertex_buffer, size_t size)
+{
 	vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.colored_triangle_list_pipeline);
 
 	VkViewport viewport{};
@@ -67,16 +66,15 @@ obscure::vulkan::render_context& obscure::vulkan::render_context::draw_colored_t
 	scissor.extent = extent;
 	vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 
-	VkBuffer vertexBuffers[] = { empty_buffer.get_handle() };
+	VkBuffer vertexBuffers[] = { vertex_buffer.get_handle() };
 	VkDeviceSize offsets[] = { 0 };
 
 	vkCmdBindVertexBuffers(command_buffer, 0, 1, vertexBuffers, offsets);
 
-	vkCmdDraw(command_buffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+	vkCmdDraw(command_buffer, static_cast<uint32_t>(size), 1, 0, 0);
 
 	return *this;
 }
-
 void obscure::vulkan::render_context::end_rendering()
 {
 	vkCmdEndRenderPass(command_buffer);
