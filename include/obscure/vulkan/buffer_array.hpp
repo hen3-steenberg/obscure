@@ -8,28 +8,28 @@ namespace obscure
 	{
 		struct render_context;
 
-		template<typename TElem>
-		struct vertex_array
+		template<typename TElem, VkBufferUsageFlags usage>
+		struct buffer_array
 		{
 			friend render_context;
 		private:
 			size_t _size;
 			memory_owning_mapped_staging_buffer host_buffer;
-			memory_owning_vertex_buffer device_buffer;
+			memory_owning_device_buffer device_buffer;
 		public:
-			vertex_array() noexcept
+			buffer_array() noexcept
 				: _size(0), host_buffer(), device_buffer()
 			{}
 
-			vertex_array(vulkan::device _device, size_t size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr)
-				: _size(sizeof(TElem)* size), host_buffer(_device, _size, properties, allocator), device_buffer(_device, _size, properties, allocator)
+			buffer_array(vulkan::device _device, size_t size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr)
+				: _size(sizeof(TElem)* size), host_buffer(_device, _size, properties, allocator), device_buffer(_device, _size, usage, properties, allocator)
 			{}
 
-			vertex_array(vertex_array const& other) noexcept = default;
-			vertex_array(vertex_array&& other) noexcept = default;
+			buffer_array(buffer_array const& other) noexcept = default;
+			buffer_array(buffer_array && other) noexcept = default;
 
-			vertex_array& operator=(vertex_array const& other) noexcept = default;
-			vertex_array& operator=(vertex_array && other) noexcept = default;
+			buffer_array& operator=(buffer_array const& other) noexcept = default;
+			buffer_array& operator=(buffer_array&& other) noexcept = default;
 
 			void transfer_to_device(transfer_context& ctx) &
 			{
@@ -75,6 +75,9 @@ namespace obscure
 				return reinterpret_cast<TElem const*>(host_buffer.mapped_memory) + _size;
 			}
 		};
+
+		template<typename TElem>
+		using vertex_array = typename obscure::vulkan::buffer_array<TElem, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT>;
 	}
 }
 #endif

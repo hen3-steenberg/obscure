@@ -128,8 +128,8 @@ obscure::vulkan::buffer_memory obscure::vulkan::memory_owning_staging_buffer::ma
 	return buffer_memory(device, memory, size);
 }
 
-obscure::vulkan::memory_owning_vertex_buffer::memory_owning_vertex_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator)
-	: memory_owning_buffer(_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, properties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocator)
+obscure::vulkan::memory_owning_device_buffer::memory_owning_device_buffer(vulkan::device _device, size_t buffer_size, VkBufferUsageFlags usage, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator)
+	: memory_owning_buffer(_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage, properties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocator)
 {}
 
 void obscure::vulkan::memory_owning_mapped_staging_buffer::sync_memory()&

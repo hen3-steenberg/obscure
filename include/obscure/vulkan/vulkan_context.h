@@ -7,7 +7,7 @@
 #include "obscure/vulkan/application_context.h"
 #include "obscure/vulkan/command_sequence.h"
 #include "obscure/vulkan/owning_buffer.h"
-#include "obscure/vulkan/vertex_array.hpp"
+#include "obscure/vulkan/buffer_array.hpp"
 
 namespace obscure
 {
@@ -35,9 +35,9 @@ namespace obscure
 			}
 
 			template<typename VertexType>
-			vulkan::memory_owning_vertex_buffer create_vertex_buffer(size_t vertex_count)
+			vulkan::memory_owning_device_buffer create_vertex_buffer(size_t vertex_count)
 			{
-				return vulkan::memory_owning_vertex_buffer(data->device, sizeof(VertexType) * vertex_count, data->get_device_memory_properties());
+				return vulkan::memory_owning_device_buffer(data->device, sizeof(VertexType) * vertex_count, data->get_device_memory_properties());
 			}
 
 			template<typename VertexType>

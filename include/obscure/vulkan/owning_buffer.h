@@ -68,14 +68,14 @@ namespace obscure
 			}
 		};
 
-		struct memory_owning_vertex_buffer : public memory_owning_buffer
+		struct memory_owning_device_buffer : public memory_owning_buffer
 		{
-			memory_owning_vertex_buffer() noexcept = default;
-			memory_owning_vertex_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr);
-			memory_owning_vertex_buffer(memory_owning_vertex_buffer const& other) noexcept = default;
-			memory_owning_vertex_buffer(memory_owning_vertex_buffer && other) noexcept = default;
-			memory_owning_vertex_buffer& operator=(memory_owning_vertex_buffer const& other) noexcept = default;
-			memory_owning_vertex_buffer& operator=(memory_owning_vertex_buffer && other) noexcept = default;
+			memory_owning_device_buffer() noexcept = default;
+			memory_owning_device_buffer(vulkan::device _device, size_t buffer_size, VkBufferUsageFlags usage, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr);
+			memory_owning_device_buffer(memory_owning_device_buffer const& other) noexcept = default;
+			memory_owning_device_buffer(memory_owning_device_buffer && other) noexcept = default;
+			memory_owning_device_buffer& operator=(memory_owning_device_buffer const& other) noexcept = default;
+			memory_owning_device_buffer& operator=(memory_owning_device_buffer && other) noexcept = default;
 		};
 	}
 }

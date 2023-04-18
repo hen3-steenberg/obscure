@@ -2,7 +2,7 @@
 #define OBSCURE_VULKAN_RENDER_CONTEXT_DEFINITION 1
 #include "obscure/vulkan/application_context.h"
 #include "obscure/vulkan/owning_buffer.h"
-#include "obscure/vulkan/vertex_array.hpp"
+#include "obscure/vulkan/buffer_array.hpp"
 #include "obscure/shape/colored_vertex.hpp"
 
 namespace obscure
@@ -19,7 +19,7 @@ namespace obscure
 			render_context(VkCommandBuffer _command_buffer, frame_buffer buffer, application_context const* context);
 			render_context& draw_static_triangle();
 			render_context& draw_colored_triangle_list(vertex_array<obscure::shape::colored_vertex> & data);
-			render_context& draw_colored_triangle_list(memory_owning_vertex_buffer& vertex_buffer, size_t size);
+			render_context& draw_colored_triangle_list(memory_owning_device_buffer& vertex_buffer, size_t size);
 			void end_rendering();
 		};
 	}

@@ -12,8 +12,8 @@ namespace obscure
 			VkQueue transfer_queue;
 			transfer_context(VkCommandBuffer _transfer_buffer, VkQueue _transfer_queue);
 
-			transfer_context& transfer(memory_owning_vertex_buffer& destination, memory_owning_staging_buffer& src);
-			transfer_context& transfer(memory_owning_vertex_buffer& destination, memory_owning_mapped_staging_buffer& src);
+			transfer_context& transfer(memory_owning_device_buffer& destination, memory_owning_staging_buffer& src);
+			transfer_context& transfer(memory_owning_device_buffer& destination, memory_owning_mapped_staging_buffer& src);
 			void finalize_transfers();
 		};
 	}

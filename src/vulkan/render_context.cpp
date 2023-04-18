@@ -52,7 +52,7 @@ obscure::vulkan::render_context& obscure::vulkan::render_context::draw_colored_t
 	return draw_colored_triangle_list(data.device_buffer, data.size());
 }
 
-obscure::vulkan::render_context& obscure::vulkan::render_context::draw_colored_triangle_list(memory_owning_vertex_buffer& vertex_buffer, size_t size)
+obscure::vulkan::render_context& obscure::vulkan::render_context::draw_colored_triangle_list(memory_owning_device_buffer& vertex_buffer, size_t size)
 {
 	vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.colored_triangle_list_pipeline);
 

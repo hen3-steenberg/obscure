@@ -23,13 +23,13 @@ void transfer_impl(VkCommandBuffer transfer_buffer, obscure::vulkan::memory_owni
 	vkCmdCopyBuffer(transfer_buffer, src->get_handle(), dest->get_handle(), 1, &copyRegion);
 }
 
-obscure::vulkan::transfer_context& obscure::vulkan::transfer_context::transfer(memory_owning_vertex_buffer& destination, memory_owning_staging_buffer& src)
+obscure::vulkan::transfer_context& obscure::vulkan::transfer_context::transfer(memory_owning_device_buffer& destination, memory_owning_staging_buffer& src)
 {
 	transfer_impl(transfer_buffer, &destination, &src);
 	return *this;
 }
 
-obscure::vulkan::transfer_context& obscure::vulkan::transfer_context::transfer(memory_owning_vertex_buffer& destination, memory_owning_mapped_staging_buffer& src)
+obscure::vulkan::transfer_context& obscure::vulkan::transfer_context::transfer(memory_owning_device_buffer& destination, memory_owning_mapped_staging_buffer& src)
 {
 	transfer_impl(transfer_buffer, &destination, &src);
 	return *this;
