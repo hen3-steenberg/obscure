@@ -31,7 +31,7 @@ namespace obscure
 			vertex_array& operator=(vertex_array const& other) noexcept = default;
 			vertex_array& operator=(vertex_array && other) noexcept = default;
 
-			void transfer_to_device(transfer_context& ctx)
+			void transfer_to_device(transfer_context& ctx) &
 			{
 				if (host_buffer.valid())
 				{
@@ -55,22 +55,22 @@ namespace obscure
 				return reinterpret_cast<TElem*>(host_buffer.mapped_memory)[index];
 			}
 
-			TElem* begin()&
+			TElem* begin()& noexcept
 			{
 				return reinterpret_cast<TElem*>(host_buffer.mapped_memory);
 			}
 
-			TElem* end()&
+			TElem* end()& noexcept
 			{
 				return reinterpret_cast<TElem*>(host_buffer.mapped_memory) + _size;
 			}
 
-			TElem const* begin() const&
+			TElem const* begin() const& noexcept
 			{
 				return reinterpret_cast<TElem const*>(host_buffer.mapped_memory);
 			}
 
-			TElem const* end() const&
+			TElem const* end() const& noexcept
 			{
 				return reinterpret_cast<TElem const*>(host_buffer.mapped_memory) + _size;
 			}

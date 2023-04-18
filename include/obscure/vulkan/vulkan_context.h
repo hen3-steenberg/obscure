@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <initializer_list>
+#include <algorithm>
 #include "obscure/vulkan/application_context.h"
 #include "obscure/vulkan/command_sequence.h"
 #include "obscure/vulkan/owning_buffer.h"
@@ -49,11 +50,7 @@ namespace obscure
 			vulkan::vertex_array<VertexType> create_vertex_array(std::initializer_list<VertexType> vertices)
 			{
 				vulkan::vertex_array<VertexType> result(data->device, vertices.size(), data->get_device_memory_properties());
-				size_t index = 0;
-				for (VertexType vertex : vertices)
-				{
-					result[index++] = vertex;
-				}
+				std::copy(vertices.begin(), vertices.end(), result.begin());
 				return result;
 			}
 		};
