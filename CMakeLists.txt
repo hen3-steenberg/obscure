@@ -10,7 +10,22 @@ if(DEFINED ENV{VCPKG_PATH})
 	include(${VCPKG_CMAKE})
 endif()
 
-project ("obscure")
+
+
+project ("obscure" CXX)
+
+if(MSVC)
+	add_compile_options(/EHa)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+		add_compile_options(/EHa)
+	else()
+		add_compile_options(-fexceptions)
+	endif()
+else()
+	add_compile_options(-fexceptions)
+endif()
+
 add_subdirectory("resources")
 include_directories("include")
 add_subdirectory("src")

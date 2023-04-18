@@ -22,6 +22,8 @@ namespace obscure
 			static inline const char* type_text(VkDebugUtilsMessageTypeFlagsEXT messageType) noexcept;
 
 			virtual void free(instance instance, VkAllocationCallbacks const* allocator = nullptr) noexcept;
+
+			virtual ~logger() = default;
 		};
 
 		struct verbose_logger : logger

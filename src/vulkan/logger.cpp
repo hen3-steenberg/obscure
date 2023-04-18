@@ -138,6 +138,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL obscure::vulkan::verbose_console_logger::LogEvent
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
 		std::cerr << virtual_terminal::bright_red_text;
 		break;
+	//included to satisfy -Wswitch
+	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
+		break;
 	}
 
 	std::cerr << sw.elapsed_time().count() << " : " << type_text(messageType) << " : ";
