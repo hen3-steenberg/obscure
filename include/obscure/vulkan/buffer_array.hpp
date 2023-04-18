@@ -2,6 +2,7 @@
 #define OBSCURE_VULKAN_VERTEX_ARRAY_DEFINITION 1
 #include "obscure/vulkan/owning_buffer.h"
 #include "obscure/vulkan/transfer_context.h"
+#include <concepts>
 namespace obscure
 {
 	namespace vulkan
@@ -22,7 +23,7 @@ namespace obscure
 			{}
 
 			buffer_array(vulkan::device _device, size_t size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr)
-				: _size(sizeof(TElem)* size), host_buffer(_device, _size, properties, allocator), device_buffer(_device, _size, usage, properties, allocator)
+				: _size(size), host_buffer(_device, sizeof(TElem)* size, properties, allocator), device_buffer(_device, sizeof(TElem) * size, usage, properties, allocator)
 			{}
 
 			buffer_array(buffer_array const& other) noexcept = default;
@@ -78,6 +79,35 @@ namespace obscure
 
 		template<typename TElem>
 		using vertex_array = typename obscure::vulkan::buffer_array<TElem, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT>;
+
+		template<VkIndexType TIndex>
+		struct vulkan_index
+		{};
+
+		template<>
+		struct vulkan_index<VK_INDEX_TYPE_UINT8_EXT>
+		{
+			using type = typename uint8_t;
+		};
+
+		template<>
+		struct vulkan_index<VK_INDEX_TYPE_UINT16>
+		{
+			using type = typename uint16_t;
+		};
+
+		template<>
+		struct vulkan_index<VK_INDEX_TYPE_UINT32>
+		{
+			using type = typename uint32_t;
+		};
+
+		template<VkIndexType TIndex>
+		using vulkan_index_t = typename vulkan_index<TIndex>::type;
+
+		template<VkIndexType TIndex>
+		using index_array = typename obscure::vulkan::buffer_array<vulkan_index_t<TIndex>, VK_BUFFER_USAGE_INDEX_BUFFER_BIT>;
+
 	}
 }
 #endif

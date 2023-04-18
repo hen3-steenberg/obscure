@@ -19,6 +19,13 @@ namespace obscure
 			render_context(VkCommandBuffer _command_buffer, frame_buffer buffer, application_context const* context);
 			render_context& draw_static_triangle();
 			render_context& draw_colored_triangle_list(vertex_array<obscure::shape::colored_vertex> & data);
+			template<VkIndexType TIndex>
+			render_context& draw_colored_triangle_list(vertex_array<obscure::shape::colored_vertex>& vertices, index_array<TIndex>& indices)
+			{
+				return draw_colored_triangle_list(vertices.device_buffer, indices.device_buffer, TIndex, indices.size());
+			}
+
+			render_context& draw_colored_triangle_list(memory_owning_device_buffer& vertex_buffer, memory_owning_device_buffer& index_buffer, VkIndexType type, size_t size);
 			render_context& draw_colored_triangle_list(memory_owning_device_buffer& vertex_buffer, size_t size);
 			void end_rendering();
 		};

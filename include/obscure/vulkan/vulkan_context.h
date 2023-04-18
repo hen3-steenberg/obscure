@@ -53,6 +53,21 @@ namespace obscure
 				std::copy(vertices.begin(), vertices.end(), result.begin());
 				return result;
 			}
+
+			template<VkIndexType TIndex>
+			vulkan::index_array<TIndex> create_index_array(size_t index_count)
+			{
+				return vulkan::index_array<TIndex>(data->device, index_count, data->get_device_memory_properties());
+			}
+
+			template<VkIndexType TIndex>
+			vulkan::index_array<TIndex> create_index_array(std::initializer_list<vulkan::vulkan_index_t<TIndex>> indices)
+			{
+				vulkan::index_array<TIndex> result(data->device, indices.size(), data->get_device_memory_properties());
+				std::copy(indices.begin(), indices.end(), result.begin());
+				return result;
+			}
+
 		};
 	}
 }
