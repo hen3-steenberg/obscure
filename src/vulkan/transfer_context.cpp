@@ -13,16 +13,29 @@ obscure::vulkan::transfer_context::transfer_context(VkCommandBuffer _transfer_bu
 	vkBeginCommandBuffer(transfer_buffer, &beginInfo);
 }
 
-obscure::vulkan::transfer_context& obscure::vulkan::transfer_context::transfer(memory_owning_vertex_buffer& destination, memory_owning_staging_buffer& src)
+void transfer_impl(VkCommandBuffer transfer_buffer, obscure::vulkan::memory_owning_buffer* dest, obscure::vulkan::memory_owning_buffer* src)
 {
-	uint32_t size = (destination.memory.memory_size < src.memory.memory_size) ? destination.memory.memory_size : src.memory.memory_size;
+	uint32_t size = (dest->memory.memory_size < src->memory.memory_size) ? dest->memory.memory_size : src->memory.memory_size;
 	VkBufferCopy copyRegion{};
 	copyRegion.srcOffset = 0; // Optional
 	copyRegion.dstOffset = 0; // Optional
 	copyRegion.size = size;
-	vkCmdCopyBuffer(transfer_buffer, src.get_handle(), destination.get_handle(), 1, &copyRegion);
+	vkCmdCopyBuffer(transfer_buffer, src->get_handle(), dest->get_handle(), 1, &copyRegion);
+}
+
+obscure::vulkan::transfer_context& obscure::vulkan::transfer_context::transfer(memory_owning_vertex_buffer& destination, memory_owning_staging_buffer& src)
+{
+	transfer_impl(transfer_buffer, &destination, &src);
 	return *this;
 }
+
+obscure::vulkan::transfer_context& obscure::vulkan::transfer_context::transfer(memory_owning_vertex_buffer& destination, memory_owning_mapped_staging_buffer& src)
+{
+	transfer_impl(transfer_buffer, &destination, &src);
+	return *this;
+}
+
+
 void obscure::vulkan::transfer_context::finalize_transfers()
 {
 	vkEndCommandBuffer(transfer_buffer);

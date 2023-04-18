@@ -21,19 +21,30 @@ namespace obscure
 			memory_owning_buffer() noexcept;
 			memory_owning_buffer(vulkan::device _device, size_t size, VkBufferUsageFlags usage, VkPhysicalDeviceMemoryProperties properties, VkMemoryPropertyFlags requested_properties, const VkAllocationCallbacks* _allocator = nullptr);
 			memory_owning_buffer(memory_owning_buffer const& other) noexcept;
+			memory_owning_buffer(memory_owning_buffer && other) noexcept;
 
 			memory_owning_buffer& operator=(memory_owning_buffer const& other) noexcept;
-
-			template<typename T>
-			static memory_owning_buffer create_vertex_buffer(vulkan::device _device, size_t vertex_count, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr)
-			{
-				return memory_owning_buffer(_device, sizeof(T) * vertex_count, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, properties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocator);
-			}
+			memory_owning_buffer& operator=(memory_owning_buffer && other) noexcept;
 
 			VkBuffer get_handle() const& noexcept;
-			
+			bool valid() const&;
 
-			~memory_owning_buffer();
+			virtual ~memory_owning_buffer();
+		};
+
+		struct memory_owning_mapped_staging_buffer : public memory_owning_buffer
+		{
+			void* mapped_memory;
+
+			void sync_memory() &;
+
+			memory_owning_mapped_staging_buffer() noexcept;
+			memory_owning_mapped_staging_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr);
+			memory_owning_mapped_staging_buffer(memory_owning_mapped_staging_buffer const& other) = default;
+			memory_owning_mapped_staging_buffer(memory_owning_mapped_staging_buffer && other) = default;
+			memory_owning_mapped_staging_buffer& operator=(memory_owning_mapped_staging_buffer const& other) = default;
+			memory_owning_mapped_staging_buffer& operator=(memory_owning_mapped_staging_buffer && other) = default;
+			~memory_owning_mapped_staging_buffer();
 		};
 
 		struct memory_owning_staging_buffer : public memory_owning_buffer
@@ -41,8 +52,10 @@ namespace obscure
 			memory_owning_staging_buffer() noexcept = default;
 			memory_owning_staging_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr);
 			memory_owning_staging_buffer(memory_owning_staging_buffer const& other) noexcept = default;
+			memory_owning_staging_buffer(memory_owning_staging_buffer && other) noexcept = default;
 
 			memory_owning_staging_buffer& operator=(memory_owning_staging_buffer const& other) noexcept = default;
+			memory_owning_staging_buffer& operator=(memory_owning_staging_buffer && other) noexcept = default;
 
 			void write_data(const void* data, size_t size)&;
 
@@ -60,7 +73,9 @@ namespace obscure
 			memory_owning_vertex_buffer() noexcept = default;
 			memory_owning_vertex_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator = nullptr);
 			memory_owning_vertex_buffer(memory_owning_vertex_buffer const& other) noexcept = default;
+			memory_owning_vertex_buffer(memory_owning_vertex_buffer && other) noexcept = default;
 			memory_owning_vertex_buffer& operator=(memory_owning_vertex_buffer const& other) noexcept = default;
+			memory_owning_vertex_buffer& operator=(memory_owning_vertex_buffer && other) noexcept = default;
 		};
 	}
 }

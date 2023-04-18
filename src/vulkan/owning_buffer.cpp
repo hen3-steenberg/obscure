@@ -2,7 +2,7 @@
 
 void free(obscure::vulkan::memory_owning_buffer* buffer) noexcept
 {
-	if (buffer->counter)
+	if (buffer->valid())
 	{
 		uint64_t buffer_count = buffer->counter->fetch_sub(1);
 		//only this buffer remains
@@ -53,12 +53,31 @@ obscure::vulkan::memory_owning_buffer::memory_owning_buffer(memory_owning_buffer
 	}
 }
 
+obscure::vulkan::memory_owning_buffer::memory_owning_buffer(memory_owning_buffer && other) noexcept
+	: vk_buffer(other.vk_buffer), memory(other.memory), device(other.device), allocator(other.allocator), counter(other.counter)
+{
+	if (counter)
+	{
+		other.counter = nullptr;
+	}
+}
+
 obscure::vulkan::memory_owning_buffer& obscure::vulkan::memory_owning_buffer::operator=(memory_owning_buffer const& other) noexcept
 {
 	if (counter != other.counter)
 	{
 		free(this);
 		new (this) memory_owning_buffer(other);
+	}
+	return *this;
+}
+
+obscure::vulkan::memory_owning_buffer& obscure::vulkan::memory_owning_buffer::operator=(memory_owning_buffer && other) noexcept
+{
+	if (counter != other.counter)
+	{
+		free(this);
+		new (this) memory_owning_buffer(std::move(other));
 	}
 	return *this;
 }
@@ -70,7 +89,10 @@ VkBuffer obscure::vulkan::memory_owning_buffer::get_handle() const& noexcept
 }
 
 
-
+bool obscure::vulkan::memory_owning_buffer::valid() const&
+{
+	return static_cast<bool>(counter);
+}
 
 
 obscure::vulkan::memory_owning_buffer::~memory_owning_buffer()
@@ -109,3 +131,33 @@ obscure::vulkan::buffer_memory obscure::vulkan::memory_owning_staging_buffer::ma
 obscure::vulkan::memory_owning_vertex_buffer::memory_owning_vertex_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator)
 	: memory_owning_buffer(_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, properties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocator)
 {}
+
+void obscure::vulkan::memory_owning_mapped_staging_buffer::sync_memory()&
+{
+	VkMappedMemoryRange range{};
+	range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+	range.pNext = nullptr;
+
+	range.memory = memory.get_handle();
+	range.offset = 0;
+	range.size = VK_WHOLE_SIZE;
+
+	vkFlushMappedMemoryRanges(device.get_handle(), 1, &range);
+}
+obscure::vulkan::memory_owning_mapped_staging_buffer::memory_owning_mapped_staging_buffer() noexcept
+	: memory_owning_buffer(), mapped_memory(nullptr)
+{}
+
+obscure::vulkan::memory_owning_mapped_staging_buffer::memory_owning_mapped_staging_buffer(vulkan::device _device, size_t buffer_size, VkPhysicalDeviceMemoryProperties properties, const VkAllocationCallbacks* allocator)
+	: memory_owning_buffer(_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, properties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, allocator)
+{
+	vkMapMemory(device.get_handle(), memory.get_handle(), 0, memory.memory_size, 0, &mapped_memory);
+}
+
+obscure::vulkan::memory_owning_mapped_staging_buffer::~memory_owning_mapped_staging_buffer()
+{
+	if (valid() && counter->load() == 1)
+	{
+		vkUnmapMemory(device.get_handle(), memory.get_handle());
+	}
+}
