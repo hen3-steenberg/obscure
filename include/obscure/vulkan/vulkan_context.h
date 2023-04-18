@@ -2,6 +2,7 @@
 #define OBSCURE_VULKAN_CONTEXT_DEFINITION 1
 
 #include <memory>
+#include <initializer_list>
 #include "obscure/vulkan/application_context.h"
 #include "obscure/vulkan/command_sequence.h"
 #include "obscure/vulkan/owning_buffer.h"
@@ -42,6 +43,18 @@ namespace obscure
 			vulkan::vertex_array<VertexType> create_vertex_array(size_t vertex_count)
 			{
 				return vulkan::vertex_array<VertexType>(data->device,vertex_count, data->get_device_memory_properties());
+			}
+
+			template<typename VertexType>
+			vulkan::vertex_array<VertexType> create_vertex_array(std::initializer_list<VertexType> vertices)
+			{
+				vulkan::vertex_array<VertexType> result(data->device, vertices.size(), data->get_device_memory_properties());
+				size_t index = 0;
+				for (VertexType vertex : vertices)
+				{
+					result[index++] = vertex;
+				}
+				return result;
 			}
 		};
 	}

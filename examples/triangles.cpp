@@ -13,10 +13,11 @@ struct triangles_app : obscure::application_2d
 	triangles_app()
 		: obscure::application_2d(obscure::configuration::default_configuration(800, 800, "triangles", app_version, true))
 	{
-		vertices = context.create_vertex_array<obscure::shape::colored_vertex>(3);
-		vertices[0] = obscure::shape::colored_vertex({ 0.0f, -0.1f }, { 1.0f, 1.0f, 1.0f });
-		vertices[1] = obscure::shape::colored_vertex({ 0.1f, 0.1f }, { 0.0f, 1.0f, 0.0f });
-		vertices[2] = obscure::shape::colored_vertex({ -0.1f, 0.1f }, { 0.0f, 0.0f, 1.0f });
+		vertices = context.create_vertex_array<obscure::shape::colored_vertex>({
+				obscure::shape::colored_vertex({ 0.0f, -0.1f }, { 1.0f, 1.0f, 1.0f }),
+				obscure::shape::colored_vertex({ 0.1f, 0.1f }, { 0.0f, 1.0f, 0.0f }),
+				obscure::shape::colored_vertex({ -0.1f, 0.1f }, { 0.0f, 0.0f, 1.0f })
+			});
 	}
 
 	void loop(obscure::vulkan::command_sequence draw_context)
