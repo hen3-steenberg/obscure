@@ -3,9 +3,18 @@
 #
 cmake_minimum_required (VERSION 3.28)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(DEFINED ENV{VCPKG_PATH})
+	if(NOT DEFINED VCPKG_TARGET_TRIPLET)
+		if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET})
+			set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}")
+		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+			set(VCPKG_TARGET_TRIPLET "x64-linux")
+		endif()
+	endif()
 	cmake_path(APPEND VCPKG_CMAKE "$ENV{VCPKG_PATH}" "scripts/buildsystems/vcpkg.cmake")
 	include(${VCPKG_CMAKE})
 endif()
@@ -13,6 +22,7 @@ endif()
 
 
 project ("obscure" CXX)
+
 
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)

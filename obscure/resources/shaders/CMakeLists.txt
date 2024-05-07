@@ -24,3 +24,4 @@ add_custom_target(
     OBSCURE_SHADERS
     DEPENDS ${SPIRV_BINARY_FILES}
     )
+    

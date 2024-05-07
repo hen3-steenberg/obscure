@@ -1,6 +1,5 @@
 #ifndef GLFW_VULKAN_INCLUDE_DEFINITION
 #define GLFW_VULKAN_INCLUDE_DEFINITION 1
-#define GLFW_INCLUDE_VULKAN
+#include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
-
 #endif

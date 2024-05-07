@@ -7,7 +7,9 @@ namespace obscure
 {
 	struct version
 	{
-		constexpr version() noexcept = default;
+		constexpr version() noexcept
+			: major(), minor(), patch() {}
+		
 		constexpr version(version const& other) noexcept = default;
 
 		constexpr explicit version(uint32_t vers) noexcept
@@ -23,15 +25,16 @@ namespace obscure
 		uint32_t minor : 10;
 		uint32_t patch : 12;
 
-		constexpr [[nodiscard]] uint32_t vulkan_version() const noexcept
+		[[nodiscard]] constexpr  uint32_t vulkan_version() const noexcept
 		{
 			return std::bit_cast<uint32_t, version>(*this);
 		}
 
-		constexpr [[nodiscard]] explicit operator uint32_t () const noexcept
+		[[nodiscard]] constexpr explicit operator uint32_t () const noexcept
 		{
 			return vulkan_version();
 		}
 	};
+
 }
 #endif

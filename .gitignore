@@ -3,6 +3,7 @@
 ################################################################################
 
 /.vs
-/out/build/x64-debug
+/out
 /dummy_include/GLFW
 /src/preprocess.txt
+/.cache

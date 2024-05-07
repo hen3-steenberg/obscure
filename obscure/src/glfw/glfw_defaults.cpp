@@ -1,4 +1,3 @@
-#include "obscure/application_properties.hpp"
 #include "obscure/glfw/glfw_defaults.hpp"
 
 
@@ -43,28 +42,13 @@ const default_monitor monitor{};
 
 [[nodiscard]] int obscure::glfw::get_default_window_height() noexcept
 {
-	if constexpr (obscure::window_height() > 0)
-	{
-		return obscure::window_height();
-	}
-	else
-	{
-		static int default_height = get_fullscreen_height();
-		return default_height;
-	}
-	
+	static int default_height = get_fullscreen_height();
+	return default_height;
 }
 
 
 [[nodiscard]] int obscure::glfw::get_default_window_width() noexcept
 {
-	if constexpr (obscure::window_width() > 0)
-	{
-		return obscure::window_width();
-	}
-	else
-	{
-		static int default_width = get_fullscreen_width();
-		return default_width;
-	}
+	static int default_width = get_fullscreen_width();
+	return default_width;
 }
