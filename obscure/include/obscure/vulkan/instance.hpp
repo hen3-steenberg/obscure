@@ -4,6 +4,10 @@
 #include "obscure/obscure_properties.hpp"
 #include "obscure/name_list.hpp"
 #include <iostream>
+#include <atomic>
+
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
+
 namespace obscure
 {
     namespace vulkan
@@ -34,7 +38,8 @@ namespace obscure
 
         vk::Instance create_instance(const char * app_name, obscure::version app_version)
         {
-
+            static std::atomic_flag is_vulkan_initialized = ATOMIC_FLAG_INIT;
+            
             const vk::ApplicationInfo app_info {
                 app_name,
                 app_version.vulkan_version(),
@@ -68,7 +73,17 @@ namespace obscure
                     }
                 };
 
-                return vk::createInstance(create_info.get());
+                if(!is_vulkan_initialized.test_and_set())
+                {      
+                    VULKAN_HPP_DEFAULT_DISPATCHER.init();
+                    auto res = vk::createInstance(create_info.get());
+                    VULKAN_HPP_DEFAULT_DISPATCHER.init(res);
+                    return res;
+                }
+                else
+                {
+                    return vk::createInstance(create_info.get());
+                }
             }
             else 
             {
@@ -82,35 +97,36 @@ namespace obscure
                     extension_list.get_names()
                 };
 
-                return vk::createInstance(create_info);
+                
+                if(!is_vulkan_initialized.test_and_set())
+                {      
+                    VULKAN_HPP_DEFAULT_DISPATCHER.init();
+                    auto res = vk::createInstance(create_info);
+                    VULKAN_HPP_DEFAULT_DISPATCHER.init(res);
+                    return res;
+                }
+                else
+                {
+                    return vk::createInstance(create_info);
+                }
             }
         }
 
         struct instance : vk::Instance
         {
-            bool owning;
             instance(const char * app_name, obscure::version app_version)
-                : vk::Instance(create_instance(app_name, app_version)), owning(true)
+                : vk::Instance(create_instance(app_name, app_version))
             {}
 
             instance(vk::Instance other)
-                : vk::Instance(other), owning(true)
+                : vk::Instance(other)
             {}
 
             instance(instance const& other) = delete;
 
-            instance(instance && other) noexcept 
-                : vk::Instance(other), owning(true)
-            {
-                other.owning = false;
-            }
-
             ~instance() noexcept
             {
-                if(owning)
-                {
-                    destroy();
-                }
+                destroy();
             }
         };
     }

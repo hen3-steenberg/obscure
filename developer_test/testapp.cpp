@@ -1,16 +1,13 @@
-#include "obscure/glfw/glfw_window.hpp"
-#include "obscure/version.hpp"
-#include "obscure/vulkan/instance.hpp"
+#include "obscure/application.hpp"
 
 int main()
 {
-	obscure::glfw::glfw_window window{};
-	obscure::vulkan::instance instance{"Test App", obscure::version{1,0,0}};
+	obscure::application app{"Test App", obscure::version{1,0,0}};
 
-	while (!window.should_close())
+	while (!app.window.should_close())
 	{
 		glfwPollEvents();
-		if (window.isKeyPressed(GLFW_KEY_ESCAPE))
+		if (app.window.isKeyPressed(GLFW_KEY_ESCAPE))
 		{
 			break;
 		}
