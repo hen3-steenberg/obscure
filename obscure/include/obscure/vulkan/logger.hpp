@@ -7,6 +7,7 @@
 #include "obscure/helper_templates/max_set_bit.hpp"
 #include <iostream>
 #include <fstream>
+#include <atomic>
 
 
 namespace obscure
@@ -111,6 +112,7 @@ namespace obscure
         struct verbose_json_logger : logger_base<TSiblings ...>
         {
             std::ofstream json_file;
+            std::atomic_flag is_busy = ATOMIC_FLAG_INIT;
             verbose_json_logger()
                 : json_file("vulkan_log.json")
             {
@@ -120,6 +122,7 @@ namespace obscure
 
             ~verbose_json_logger()
             {
+                is_busy.wait(true);
                 json_file << "\n]";
                 json_file.flush();
                 json_file.close();
@@ -128,6 +131,7 @@ namespace obscure
             private:
             void LogEvent(VkDebugUtilsMessageSeverityFlagBitsEXT Severity, VkDebugUtilsMessageTypeFlagsEXT Type, const VkDebugUtilsMessengerCallbackDataEXT* Data) final
             {
+                is_busy.test_and_set();
                 json_file << "{\n";
                 json_file << "\t\"severity\" : \"" << get_message_severity_text(Severity) << "\",\n";
                 json_file << "\t\"type\" : \"" << get_message_type_text(Type) << "\",\n";
@@ -166,6 +170,7 @@ namespace obscure
                 }
                 json_file << "\t]\n";
                 json_file << "},\n";
+                is_busy.clear();
             }
         };
 
