@@ -25,6 +25,9 @@ namespace obscure
             : window(), vk_instance(app_name, app_version), vk_loggers(), vk_device(vulkan::pick_device(vk_instance, std::move(get_device_score)))
         {}
     };
+
+    static_assert(offsetof(application, vk_loggers) - offsetof(application, vk_instance) == sizeof(obscure::vulkan::instance));
+    static_assert(sizeof(obscure::vulkan::verbose_console_logger<>) + sizeof(obscure::vulkan::verbose_json_logger<>) == sizeof(obscure::vulkan::logger_collection<true, obscure::vulkan::verbose_console_logger, obscure::vulkan::verbose_json_logger>));
 }
 
 #endif

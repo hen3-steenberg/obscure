@@ -1,10 +1,20 @@
 #include "obscure/glfw/glfw_defaults.hpp"
 #include "obscure/glfw/glfw_window.hpp"
+#include "obscure/obscure_properties.hpp"
 
 obscure::glfw::glfw_window::glfw_window()
 {
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	window_ptr = glfwCreateWindow(get_default_window_width(), get_default_window_height(), "", glfwGetPrimaryMonitor(), nullptr);
+	glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_TRUE);
+	if constexpr (enable_debug_validation())
+	{
+		window_ptr = glfwCreateWindow(get_default_window_width(), get_default_window_height(), "", nullptr, nullptr);
+	}
+	else
+	{
+		window_ptr = glfwCreateWindow(get_default_window_width(), get_default_window_height(), "", glfwGetPrimaryMonitor(), nullptr);
+	}
+	
 }
 
 obscure::glfw::glfw_window::glfw_window(glfw_window&& other)

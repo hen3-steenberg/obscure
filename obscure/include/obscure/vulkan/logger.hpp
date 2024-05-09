@@ -3,6 +3,7 @@
 #include "glfw_vulkan_include.hpp"
 #include "obscure/helper_templates/parent_reference.hpp"
 #include "obscure/helper_templates/max_set_bit.hpp"
+#include "obscure/vulkan/instance.hpp"
 #include <iostream>
 #include <fstream>
 #include <atomic>
@@ -23,9 +24,14 @@ namespace obscure
     namespace vulkan
     {
         template<typename ... TSiblings>
-        struct logger_base : private obscure::helper_templates::parent_ref<vk::Instance, TSiblings...>
+        struct logger_base
         {
             private:
+                instance & get_parent_ref()&
+                {
+                    return obscure::helper_templates::get_parent_ref<instance, TSiblings...>(this);
+                }
+
             static VKAPI_ATTR VkBool32 VKAPI_CALL LogCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                                                 VkDebugUtilsMessageTypeFlagsEXT messageType,
                                                                 const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -52,13 +58,13 @@ namespace obscure
                         LogCallback,
                         this
                     };
-
-                LoggerHandle = obscure::helper_templates::parent_ref<vk::Instance, TSiblings...>::get_parent_ref().createDebugUtilsMessengerEXT(create_info);
+                auto & parent = get_parent_ref();
+                LoggerHandle = parent.createDebugUtilsMessengerEXT(create_info);
             }
 
             ~logger_base()
             {
-                obscure::helper_templates::parent_ref<vk::Instance, TSiblings...>::get_parent_ref().destroyDebugUtilsMessengerEXT(LoggerHandle);
+                get_parent_ref().destroyDebugUtilsMessengerEXT(LoggerHandle);
             }
 
             protected:
