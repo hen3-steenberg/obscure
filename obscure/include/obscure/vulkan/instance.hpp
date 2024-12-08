@@ -2,7 +2,7 @@
 #define OBSCURE_VULKAN_INSTANCE_DEFINITION 1
 #include "glfw_vulkan_include.hpp"
 #include "obscure/obscure_properties.hpp"
-#include "obscure/name_list.hpp"
+#include "obscure/utils/name_list.hpp"
 #include <iostream>
 #include <atomic>
 
@@ -66,7 +66,7 @@ namespace obscure
                     },
                     vk::DebugUtilsMessengerCreateInfoEXT {
                         {},
-                        vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
+                        vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
                         vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding | vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
                         InstanceLifetimeCallback,
                         nullptr

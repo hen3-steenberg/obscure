@@ -23,7 +23,74 @@ namespace obscure
 {
     namespace vulkan
     {
-        template<typename ... TSiblings>
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity>
+        consteval vk::DebugUtilsMessageSeverityFlagsEXT get_severity_flags()
+        {
+            vk::DebugUtilsMessageSeverityFlagsEXT result{};
+            if constexpr (vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose >= min_severity)
+            {
+                result |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose;
+            }
+            if constexpr (vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo >= min_severity)
+            {
+                result |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo;
+            }
+            if constexpr (vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning >= min_severity)
+            {
+                result |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
+            }
+            if constexpr (vk::DebugUtilsMessageSeverityFlagBitsEXT::eError >= min_severity)
+            {
+                result |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+            }
+            return result;
+        }
+
+        template<vk::DebugUtilsMessageTypeFlagBitsEXT min_type>
+        consteval vk::DebugUtilsMessageTypeFlagsEXT get_type_flags()
+        {
+            vk::DebugUtilsMessageTypeFlagsEXT result{};
+            if constexpr (vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation >= min_type)
+            {
+                result |= vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
+            }
+            if constexpr (vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding >= min_type)
+            {
+                result |= vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding;
+            }
+            if constexpr (vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral >= min_type)
+            {
+                result |= vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral;
+            }
+            if constexpr (vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance >= min_type)
+            {
+                result |= vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+            }
+            return result;
+        }
+
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity>
+        constexpr bool is_valid_severity(VkDebugUtilsMessageSeverityFlagBitsEXT severity)
+        {
+            constexpr uint32_t min_value = std::bit_cast<uint32_t>(min_severity);
+            return severity >= min_value;
+        }
+
+        template<>
+        constexpr bool is_valid_severity<vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose>(VkDebugUtilsMessageSeverityFlagBitsEXT severity)
+        {
+            return true;
+        }
+
+        template<vk::DebugUtilsMessageTypeFlagBitsEXT min_type>
+        constexpr bool is_valid_type(VkDebugUtilsMessageTypeFlagsEXT messageType)
+        {
+            constexpr uint32_t min_value = std::bit_cast<uint32_t>(min_type);
+            return messageType >= min_value;
+        }
+
+
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename ... TSiblings>
         struct logger_base
         {
             private:
@@ -37,7 +104,7 @@ namespace obscure
                                                                 const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                                 void* pUserData) 
             {
-                if(pUserData)
+                if(is_valid_severity<min_severity>(messageSeverity) && is_valid_type<min_type>(messageType) && pUserData)
                 {
                     logger_base* logger = reinterpret_cast<logger_base*>(pUserData);
                     logger->LogEvent(messageSeverity, messageType, *pCallbackData);
@@ -53,8 +120,8 @@ namespace obscure
             {
                 vk::DebugUtilsMessengerCreateInfoEXT create_info {
                         {},
-                        vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
-                        vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding | vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
+                        get_severity_flags<min_severity>(),
+                        get_type_flags<min_type>(),
                         LogCallback,
                         this
                     };
@@ -70,7 +137,6 @@ namespace obscure
             protected:
 
             virtual void LogEvent(VkDebugUtilsMessageSeverityFlagsEXT Severity, VkDebugUtilsMessageTypeFlagsEXT Type, const VkDebugUtilsMessengerCallbackDataEXT & Data) = 0;
-
 
         };
 
@@ -220,33 +286,36 @@ namespace obscure
             }
         };
 
-        template<typename ... TSiblings>
-        struct verbose_console_logger : logger_base<TSiblings ...>
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename ... TSiblings>
+        struct console_logger : logger_base<min_severity, min_type, TSiblings ...>
         {
-            private:
-            void LogEvent(VkDebugUtilsMessageSeverityFlagsEXT Severity, VkDebugUtilsMessageTypeFlagsEXT Type, const VkDebugUtilsMessengerCallbackDataEXT & Data) final
+        private:
+            void LogEvent(VkDebugUtilsMessageSeverityFlagsEXT Severity, VkDebugUtilsMessageTypeFlagsEXT Type, const VkDebugUtilsMessengerCallbackDataEXT& Data) final
             {
                 std::cout << get_message_severity_text(Severity) << ", " << get_message_type_text(Type) << " : " << Data.pMessage << "\n";
             }
         };
 
         template<typename ... TSiblings>
-        struct verbose_json_logger : logger_base<TSiblings ...>
+        using verbose_console_logger = console_logger<vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo, vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral, TSiblings...>;
+
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename ... TSiblings>
+        struct json_logger : logger_base<min_severity, min_type, TSiblings ...>
         {
             std::ofstream json_file;
             std::atomic_flag request_stop = ATOMIC_FLAG_INIT;
             EventQueue event_queue;
             std::thread writer_thread;
             bool first_entry = true;
-            
-            verbose_json_logger()
-                : json_file("vulkan_log.json"), writer_thread([this](){ ProcessMessages(); })
+
+            json_logger()
+                : json_file("vulkan_log.json"), writer_thread([this]() { ProcessMessages(); })
             {
                 json_file << "[\n";
             }
 
 
-            ~verbose_json_logger()
+            ~json_logger()
             {
                 request_stop.test_and_set();
                 writer_thread.join();
@@ -255,19 +324,19 @@ namespace obscure
                 json_file.close();
             }
 
-            private:
+        private:
 
             void ProcessMessages()
             {
                 using namespace std::literals;
-                while(!request_stop.test() || !event_queue.empty())
+                while (!request_stop.test() || !event_queue.empty())
                 {
                     auto event = event_queue.get_next_event();
-                    if(event.has_value())
+                    if (event.has_value())
                     {
                         HandleLogEntry(std::move(event.value()));
                     }
-                    else 
+                    else
                     {
                         std::this_thread::sleep_for(100ms);
                     }
@@ -276,7 +345,7 @@ namespace obscure
 
             void HandleLogEntry(std::unique_ptr<Event> Entry)
             {
-                if(first_entry)
+                if (first_entry)
                 {
                     json_file << "{\n";
                     first_entry = false;
@@ -284,7 +353,7 @@ namespace obscure
                 else {
                     json_file << ",{\n";
                 }
-                
+
                 json_file << "\t\"severity\" : \"" << get_message_severity_text(Entry->Severity) << "\",\n";
                 json_file << "\t\"type\" : \"" << get_message_type_text(Entry->Type) << "\",\n";
                 json_file << "\t\"id\" : " << Entry->data.ID << ",\n";
@@ -294,14 +363,14 @@ namespace obscure
 
                 bool first = true;
 
-                for(auto const& label : Entry->data.queue_labels)
+                for (auto const& label : Entry->data.queue_labels)
                 {
-                    if(first)
+                    if (first)
                     {
                         json_file << "\t{\n";
                         first = false;
                     }
-                    else 
+                    else
                     {
                         json_file << "\t,{\n";
                     }
@@ -314,14 +383,14 @@ namespace obscure
 
                 first = true;
 
-                for(auto const& label : Entry->data.cmd_buffer_labels)
+                for (auto const& label : Entry->data.cmd_buffer_labels)
                 {
-                    if(first)
+                    if (first)
                     {
                         json_file << "\t{\n";
                         first = false;
                     }
-                    else 
+                    else
                     {
                         json_file << "\t,{\n";
                     }
@@ -333,14 +402,14 @@ namespace obscure
                 json_file << "\t\"objects\" : [\n";
 
                 first = true;
-                for(auto const& obj : Entry->data.objects)
+                for (auto const& obj : Entry->data.objects)
                 {
-                    if(first)
+                    if (first)
                     {
                         json_file << "\t{\n";
                         first = false;
                     }
-                    else 
+                    else
                     {
                         json_file << "\t,{\n";
                     }
@@ -359,36 +428,39 @@ namespace obscure
             }
         };
 
-        template<typename TSibling,template<typename ... TSiblings> class TLogger1, template<typename ... TSiblings> class ... TLoggers>
-        struct logger_collection_impl : TLogger1<TSibling>, logger_collection_impl<std::pair<TSibling, TLogger1<TSibling>>, TLoggers...>
+        template<typename ... TSiblings>
+        using verbose_json_logger = json_logger< vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo, vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral, TSiblings...>;
+
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename TSibling,template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class TLogger1, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
+        struct logger_collection_impl : TLogger1<min_severity, min_type, TSibling>, logger_collection_impl<min_severity, min_type, std::pair<TSibling, TLogger1<min_severity, min_type, TSibling>>, TLoggers...>
         {
 
         };
 
-        template<typename TSibling,template<typename ... TSiblings> class TLogger1>
-        struct logger_collection_impl<TSibling, TLogger1> : TLogger1<TSibling>
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename TSibling,template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class TLogger1>
+        struct logger_collection_impl<min_severity, min_type, TSibling, TLogger1> : TLogger1<min_severity, min_type, TSibling>
         {
 
         };
 
-        template<bool Enable, typename TSibling, template<typename ... TSiblings> class ... TLoggers>
-        struct logger_collection_s : logger_collection_impl<TSibling, TLoggers...>
+        template<bool Enable, vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename TSibling, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
+        struct logger_collection_s : logger_collection_impl<min_severity, min_type, TSibling, TLoggers...>
         {
 
         };
 
-        template<typename TSibling, template<typename ... TSiblings> class ... TLoggers>
-        struct logger_collection_s<false, TSibling, TLoggers...>
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename TSibling, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
+        struct logger_collection_s<false, min_severity, min_type, TSibling, TLoggers...>
         {};
 
-        template<bool Enable, template<typename ... TSiblings> class TLogger1, template<typename ... TSiblings> class ... TLoggers>
-        struct logger_collection : TLogger1<>, logger_collection_impl<TLogger1<>, TLoggers...>
+        template<bool Enable, vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class TLogger1, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
+        struct logger_collection : TLogger1<min_severity, min_type>, logger_collection_impl<min_severity, min_type, TLogger1<min_severity, min_type>, TLoggers...>
         {
 
         };
 
-        template<template<typename ... TSiblings> class TLogger1, template<typename ... TSiblings> class ... TLoggers>
-        struct logger_collection<false, TLogger1, TLoggers...>
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class TLogger1, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
+        struct logger_collection<false,min_severity, min_type, TLogger1, TLoggers...>
         {};
     }
 }

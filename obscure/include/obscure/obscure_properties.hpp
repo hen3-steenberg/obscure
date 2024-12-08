@@ -1,6 +1,8 @@
 #ifndef OBSCURE_PROPERTY_DEFINITIONS
 #define OBSCURE_PROPERTY_DEFINITIONS 1
-#include "version.hpp"
+#include "obscure/utils/version.hpp"
+#include <array>
+#include <span>
 namespace obscure
 {
     [[nodiscard]] consteval version obscure_version()
@@ -20,6 +22,11 @@ namespace obscure
     [[nodiscard]] consteval const char* obscure_name()
     {
         return "OBSCURE";
+    }
+
+    [[nodiscard]] consteval auto required_device_extensions()
+    {
+        return std::array<const char*, 1> { "VK_KHR_swapchain" };
     }
 }
 #endif
