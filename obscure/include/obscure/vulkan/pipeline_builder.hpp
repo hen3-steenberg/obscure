@@ -93,18 +93,14 @@ namespace obscure
 			}
 		};
 
-		template<typename TShaderStages>
-		std::array<vk::PipelineShaderStageCreateInfo, TShaderStages::size()> get_shader_create_info(std::array<vk::ShaderModule, TShaderStages::size()> const& shaders) = delete;
-
-		template<vk::ShaderStageFlagBits ... Flags>
-		std::array<vk::PipelineShaderStageCreateInfo, value_list<vk::ShaderStageFlagBits, Flags ...>::size()> get_shader_create_info< value_list<vk::ShaderStageFlagBits, Flags ...>>(std::array<vk::ShaderModule, value_list<vk::ShaderStageFlagBits, Flags ...>::size()> const& shaders)
+		template<typename TShaderStages, size_t size>
+		std::array<vk::PipelineShaderStageCreateInfo, size> get_shader_create_info(std::array<vk::ShaderModule, size> const& shaders)
 		{
-			constexpr auto ShaderFlagBits = value_list<vk::ShaderStageFlagBits, Flags ...>::get_values();
-			std::array<vk::PipelineShaderStageCreateInfo, value_list<vk::ShaderStageFlagBits, Flags ...>::size()> result{};
-			for (size_t index = 0; index < value_list<vk::ShaderStageFlagBits, Flags ...>::size(); ++index)
+			constexpr auto ShaderFlagBits = TShaderStages::get_values();
+			std::array<vk::PipelineShaderStageCreateInfo, size> result{};
+			for (size_t index = 0; index < size; ++index)
 			{
-				result[index] = vk::PipelineShaderStageCreateInfo
-				{
+				result[index] = vk::PipelineShaderStageCreateInfo {
 					{},
 					ShaderFlagBits[index],
 					shaders[index],
@@ -121,7 +117,7 @@ namespace obscure
 		)
 		{
 			pipeline_builder<TShaderStages::size(), TDynamicStates::size()> result{};
-			result.shader_stages = get_shader_create_info<TShaderStages>(shaders);
+			result.shader_stages = get_shader_create_info<TShaderStages, TShaderStages::size()>(shaders);
 		}
 	}
 }

@@ -10,3 +10,4 @@ target_link_libraries(Obscure PUBLIC glfw)
 target_link_libraries(Obscure PUBLIC glm::glm)
 target_link_libraries(Obscure PUBLIC Vulkan::Vulkan)
 add_dependencies(Obscure OBSCURE_SHADERS)
+

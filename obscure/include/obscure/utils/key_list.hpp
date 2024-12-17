@@ -6,7 +6,7 @@
 namespace obscure
 {
 	template<auto Key, auto Key1, auto ... Keys>
-	consteval bool has_key_impl()
+	constexpr bool has_key_impl()
 	{
 		if constexpr (std::is_same_v<decltype(Key), decltype(Key1)> && Key == Key1)
 		{
@@ -23,7 +23,7 @@ namespace obscure
 	}
 
 	template<size_t index, auto Key, auto Key1, auto ... Keys>
-	consteval size_t get_index_impl()
+	constexpr size_t get_index_impl()
 	{
 		if constexpr (std::is_same_v<decltype(Key), decltype(Key1)> && Key == Key1)
 		{
@@ -41,7 +41,7 @@ namespace obscure
 	}
 
 	template<size_t index, auto ... Keys>
-	consteval auto get_at_index_impl()
+	constexpr auto get_at_index_impl()
 	{
 		auto values = std::make_tuple(Keys...);
 		return std::get<index>(values);
@@ -51,13 +51,13 @@ namespace obscure
 	struct key_list
 	{
 
-		static consteval size_t size()
+		static constexpr size_t size()
 		{
 			return sizeof...(Keys);
 		}
 
 		template<auto Key>
-		static consteval bool contains()
+		static constexpr bool contains()
 		{
 			if constexpr (size())
 			{
@@ -70,14 +70,14 @@ namespace obscure
 		}
 
 		template<auto Key>
-		static consteval size_t get_index()
+		static constexpr size_t get_index()
 		{
 			static_assert(contains<Key>(), "This list does not contain the key.");
 			return get_index_impl<0, Key, Keys...>();
 		}
 
 		template<size_t index>
-		static consteval auto get_key()
+		static constexpr auto get_key()
 		{
 			static_assert(index < sizeof...(Keys), "The index is out of bounds");
 			return get_at_index_impl<index, Keys...>();
