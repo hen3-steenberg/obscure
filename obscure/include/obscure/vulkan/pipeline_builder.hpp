@@ -12,12 +12,14 @@ namespace obscure
 	namespace vulkan
 	{
 
-		template<uint32_t ShaderCount, uint32_t DynamicCount>
+		template<uint32_t ShaderCount, uint32_t DynamicCount, uint32_t VertexBindingCount, uint32_t VertexAttributeCount>
 		struct pipeline_builder
 		{
 			std::array<vk::PipelineShaderStageCreateInfo, ShaderCount> shader_stages;
 
-			std::optional<vk::PipelineVertexInputStateCreateInfo> input_state;
+			std::array<vk::VertexInputBindingDescription, VertexBindingCount> vertex_bindings;
+
+			std::array<vk::VertexInputAttributeDescription, VertexAttributeCount> vertex_attributes;
 
 			std::optional<vk::PipelineInputAssemblyStateCreateInfo> assembly_state;
 
@@ -46,7 +48,7 @@ namespace obscure
 			uint32_t base_index;
 
 			template<typename T>
-			const T* get_ptr(const std::optional<T> & opt)
+			static constexpr const T* get_ptr(const std::optional<T> & opt)
 			{
 				if (opt.has_value())
 				{
@@ -60,7 +62,7 @@ namespace obscure
 
 			vk::GraphicsPipelineCreateInfo get_create_info() const&
 			{
-				std::optional<vk::PipelineDynamicStateCreateInfo> dynamic_state;
+				std::optional<vk::PipelineDynamicStateCreateInfo> dynamic_state{};
 
 				if constexpr (DynamicCount)
 				{
@@ -71,11 +73,17 @@ namespace obscure
 					};
 				}
 
+				vk::PipelineVertexInputStateCreateInfo vertex_input_state {
+					{},
+					vertex_bindings,
+					vertex_attributes
+				};
+
 				return vk::GraphicsPipelineCreateInfo
 				{
 					{},
 					shader_stages,
-					get_ptr(input_state),
+					&vertex_input_state
 					get_ptr(assembly_state),
 					get_ptr(tesselation_state),
 					get_ptr(viewport_state),
@@ -111,13 +119,42 @@ namespace obscure
 			return result;
 		}
 
-		template<typename TShaderStages, typename TDynamicStates>
-		pipeline_builder<TShaderStages::size(), TDynamicStates::size()> default_pipeline_builder(
-			std::array<vk::ShaderModule, TShaderStages::size()> const& shaders
+		template<uint32_t VertexBindingCount, uint32_t VertexAttributeCount, vk::PrimitiveTopology topology, vk::ShaderStageFlagBits ... Flags>
+		pipeline_builder<sizeof...(Flags), 2, VertexBindingCount, VertexAttributeCount> default_pipeline_builder(
+			std::array<vk::ShaderModule, sizeof...(Flags)> const& shaders,
+			std::array<vk::VertexInputBindingDescription, VertexBindingCount> vertex_bindings,
+			std::array<vk::VertexInputAttributeDescription, VertexAttributeCount> vertex_attributes
 		)
 		{
-			pipeline_builder<TShaderStages::size(), TDynamicStates::size()> result{};
+#pragma region ShaderStage
+			using TShaderStages = value_list<vk::ShaderStageFlagBits, Flags...>;
+			pipeline_builder<TShaderStages::size(), 2, VertexBindingCount, VertexAttributeCount> result{};
 			result.shader_stages = get_shader_create_info<TShaderStages, TShaderStages::size()>(shaders);
+#pragma endregion
+
+#pragma region VertexInputState
+			result.vertex_bindings = vertex_bindings;
+			result.vertex_attributes = vertex_attributes;
+#pragma endregion
+
+#pragma region InputAssemblyState
+			constexpr vk::Bool32 EnableRestart = 
+				(topology == vk::PrimitiveTopology::eLineStrip) ||
+				(topology == vk::PrimitiveTopology::eTriangleStrip) ||
+				(topology == vk::PrimitiveTopology::eLineStripWithAdjacency) ||
+				(topology == vk::PrimitiveTopology::eTriangleStripWithAdjacency) ?
+				vk::True : vk::False;
+
+			result.assembly_state = vk::PipelineInputAssemblyStateCreateInfo {
+				{},
+				topology,
+				EnableRestart
+			};
+#pragma endregion
+
+#pragma region DynamicState
+			result.dynamic_states = { vk::DynamicState::eViewport, vk::DynamicState::eScissor };
+#pragma endregion
 		}
 	}
 }
