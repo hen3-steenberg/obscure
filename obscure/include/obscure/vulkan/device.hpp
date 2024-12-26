@@ -236,7 +236,7 @@ namespace obscure
                 : device(pick_device(instance, surface, std::move(get_device_score)), surface)
             {}
 
-            vk::Device get()
+            [[nodiscard]] vk::Device get() const
             {
                 return *this;
             }

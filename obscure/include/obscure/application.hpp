@@ -8,14 +8,17 @@
 #include "obscure/vulkan/device.hpp"
 #include "obscure/vulkan/surface.hpp"
 #include "obscure/vulkan/swap_chain.hpp"
-#include "obscure/vulkan/shader_module.hpp"
+#include "obscure/vulkan/pipeline_definition.hpp"
+#include "obscure/vulkan/shader_set.hpp"
+#include "obscure/vulkan/render_pass.hpp"
+#include "obscure/vulkan/pipeline_collection.hpp"
 #include <functional>
 
 namespace obscure
 {
 
 
-
+    template<vulkan::pipeline_definition ... TPipelines>
     struct application
     {
         obscure::glfw::glfw_window window;
@@ -24,19 +27,28 @@ namespace obscure
         logger_t vk_loggers;
         obscure::vulkan::surface<logger_t> vk_surface;
         obscure::vulkan::device vk_device;
-        obscure::vulkan::swap_chain<> vk_swap_chain;
+        using shader_list = vulkan::make_shader_list_t<TPipelines...>;
+        using shader_set_t = vulkan::make_shader_set_t<shader_list>;
+        shader_set_t shader_set;
+        using swap_chain_t = obscure::vulkan::swap_chain<shader_set_t>;
+        swap_chain_t vk_swap_chain;
+        using render_pass_t = obscure::vulkan::render_pass<shader_set_t, swap_chain_t>;
+        render_pass_t vk_render_pass;
+        using pipeline_collection_t = obscure::vulkan::pipeline_collection<sizeof...(TPipelines), shader_set_t, swap_chain_t, render_pass_t>;
+        pipeline_collection_t vk_pipeline_collection;
 
 
 
         application(const char * app_name, obscure::version app_version, std::function<float (vk::PhysicalDevice)> get_device_score = vulkan::get_device_score_default)
             : window(), vk_instance(app_name, app_version), vk_loggers(), vk_surface(window),
             vk_device(vk_instance, vk_surface, std::move(get_device_score)),
-            vk_swap_chain(vk_surface, window)
+            shader_set(),
+            vk_swap_chain(vk_surface, window),
+            vk_render_pass(vk_swap_chain),
+            vk_pipeline_collection(vulkan::make_pipeline_collection<shader_set_t, TPipelines...>(vk_device.get(), vk_render_pass.get(), shader_set))
         {
         }
     };
-
-    static_assert(offsetof(application, vk_loggers) - offsetof(application, vk_instance) == sizeof(obscure::vulkan::instance));
 }
 
 #endif

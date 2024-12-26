@@ -28,7 +28,7 @@ namespace obscure
 	{
 		using list = key_list<Keys...>;
 
-		static constexpr size_t size()
+		static constexpr std::size_t size()
 		{
 			return list::size();
 		}
@@ -40,12 +40,12 @@ namespace obscure
 		}
 
 		template<auto Key>
-		static constexpr size_t get_index()
+		static constexpr std::size_t get_index()
 		{
 			return list:: template get_index<Key>();
 		}
 
-		template<size_t index>
+		template<std::size_t index>
 		static constexpr auto get_key()
 		{
 			return list:: template get_key<index>();

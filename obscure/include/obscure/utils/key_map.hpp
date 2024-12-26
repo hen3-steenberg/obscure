@@ -29,6 +29,9 @@ namespace obscure
 		{
 			return std::get<TValue<Key>>(data);
 		}
+
+		template<auto ... SubKeys>
+
 	};
 }
 #endif

@@ -8,13 +8,9 @@ namespace obscure
 {
 	namespace vulkan
 	{
-
-		template<auto shader_key>
 		struct shader_module : vk::ShaderModule
 		{
 		private:
-
-
 			static vk::ShaderModule create_shader_module(vk::Device device, std::span<const uint32_t> program)
 			{
 				vk::ShaderModuleCreateInfo create_info
@@ -27,16 +23,23 @@ namespace obscure
 				return device.createShaderModule(create_info);
 			}
 		public:
-
-
-
-			shader_module(vk::Device device)
-				: vk::ShaderModule(create_shader_module(device, get_shader_data<shader_key>()))
+			explicit shader_module(vk::Device device, std::span<const uint32_t> program)
+				: vk::ShaderModule(create_shader_module(device, program))
 			{}
+
+			template<auto Key>
+			static shader_module load_shader(vk::Device device) {
+				return shader_module{ device, get_shader_data<Key>() };
+			}
+
+			[[nodiscard]] vk::ShaderModule get() const&
+			{
+				return *this;
+			}
 
 			void free(vk::Device device) noexcept
 			{
-				device.destroyShaderModule(*this);
+				device.destroyShaderModule(get());
 			}
 
 		};

@@ -43,16 +43,16 @@ size_t get_builtin_size<builtin_shader::test_triangle_vertex>()
 
 
 template<>
-std::span<const uint32_t> get_shader_data<builtin_shader::test_triangle_fragment>()
+std::span<const uint32_t>  obscure::vulkan::get_data<builtin_shader::test_triangle_fragment>()
 {
-	const uint32_t* data = reinterpret_cast<const uint32_t*>(test_triangle_frag);
+	static auto data = reinterpret_cast<const uint32_t*>(test_triangle_frag);
 	return std::span<const uint32_t> {data, get_builtin_size<builtin_shader::test_triangle_fragment>()};
 }
 
 template<>
-std::span<const uint32_t> get_shader_data<builtin_shader::test_triangle_vertex>()
+std::span<const uint32_t> obscure::vulkan::get_data<builtin_shader::test_triangle_vertex>()
 {
-	const uint32_t* data = reinterpret_cast<const uint32_t*>(test_triangle_vert);
+	static auto data = reinterpret_cast<const uint32_t*>(test_triangle_vert);
 	return std::span<const uint32_t> {data, get_builtin_size<builtin_shader::test_triangle_vertex>()};
 }
 

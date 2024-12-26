@@ -3,7 +3,9 @@
 ################################################################################
 
 /.vs
+/.vscode
 /out
+/cmake-build-debug
 /dummy_include/GLFW
 /src/preprocess.txt
 /.cache
