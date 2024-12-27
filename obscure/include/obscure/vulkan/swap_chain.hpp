@@ -18,6 +18,7 @@ namespace obscure
 			vk::RenderPass render_pass;
 			std::vector<vk::Image> images;
 			std::vector<image_view> image_views;
+			std::vector<vk::Framebuffer> framebuffers;
 
 
 		private:
@@ -150,12 +151,29 @@ namespace obscure
 				extent(_extent),
 				render_pass(create_render_pass(device.get(), format)),
 				images(device.getSwapchainImagesKHR(get())),
-				image_views()
+				image_views(),
+				framebuffers()
 			{
 				image_views.reserve(images.size());
 				for (auto image : images)
 				{
 					image_views.emplace_back(device, image, format);
+				}
+
+				framebuffers.reserve(images.size());
+				for (auto image : image_views)
+				{
+					vk::FramebufferCreateInfo create_info {
+						{},
+						render_pass,
+						1,
+						&image,
+						extent.width,
+						extent.height,
+						1
+					};
+
+					framebuffers.push_back(device.createFramebuffer(create_info));
 				}
 			}
 
@@ -192,6 +210,11 @@ namespace obscure
 
 			~swap_chain() noexcept
 			{
+				for (auto buffer : framebuffers)
+				{
+					get_parent_ref().destroyFramebuffer(buffer);
+				}
+
 				for (auto image_view : image_views)
 				{
 					image_view.free(get_parent_ref().get());

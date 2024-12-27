@@ -44,6 +44,11 @@ namespace obscure
 				: vk::ImageView(create_image_view(device, image, format))
 			{}
 
+			[[nodiscard]] vk::ImageView get() const&
+			{
+				return static_cast<vk::ImageView>(*this);
+			}
+
 			void free(vk::Device device) noexcept
 			{
 				device.destroyImageView(*this);
