@@ -15,8 +15,10 @@ namespace obscure
 		{
 			vk::Format format;
 			vk::Extent2D extent;
+			vk::RenderPass render_pass;
 			std::vector<vk::Image> images;
 			std::vector<image_view> image_views;
+
 
 		private:
 			static vk::SurfaceFormatKHR get_swap_format(vk::PhysicalDevice device, vk::SurfaceKHR surface)
@@ -62,6 +64,51 @@ namespace obscure
 				}
 			}
 
+			static vk::RenderPass create_render_pass(vk::Device device, vk::Format format)
+			{
+				vk::AttachmentDescription color_attachment {
+	                        {},
+							format,
+							vk::SampleCountFlagBits::e1,
+							vk::AttachmentLoadOp::eClear,
+							vk::AttachmentStoreOp::eStore,
+							vk::AttachmentLoadOp::eDontCare,
+							vk::AttachmentStoreOp::eDontCare,
+							vk::ImageLayout::eUndefined,
+							vk::ImageLayout::ePresentSrcKHR
+						};
+
+				vk::AttachmentReference color_attachment_ref {
+					0,
+					vk::ImageLayout::eColorAttachmentOptimal
+				};
+
+				vk::SubpassDescription subpass {
+	                        {},
+							vk::PipelineBindPoint::eGraphics,
+							0,
+							nullptr,
+							1,
+							&color_attachment_ref,
+							nullptr,
+							nullptr,
+							0,
+							nullptr
+						};
+
+				vk::RenderPassCreateInfo create_info {
+	                        {},
+							1,
+							&color_attachment,
+							1,
+							&subpass,
+							0,
+							nullptr
+						};
+
+				return device.createRenderPass(create_info);
+			}
+
 			static vk::SwapchainKHR create_swap_chain(obscure::vulkan::device& device, vk::SurfaceKHR surface, vk::SurfaceFormatKHR format, vk::PresentModeKHR present_mode, vk::Extent2D extent)
 			{
 				auto surface_capabilities = device.physical_device.getSurfaceCapabilitiesKHR(surface);
@@ -101,7 +148,8 @@ namespace obscure
 				: vk::SwapchainKHR(create_swap_chain(device, _surface, _format, _present_mode, _extent)),
 				format(_format.format),
 				extent(_extent),
-				images(device.getSwapchainImagesKHR(*this)),
+				render_pass(create_render_pass(device.get(), format)),
+				images(device.getSwapchainImagesKHR(get())),
 				image_views()
 			{
 				image_views.reserve(images.size());
@@ -148,6 +196,7 @@ namespace obscure
 				{
 					image_view.free(get_parent_ref().get());
 				}
+				get_parent_ref().destroyRenderPass(render_pass);
 				get_parent_ref().destroySwapchainKHR(get());
 			}
 
