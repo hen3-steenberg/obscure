@@ -11,6 +11,8 @@
 #include "obscure/vulkan/pipeline_definition.hpp"
 #include "obscure/vulkan/shader_set.hpp"
 #include "obscure/vulkan/pipeline_collection.hpp"
+#include "obscure/vulkan/command_pool.hpp"
+#include "obscure/vulkan/command_session.hpp"
 #include <functional>
 
 namespace obscure
@@ -33,6 +35,14 @@ namespace obscure
         swap_chain_t vk_swap_chain;
         using pipeline_collection_t = obscure::vulkan::pipeline_collection<sizeof...(TPipelines), shader_set_t, swap_chain_t>;
         pipeline_collection_t vk_pipeline_collection;
+        using command_pool_t = obscure::vulkan::command_pool<shader_set_t, swap_chain_t, pipeline_collection_t>;
+        command_pool_t vk_command_pool;
+        using command_session_t = obscure::vulkan::command_session<TPipelines...>;
+
+        command_session_t begin_frame()
+        {
+            return command_session_t {vk_command_pool.command_buffer, 0, vk_pipeline_collection.pipelines, vk_swap_chain};
+        }
 
 
 
@@ -41,7 +51,8 @@ namespace obscure
             vk_device(vk_instance, vk_surface, std::move(get_device_score)),
             shader_set(),
             vk_swap_chain(vk_surface, window),
-            vk_pipeline_collection(vulkan::make_pipeline_collection<shader_set_t, TPipelines...>(vk_device.get(), vk_swap_chain.render_pass, shader_set))
+            vk_pipeline_collection(vulkan::make_pipeline_collection<shader_set_t, TPipelines...>(vk_device.get(), vk_swap_chain.render_pass, shader_set)),
+            vk_command_pool()
         {
         }
     };

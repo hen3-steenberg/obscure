@@ -36,8 +36,31 @@ namespace obscure
 					return result;
 				}
 
-				struct pipeline {
+				struct draw_calls : draw_call_base {
+					void test_triangle() const
+					{
+						bind_pipeline();
 
+						vk::Viewport viewport {
+							0.0f,
+							0.0f,
+							static_cast<float>(get_extent().width),
+							static_cast<float>(get_extent().height),
+							0.0f,
+							1.0f
+						};
+
+						get_command_buffer().setViewport(0, 1, &viewport);
+
+						vk::Rect2D scissor {
+							{0, 0},
+							get_extent()
+						};
+
+						get_command_buffer().setScissor(0, 1, &scissor);
+
+						get_command_buffer().draw(3, 1, 0, 0);
+					}
 				};
 			};
 

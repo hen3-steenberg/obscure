@@ -1,8 +1,9 @@
 #ifndef OBSCURE_PROPERTY_DEFINITIONS
 #define OBSCURE_PROPERTY_DEFINITIONS 1
 #include "obscure/utils/version.hpp"
+#include "glfw_vulkan_include.hpp"
 #include <array>
-#include <span>
+
 namespace obscure
 {
     [[nodiscard]] consteval version obscure_version()
@@ -27,6 +28,11 @@ namespace obscure
     [[nodiscard]] consteval auto required_device_extensions()
     {
         return std::array<const char*, 1> { "VK_KHR_swapchain" };
+    }
+
+    [[nodiscard]] consteval vk::ClearColorValue get_clear_color()
+    {
+        return {0.0f, 0.0f, 0.0f, 1.0f};
     }
 }
 #endif

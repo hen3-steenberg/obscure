@@ -16,6 +16,10 @@ int main()
 			{
 				break;
 			}
+			{
+				auto frame = app.begin_frame();
+				frame.test_triangle();
+			}
 		}
 	}
 	

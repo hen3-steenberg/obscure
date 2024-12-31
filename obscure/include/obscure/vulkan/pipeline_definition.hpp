@@ -6,6 +6,7 @@
 #define OBSCURE_VULKAN_PIPELINE_DEFINITION_HPP
 #include "obscure/vulkan/swap_chain.hpp"
 #include "obscure/vulkan/pipeline_builder.hpp"
+#include "obscure/vulkan/draw_call_base.hpp"
 #include <array>
 #include <type_traits>
 
@@ -14,7 +15,8 @@ namespace obscure {
         template<typename T>
         concept pipeline_definition = requires {
             typename T::shader_list;
-            typename T::pipeline;
+            typename T::draw_calls;
+            requires std::is_base_of_v<draw_call_base, typename T::draw_calls>;
             { T::shader_list::size() } -> std::convertible_to<std::size_t>;
         } && requires (vk::Device d, vk::RenderPass r, std::array<vk::ShaderModule, T::shader_list::size()> s)
         {
