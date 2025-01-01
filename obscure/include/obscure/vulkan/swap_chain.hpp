@@ -217,6 +217,11 @@ namespace obscure
 			{
 				return &current_frame_index;
 			}
+
+			[[nodiscard]] std::size_t get_frame_count() const noexcept
+			{
+				return images.size();
+			}
 		};
 
 		using swap_chain_ref = std::reference_wrapper<const swap_chain_data>;

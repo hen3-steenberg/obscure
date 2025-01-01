@@ -22,10 +22,6 @@ namespace obscure
 					vk::FrontFace::eClockwise, vk::ShaderStageFlagBits::eVertex, vk::ShaderStageFlagBits::eFragment>(render_pass, shaders, {}, {});
 #pragma endregion
 
-#pragma region topology
-					result.assembly_state->primitiveRestartEnable = vk::False;
-#pragma endregion
-
 #pragma region pipeline_layout
 					vk::PipelineLayoutCreateInfo pipeline_info {
 						{},
