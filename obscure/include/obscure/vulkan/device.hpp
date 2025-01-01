@@ -241,6 +241,16 @@ namespace obscure
                 return *this;
             }
 
+            [[nodiscard]] vk::Queue get_graphics_queue() const
+            {
+                return get().getQueue(graphics_queue_index, 0);
+            }
+
+            [[nodiscard]] vk::Queue get_present_queue() const
+            {
+                return get().getQueue(present_queue_index, 0);
+            }
+
             ~device()
             {
                 destroy();

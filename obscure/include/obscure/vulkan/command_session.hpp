@@ -71,6 +71,8 @@ namespace obscure
                   command_session(vk::CommandBuffer _command_buffer, std::uint32_t index, std::span<vk::Pipeline> pipeline_collection, swap_chain_ref swap_chain)
                       : command_buffer(_command_buffer), frame_index(index), pipeline_refs(pipeline_collection), extent(swap_chain.get().extent)
                   {
+                      //command_buffer.reset( vk::CommandBufferResetFlags {} );
+
                       vk::CommandBufferBeginInfo begin_info {};
 
                       command_buffer.begin(begin_info);

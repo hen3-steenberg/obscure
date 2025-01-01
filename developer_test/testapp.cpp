@@ -18,8 +18,10 @@ int main()
 			}
 			{
 				auto frame = app.begin_frame();
-				frame.test_triangle();
+				frame.draw_test_triangle();
 			}
+			app.submit_frame();
+			app.draw_frame();
 		}
 	}
 	

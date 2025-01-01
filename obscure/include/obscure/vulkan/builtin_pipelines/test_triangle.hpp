@@ -13,13 +13,17 @@ namespace obscure
 		{
 			struct test_triangle
 			{
-				using shader_list = obscure::make_set<obscure::vulkan::builtin_shader::test_triangle_fragment, obscure::vulkan::builtin_shader::test_triangle_vertex>;
+				using shader_list = obscure::make_set<obscure::vulkan::builtin_shader::test_triangle_vertex, obscure::vulkan::builtin_shader::test_triangle_fragment>;
 
 				static static_pipeline_builder<2, 2, 0, 0> initialize(vk::Device device, vk::RenderPass render_pass, std::array<vk::ShaderModule, 2> const& shaders)
 				{
 #pragma region shaders_fixed_functions
 					static_pipeline_builder<2, 2, 0, 0> result = default_pipeline_builder<0, 0, vk::PrimitiveTopology::eTriangleList, vk::PolygonMode::eFill,
-					vk::FrontFace::eClockwise,vk::ShaderStageFlagBits::eFragment, vk::ShaderStageFlagBits::eVertex>(render_pass, shaders, {}, {});
+					vk::FrontFace::eClockwise, vk::ShaderStageFlagBits::eVertex, vk::ShaderStageFlagBits::eFragment>(render_pass, shaders, {}, {});
+#pragma endregion
+
+#pragma region topology
+					result.assembly_state->primitiveRestartEnable = vk::False;
 #pragma endregion
 
 #pragma region pipeline_layout
@@ -37,7 +41,7 @@ namespace obscure
 				}
 
 				struct draw_calls : draw_call_base {
-					void test_triangle() const
+					void draw_test_triangle() const
 					{
 						bind_pipeline();
 

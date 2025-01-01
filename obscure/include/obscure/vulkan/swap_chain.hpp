@@ -5,7 +5,9 @@
 #include "obscure/vulkan/device.hpp"
 #include "obscure/glfw/glfw_window.hpp"
 #include "obscure/vulkan/image_view.hpp"
+#include "obscure/vulkan/semaphore.hpp"
 #include <vector>
+#include <limits>
 
 namespace obscure
 {
@@ -19,6 +21,7 @@ namespace obscure
 			std::vector<vk::Image> images;
 			std::vector<image_view> image_views;
 			std::vector<vk::Framebuffer> framebuffers;
+			uint32_t current_frame_index;
 
 
 		private:
@@ -97,14 +100,24 @@ namespace obscure
 							nullptr
 						};
 
+				vk::SubpassDependency dependency {
+					VK_SUBPASS_EXTERNAL,
+					0,
+					vk::PipelineStageFlagBits::eColorAttachmentOutput,
+					vk::PipelineStageFlagBits::eColorAttachmentOutput,
+					{},
+					vk::AccessFlagBits::eColorAttachmentWrite,
+					{}
+				};
+
 				vk::RenderPassCreateInfo create_info {
 	                        {},
 							1,
 							&color_attachment,
 							1,
 							&subpass,
-							0,
-							nullptr
+							1,
+							&dependency
 						};
 
 				return device.createRenderPass(create_info);
@@ -152,7 +165,8 @@ namespace obscure
 				render_pass(create_render_pass(device.get(), format)),
 				images(device.getSwapchainImagesKHR(get())),
 				image_views(),
-				framebuffers()
+				framebuffers(),
+				current_frame_index()
 			{
 				image_views.reserve(images.size());
 				for (auto image : images)
@@ -188,6 +202,21 @@ namespace obscure
 			{
 				return static_cast<vk::SwapchainKHR>(*this);
 			}
+
+			[[nodiscard]] vk::SwapchainKHR const* get_ptr() const&
+			{
+				return this;
+			}
+
+			[[nodiscard]] uint32_t get_frame_index() const noexcept
+			{
+				return current_frame_index;
+			}
+
+			[[nodiscard]] uint32_t const* get_frame_index_ptr() const noexcept
+			{
+				return &current_frame_index;
+			}
 		};
 
 		using swap_chain_ref = std::reference_wrapper<const swap_chain_data>;
@@ -207,6 +236,11 @@ namespace obscure
 				: swap_chain_data(get_parent_ref(), _surface, window)
 			{}
 
+			[[nodiscard]] uint32_t get_next_frame_index(semaphore const& image_available)
+			{
+				vkAcquireNextImageKHR(get_parent_ref().get(), get(), std::numeric_limits<uint64_t>::max(), image_available.get(), VK_NULL_HANDLE, &current_frame_index);
+				return current_frame_index;
+			}
 
 			~swap_chain() noexcept
 			{
