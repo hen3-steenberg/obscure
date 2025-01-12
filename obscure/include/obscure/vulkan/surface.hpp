@@ -4,6 +4,7 @@
 #include "obscure/vulkan/instance.hpp"
 #include "obscure/helper_templates/parent_reference.hpp"
 #include "obscure/glfw/glfw_window.hpp"
+#include "obscure/obscure_properties.hpp"
 
 namespace obscure
 {
@@ -14,7 +15,8 @@ namespace obscure
 		{
 			obscure::vulkan::instance& get_parent_ref() &
 			{
-				return obscure::helper_templates::get_parent_ref<obscure::vulkan::instance, Tsiblings...>(this);
+				auto& result = obscure::helper_templates::get_parent_ref<obscure::vulkan::instance, Tsiblings...>(this);
+				return result;
 			}
 
 			surface(obscure::glfw::glfw_window_ref const& window)

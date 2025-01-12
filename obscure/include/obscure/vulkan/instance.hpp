@@ -116,11 +116,19 @@ namespace obscure
         {
             instance(const char * app_name, obscure::version app_version)
                 : vk::Instance(create_instance(app_name, app_version))
-            {}
+            {
+
+            }
 
             instance(vk::Instance other)
                 : vk::Instance(other)
-            {}
+            {
+            }
+
+            [[nodiscard]] vk::Instance get() const noexcept
+            {
+                return *this;
+            }
 
             instance(instance const& other) = delete;
 

@@ -21,12 +21,12 @@
 namespace obscure
 {
 
-    std::vector<obscure::vulkan::semaphore> initialize_semaphores(std::size_t size, vk::Device device)
+    inline std::vector<obscure::vulkan::semaphore> initialize_semaphores(std::size_t size, vk::Device device)
     {
         return obscure::helper_templates::initialize_vector<obscure::vulkan::semaphore>(size, device);
     }
 
-    std::vector<obscure::vulkan::fence> initialize_fences(std::size_t size, vk::Device device, bool Signaled)
+    inline std::vector<obscure::vulkan::fence> initialize_fences(std::size_t size, vk::Device device, bool Signaled)
     {
         return obscure::helper_templates::initialize_vector<obscure::vulkan::fence>(size, device, Signaled);
     }
