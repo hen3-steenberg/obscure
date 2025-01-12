@@ -15,10 +15,16 @@ namespace obscure {
         template<typename T>
         concept pipeline_definition = requires {
             typename T::shader_list;
+            { T::shader_list::size() } -> std::convertible_to<std::size_t>;
+
             typename T::draw_calls;
             requires std::is_base_of_v<draw_call_base, typename T::draw_calls>;
-            { T::shader_list::size() } -> std::convertible_to<std::size_t>;
-        } && requires (vk::Device d, vk::RenderPass r, std::array<vk::ShaderModule, T::shader_list::size()> s)
+
+        } &&
+            requires (
+                vk::Device d,
+                vk::RenderPass r,
+                std::array<vk::ShaderModule, T::shader_list::size()> s)
         {
             { T::initialize(d, r, s) } -> pipeline_builder;
         };

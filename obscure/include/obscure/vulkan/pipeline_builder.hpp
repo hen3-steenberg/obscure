@@ -14,7 +14,9 @@ namespace obscure
 		template<typename T>
 		concept pipeline_builder = requires(T t)
 		{
-			{ t.get_create_info() } -> std::convertible_to<vk::GraphicsPipelineCreateInfo>;
+			{ t.get_create_info() } ->
+				std::convertible_to<vk::GraphicsPipelineCreateInfo>;
+
 			{ t.get_layout() } -> std::convertible_to<vk::PipelineLayout>;
 		};
 
