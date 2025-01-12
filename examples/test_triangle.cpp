@@ -1,7 +1,6 @@
 #include "obscure/vulkan/builtin_pipelines/test_triangle.hpp"
 #include "obscure/application.hpp"
 
-
 int main()
 {
 

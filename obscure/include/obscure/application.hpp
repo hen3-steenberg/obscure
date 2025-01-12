@@ -34,6 +34,7 @@ namespace obscure
     template<vulkan::pipeline_definition ... TPipelines>
     struct application
     {
+#pragma region fields
         obscure::glfw::glfw_window window;
         obscure::vulkan::instance vk_instance;
         using logger_t = obscure::vulkan::logger_collection<enable_debug_validation(), vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose, vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral, obscure::vulkan::console_logger, obscure::vulkan::json_logger>;
@@ -56,7 +57,9 @@ namespace obscure
         std::size_t current_frame;
 
         using command_session_t = obscure::vulkan::command_session<TPipelines...>;
+#pragma endregion
 
+#pragma region user_functions
         command_session_t begin_frame()
         {
             in_flight[current_frame].wait_and_reset();
@@ -94,6 +97,7 @@ namespace obscure
             current_frame = (current_frame + 1) % vk_swap_chain.get_frame_count();
         }
 
+#pragma endregion
 
 
         application(const char * app_name, obscure::version app_version, std::function<float (vk::PhysicalDevice)> get_device_score = vulkan::get_device_score_default)
