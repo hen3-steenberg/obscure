@@ -1,7 +1,6 @@
 #ifndef OBSCURE_VULKAN_DEVICE_DEFINITION
 #define OBSCURE_VULKAN_DEVICE_DEFINITION 1
-#include "glfw_vulkan_include.hpp"
-#include "obscure/helper_templates/parent_reference.hpp"
+#include "obscure/context.hpp"
 #include "obscure/obscure_properties.hpp"
 #include <functional>
 #include <stdexcept>
@@ -10,7 +9,7 @@ namespace obscure
 {
     namespace vulkan
     {
-        bool is_device_suitable(vk::PhysicalDevice device, vk::SurfaceKHR surface)
+        inline bool is_device_suitable(vk::PhysicalDevice device, vk::SurfaceKHR surface)
         {
             //check that all required extensions are supported
             auto supported_extensions = device.enumerateDeviceExtensionProperties();
@@ -44,7 +43,7 @@ namespace obscure
             return device_feutures.geometryShader && format_count && mode_count;
         }
 
-        float get_device_score_default(vk::PhysicalDevice device)
+        inline float get_device_score_default(vk::PhysicalDevice device)
         {
             float device_score = 0;
             auto device_properties = device.getProperties();
@@ -68,8 +67,9 @@ namespace obscure
             return device_score;
         }
 
-        vk::PhysicalDevice pick_device(vk::Instance const& instance, vk::SurfaceKHR surface, std::function<float (vk::PhysicalDevice)> get_device_score)
+        vk::PhysicalDevice pick_device(vk::SurfaceKHR surface, std::function<float (vk::PhysicalDevice)> get_device_score)
         {
+            vk::Instance instance = obscure::get_application_instance();
             auto devices = instance.enumeratePhysicalDevices();
             vk::PhysicalDevice result = VK_NULL_HANDLE;
             float score = 0;
@@ -147,7 +147,7 @@ namespace obscure
 
         
 
-        struct device : vk::Device
+        struct device : virtual vk::Device
         {
             vk::PhysicalDevice physical_device;
             uint32_t graphics_queue_index;
@@ -232,23 +232,38 @@ namespace obscure
                 : device(physical_device, queue_indices{physical_device, surface})
             {}
 
-            device(vk::Instance instance, vk::SurfaceKHR surface, std::function<float(vk::PhysicalDevice)> get_device_score)
-                : device(pick_device(instance, surface, std::move(get_device_score)), surface)
+            device(vk::SurfaceKHR surface, std::function<float(vk::PhysicalDevice)> get_device_score)
+                : device(pick_device(surface, std::move(get_device_score)), surface)
             {}
 
-            [[nodiscard]] vk::Device get() const
+            [[nodiscard]] vk::Device get_device() const noexcept
             {
-                return *this;
+                return static_cast<vk::Device>(*this);
+            }
+
+            [[nodiscard]] vk::PhysicalDevice get_physical_device() const noexcept
+            {
+                return physical_device;
+            }
+
+            [[nodiscard]] uint32_t get_graphics_queue_index() const noexcept
+            {
+                return graphics_queue_index;
+            }
+
+            [[nodiscard]] uint32_t get_present_queue_index() const noexcept
+            {
+                return present_queue_index;
             }
 
             [[nodiscard]] vk::Queue get_graphics_queue() const
             {
-                return get().getQueue(graphics_queue_index, 0);
+                return get_device().getQueue(graphics_queue_index, 0);
             }
 
             [[nodiscard]] vk::Queue get_present_queue() const
             {
-                return get().getQueue(present_queue_index, 0);
+                return get_device().getQueue(present_queue_index, 0);
             }
 
             ~device()

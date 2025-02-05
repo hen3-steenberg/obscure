@@ -16,27 +16,25 @@ namespace obscure
 
                     return _device.createSemaphore(create_info);
                 }
-
-                vk::Device device;
             public:
 
                 semaphore(vk::Device _device)
-                    : vk::Semaphore(create_semaphore(_device)), device(_device)
+                    : vk::Semaphore(create_semaphore(_device))
                 {}
 
-                [[nodiscard]] vk::Semaphore get() const noexcept
+                [[nodiscard]] vk::Semaphore get_semaphore() const noexcept
                 {
                     return *this;
                 }
 
-                [[nodiscard]] vk::Semaphore const* get_ptr() const noexcept
+                [[nodiscard]] vk::Semaphore const* get_semaphore_ptr() const noexcept
                 {
                     return this;
                 }
 
-                ~semaphore()
+                void free(vk::Device device)
                 {
-                    device.destroySemaphore(get());
+                    device.destroySemaphore(get_semaphore());
                 }
         };
     }

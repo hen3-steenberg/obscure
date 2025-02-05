@@ -1,9 +1,9 @@
 #ifndef OBSCURE_VULKAN_LOGGER_DEFINITION
 #define OBSCURE_VULKAN_LOGGER_DEFINITION 1
 #include "glfw_vulkan_include.hpp"
-#include "obscure/helper_templates/parent_reference.hpp"
 #include "obscure/helper_templates/max_set_bit.hpp"
-#include "obscure/vulkan/instance.hpp"
+#include "obscure/context.hpp"
+#include "obscure/obscure_properties.hpp"
 #include <iostream>
 #include <fstream>
 #include <atomic>
@@ -90,13 +90,13 @@ namespace obscure
         }
 
 
-        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename ... TSiblings>
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type>
         struct logger_base
         {
             private:
-                instance & get_parent_ref()&
+                static vk::Instance get_instance()
                 {
-                    return obscure::helper_templates::get_parent_ref<instance, TSiblings...>(this);
+                    return obscure::get_application_instance();
                 }
 
             static VKAPI_ATTR VkBool32 VKAPI_CALL LogCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -106,7 +106,7 @@ namespace obscure
             {
                 if(is_valid_severity<min_severity>(messageSeverity) && is_valid_type<min_type>(messageType) && pUserData)
                 {
-                    logger_base* logger = reinterpret_cast<logger_base*>(pUserData);
+                    logger_base* logger = static_cast<logger_base*>(pUserData);
                     logger->LogEvent(messageSeverity, messageType, *pCallbackData);
                 }
                 return VK_FALSE;
@@ -125,13 +125,13 @@ namespace obscure
                         LogCallback,
                         this
                     };
-                auto & parent = get_parent_ref();
-                LoggerHandle = parent.createDebugUtilsMessengerEXT(create_info);
+                auto instance = get_instance();
+                LoggerHandle = instance.createDebugUtilsMessengerEXT(create_info);
             }
 
             ~logger_base()
             {
-                get_parent_ref().destroyDebugUtilsMessengerEXT(LoggerHandle);
+                get_instance().destroyDebugUtilsMessengerEXT(LoggerHandle);
             }
 
             protected:
@@ -286,8 +286,8 @@ namespace obscure
             }
         };
 
-        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename ... TSiblings>
-        struct console_logger : logger_base<min_severity, min_type, TSiblings ...>
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type>
+        struct console_logger : logger_base<min_severity, min_type>
         {
         private:
             void LogEvent(VkDebugUtilsMessageSeverityFlagsEXT Severity, VkDebugUtilsMessageTypeFlagsEXT Type, const VkDebugUtilsMessengerCallbackDataEXT& Data) final
@@ -296,11 +296,10 @@ namespace obscure
             }
         };
 
-        template<typename ... TSiblings>
-        using verbose_console_logger = console_logger<vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo, vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral, TSiblings...>;
+        using verbose_console_logger = console_logger<vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo, vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral>;
 
-        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename ... TSiblings>
-        struct json_logger : logger_base<min_severity, min_type, TSiblings ...>
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type>
+        struct json_logger : logger_base<min_severity, min_type>
         {
             std::ofstream json_file;
             std::atomic_flag request_stop = ATOMIC_FLAG_INIT;
@@ -428,40 +427,20 @@ namespace obscure
             }
         };
 
-        template<typename ... TSiblings>
-        using verbose_json_logger = json_logger< vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo, vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral, TSiblings...>;
+        using verbose_json_logger = json_logger< vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo, vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral>;
 
-        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename TSibling,template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class TLogger1, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
-        struct logger_collection_impl : TLogger1<min_severity, min_type, TSibling>, logger_collection_impl<min_severity, min_type, std::pair<TSibling, TLogger1<min_severity, min_type, TSibling>>, TLoggers...>
+        template<bool Enable, vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT> class ... TLoggers>
+        struct logger_collection_impl : TLoggers<min_severity, min_type>...
         {
 
         };
 
-        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename TSibling,template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class TLogger1>
-        struct logger_collection_impl<min_severity, min_type, TSibling, TLogger1> : TLogger1<min_severity, min_type, TSibling>
-        {
-
-        };
-
-        template<bool Enable, vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename TSibling, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
-        struct logger_collection_s : logger_collection_impl<min_severity, min_type, TSibling, TLoggers...>
-        {
-
-        };
-
-        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, typename TSibling, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
-        struct logger_collection_s<false, min_severity, min_type, TSibling, TLoggers...>
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT> class ... TLoggers>
+        struct logger_collection_impl<false,min_severity, min_type, TLoggers...>
         {};
 
-        template<bool Enable, vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class TLogger1, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
-        struct logger_collection : TLogger1<min_severity, min_type>, logger_collection_impl<min_severity, min_type, TLogger1<min_severity, min_type>, TLoggers...>
-        {
-
-        };
-
-        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class TLogger1, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT, typename ... TSiblings> class ... TLoggers>
-        struct logger_collection<false,min_severity, min_type, TLogger1, TLoggers...>
-        {};
+        template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type, template<vk::DebugUtilsMessageSeverityFlagBitsEXT, vk::DebugUtilsMessageTypeFlagBitsEXT> class ... TLoggers>
+        using logger_collection = logger_collection_impl<obscure::enable_debug_validation(), min_severity, min_type, TLoggers...>;
     }
 }
 

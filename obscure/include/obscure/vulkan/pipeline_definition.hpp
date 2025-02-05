@@ -28,6 +28,9 @@ namespace obscure {
         {
             { T::initialize(d, r, s) } -> pipeline_builder;
         };
+
+        template<pipeline_definition Pipeline>
+        using builder_t = typename std::invoke_result_t<typename Pipeline::initialize, vk::Device, vk::RenderPass, std::array<vk::ShaderModule, Pipeline::shader_list::size()>>;
     }
 }
 

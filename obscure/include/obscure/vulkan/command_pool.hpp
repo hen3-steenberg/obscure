@@ -10,13 +10,12 @@ namespace obscure
 {
     namespace vulkan
     {
-        template<typename ... TSiblings>
-        struct command_pool : vk::CommandPool
+        struct command_pool : vk::CommandPool, protected virtual vk::Device
         {
             private:
-                device const& get_device_ref() const
+                [[nodiscard]] vk::Device get_device() const
                 {
-                    return obscure::helper_templates::get_parent_ref<const device, TSiblings...>(this);
+                    return static_cast<vk::Device>(*this);
                 }
 
                 static vk::CommandPool create_command_pool(device const & _device)
@@ -31,19 +30,19 @@ namespace obscure
             public:
                 std::vector<vk::CommandBuffer> command_buffers;
 
-                explicit command_pool(std::size_t buffer_count)
-                	: vk::CommandPool(create_command_pool(get_device_ref()))
+                explicit command_pool(device const& _device, std::size_t buffer_count)
+                	: vk::CommandPool(create_command_pool(_device)), vk::Device(_device.get_device())
                 {
                     vk::CommandBufferAllocateInfo create_info {
-                        get(),
+                        get_command_pool(),
                         vk::CommandBufferLevel::ePrimary,
                         static_cast<uint32_t>(buffer_count)
                     };
 
-                    command_buffers = get_device_ref().allocateCommandBuffers(create_info);
+                    command_buffers = get_device().allocateCommandBuffers(create_info);
                 }
 
-                [[nodiscard]] vk::CommandPool get() const&
+                [[nodiscard]] vk::CommandPool get_command_pool() const&
                 {
                 	return *this;
                 }
@@ -55,7 +54,7 @@ namespace obscure
 
                 ~command_pool()
                 {
-                	get_device_ref().destroyCommandPool(get());
+                	get_device().destroyCommandPool(get_command_pool());
                 }
 
         };

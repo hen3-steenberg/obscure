@@ -1,13 +1,12 @@
 #include "obscure/vulkan/builtin_pipelines/test_triangle.hpp"
 #include "obscure/application.hpp"
+#include "obscure/context.hpp"
 
 int main()
 {
+    obscure::initialize("Triangle Test App", obscure::version{1,0,0});
 
-    obscure::application<obscure::vulkan::builtin_pipelines::test_triangle> app{
-        "Triangle Test App",
-        obscure::version{1,0,0}
-    };
+    obscure::application<obscure::vulkan::builtin_pipelines::test_triangle> app{};
 
     while (!app.window.should_close())
     {

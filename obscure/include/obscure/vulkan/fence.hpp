@@ -2,6 +2,7 @@
 #define OBSCURE_VULKAN_FENCE_DEFINITION 1
 #include "glfw_vulkan_include.hpp"
 #include <limits>
+#include <chrono>
 
 namespace obscure
 {
@@ -19,41 +20,53 @@ namespace obscure
 
                     return _device.createFence(create_info);
                 }
-
-                vk::Device device;
             public:
 
                 fence(vk::Device _device, bool signaled = true)
-                    : vk::Fence(create_fence(_device, signaled)), device(_device)
+                    : vk::Fence(create_fence(_device, signaled))
                 {}
 
-                [[nodiscard]] vk::Fence get() const noexcept
+                [[nodiscard]] vk::Fence get_fence() const noexcept
                 {
                     return static_cast<vk::Fence>(*this);
                 }
 
-                void wait(uint64_t timeout = std::numeric_limits<uint64_t>::max())
-                {
-                    auto _ = device.waitForFences(1, this, vk::True, timeout);
+                void wait(vk::Device device) {
+                    auto _ = device.waitForFences(1, this, vk::True, std::numeric_limits<std::uint64_t>::max());
                 }
 
-                void reset()
+                template<typename Rep, typename Period>
+                void wait(vk::Device device,std::chrono::duration<Rep, Period> timeout)
+                {
+                    using duration_t = std::chrono::duration<uint64_t, std::nano>;
+                    duration_t nanos = std::chrono::duration_cast<duration_t>(timeout);
+                    auto _ = device.waitForFences(1, this, vk::True, nanos.count());
+                }
+
+                void reset(vk::Device device)
                 {
                     auto _ = device.resetFences(1, this);
                 }
 
-                void wait_and_reset(uint64_t timeout = std::numeric_limits<uint64_t>::max())
+                void wait_and_reset(vk::Device device)
                 {
-                    wait(timeout);
-                    reset();
+                    wait(device);
+                    reset(device);
                 }
 
-
-                ~fence()
+                template<typename Rep, typename Period>
+                void wait_and_reset(vk::Device device, std::chrono::duration<Rep, Period> timeout)
                 {
-                    if (get() != VK_NULL_HANDLE)
+                    wait(device, timeout);
+                    reset(device);
+                }
+
+                void free(vk::Device device)
+                {
+                    if (get_fence() != VK_NULL_HANDLE)
                     {
-                        device.destroyFence(get());
+                        device.destroyFence(get_fence());
+                        static_cast<vk::Fence&>(*this) = VK_NULL_HANDLE;
                     }
                 }
         };

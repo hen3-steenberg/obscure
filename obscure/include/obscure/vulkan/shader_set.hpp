@@ -10,26 +10,26 @@
 namespace obscure {
     namespace vulkan {
         template<auto ... Keys>
-        struct shader_set {
+        struct shader_set : protected virtual vk::Device {
           private:
-            obscure::vulkan::device const& get_device_ref() const
+            [[nodiscard]] vk::Device get_device() const
             {
-                return obscure::helper_templates::get_parent_ref<const obscure::vulkan::device>(this);
+                return static_cast<vk::Device>(*this);
             }
 
           public:
             using shader_list = obscure::key_set<Keys...>;
             std::array<shader_module, sizeof...(Keys)> shaders;
 
-            shader_set()
-                : shaders{ shader_module::load_shader<Keys>(get_device_ref().get())... }
+            explicit shader_set(vk::Device device)
+                : vk::Device(device), shaders{ shader_module::load_shader<Keys>(device)... }
             {}
 
             ~shader_set()
             {
                 for (auto& shader : shaders)
                 {
-                  shader.free(get_device_ref().get());
+                  shader.free(get_device());
                 }
             }
 
@@ -76,17 +76,19 @@ namespace obscure {
         using make_shader_list_t = typename make_shader_list<TPipelines...>::type;
 
         template<typename TList>
-        struct make_shader_set
+        struct make_shader_set_impl
         {};
 
         template<auto ... Keys>
-        struct make_shader_set<obscure::key_set<Keys...>>
+        struct make_shader_set_impl<obscure::key_set<Keys...>>
         {
             using type = shader_set<Keys...>;
         };
 
-        template<typename TList>
-        using make_shader_set_t = typename make_shader_set<TList>::type;
+        template<pipeline_definition ... TPipelines>
+        using make_shader_set_t = typename make_shader_set_impl<make_shader_list_t<TPipelines...>>::type;
+
+
 
     }
 }

@@ -47,6 +47,7 @@ namespace obscure
 			glfw_window();
 			glfw_window(const glfw_window& other) = delete;
 			glfw_window(glfw_window&& other);
+			[[nodiscard]] glfw_window_ref get_window_ref() const noexcept;
 			~glfw_window();
 		};
 	}
