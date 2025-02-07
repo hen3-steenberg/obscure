@@ -277,11 +277,11 @@ namespace obscure
 		using swap_chain_ref = std::reference_wrapper<const swap_chain_data>;
 
 
-		struct swap_chain : swap_chain_data, protected virtual vk::Device
+		struct swap_chain : swap_chain_data, private vk::Device
 		{
 
 		private:
-			[[nodiscard]] vk::Device get_device() const& noexcept
+			[[nodiscard]] vk::Device get_device() const noexcept
 			{
 				return static_cast<vk::Device>(*this);
 			}

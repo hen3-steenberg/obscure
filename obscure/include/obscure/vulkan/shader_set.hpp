@@ -10,7 +10,7 @@
 namespace obscure {
     namespace vulkan {
         template<auto ... Keys>
-        struct shader_set : protected virtual vk::Device {
+        struct shader_set : private vk::Device {
           private:
             [[nodiscard]] vk::Device get_device() const
             {

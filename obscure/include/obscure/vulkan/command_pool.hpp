@@ -10,10 +10,10 @@ namespace obscure
 {
     namespace vulkan
     {
-        struct command_pool : vk::CommandPool, protected virtual vk::Device
+        struct command_pool : vk::CommandPool, private vk::Device
         {
             private:
-                [[nodiscard]] vk::Device get_device() const
+                [[nodiscard]] vk::Device get_device() const noexcept
                 {
                     return static_cast<vk::Device>(*this);
                 }

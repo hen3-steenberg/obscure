@@ -1,6 +1,6 @@
 #ifndef OBSCURE_VULKAN_DEVICE_DEFINITION
 #define OBSCURE_VULKAN_DEVICE_DEFINITION 1
-#include "obscure/context.hpp"
+#include "obscure/application_context.hpp"
 #include "obscure/obscure_properties.hpp"
 #include <functional>
 #include <stdexcept>
@@ -147,8 +147,7 @@ namespace obscure
 
         
 
-        struct device : virtual vk::Device
-        {
+        struct device : vk::Device {
             vk::PhysicalDevice physical_device;
             uint32_t graphics_queue_index;
             uint32_t present_queue_index;
@@ -165,18 +164,18 @@ namespace obscure
                 {
                     vk::DeviceQueueCreateInfo
                     {
-                        {},
-                        indices.graphics_queue_index.value(),
-                        1,
-                        &priority,
-                    },
-                    vk::DeviceQueueCreateInfo
-                    {
-                        {},
-                        indices.present_queue_index.value(),
-                        1,
-                        &priority,
-                    }
+                            {},
+                            indices.graphics_queue_index.value(),
+                            1,
+                            &priority,
+                        },
+                        vk::DeviceQueueCreateInfo
+                        {
+                            {},
+                            indices.present_queue_index.value(),
+                            1,
+                            &priority,
+                        }
                 };
 
                 constexpr auto extensions = required_device_extensions();
@@ -188,33 +187,33 @@ namespace obscure
                     const char* debug_layer_name = "VK_LAYER_KHRONOS_validation";
                     vk::DeviceCreateInfo create_info
                     {
-                        {},
-                        indices.queue_count(),
-                        queue_infos.data(),
-                        1,
-                        &debug_layer_name,
-                        extension_count,
-                        extensions.data(),
-                        &required_features
+                            {},
+                            indices.queue_count(),
+                            queue_infos.data(),
+                            1,
+                            &debug_layer_name,
+                            extension_count,
+                            extensions.data(),
+                            &required_features
 
-                    };
+                        };
 
                     return physical_device.createDevice(create_info);
                 }
-                else 
+                else
                 {
                     vk::DeviceCreateInfo create_info
                     {
-                        {},
-                        indices.queue_count(),
-                        queue_infos.data(),
-                        0,
-                        nullptr,
-                        extension_count,
-                        extensions.data(),
-                        &required_features
+                            {},
+                            indices.queue_count(),
+                            queue_infos.data(),
+                            0,
+                            nullptr,
+                            extension_count,
+                            extensions.data(),
+                            &required_features
 
-                    };
+                        };
                     return physical_device.createDevice(create_info);
                 }
             }
@@ -226,15 +225,24 @@ namespace obscure
             {
             }
 
-            public:
+        public:
 
-            device(vk::PhysicalDevice physical_device, vk::SurfaceKHR surface)
-                : device(physical_device, queue_indices{physical_device, surface})
+            device (vk::PhysicalDevice physical_device, vk::SurfaceKHR surface)
+                :device(physical_device, queue_indices{physical_device, surface})
             {}
 
             device(vk::SurfaceKHR surface, std::function<float(vk::PhysicalDevice)> get_device_score)
                 : device(pick_device(surface, std::move(get_device_score)), surface)
             {}
+
+            device(device && other) noexcept
+                : vk::Device(other.get_device()),
+                physical_device(other.physical_device),
+                graphics_queue_index(other.graphics_queue_index),
+                present_queue_index(other.present_queue_index) {
+                static_cast<vk::Device&>(other) = VK_NULL_HANDLE;
+            }
+
 
             [[nodiscard]] vk::Device get_device() const noexcept
             {
@@ -268,7 +276,9 @@ namespace obscure
 
             ~device()
             {
-                destroy();
+                if (get_device() != VK_NULL_HANDLE) {
+                    destroy();
+                }
             }
         };
 

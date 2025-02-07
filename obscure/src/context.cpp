@@ -1,4 +1,4 @@
-#include "obscure/context.hpp"
+#include "obscure/application_context.hpp"
 
 #include "obscure/obscure_properties.hpp"
 #include "obscure/utils/name_list.hpp"

@@ -39,7 +39,7 @@ namespace obscure
 
 
         template<pipeline_definition ... TPipelines>
-        struct command_session final : shared_draw_call_base, draw_call_collection<0, TPipelines...>::type
+        struct command_session final : draw_call_collection<0, TPipelines...>::type
         {
             private:
                 vk::CommandBuffer command_buffer;

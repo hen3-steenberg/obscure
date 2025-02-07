@@ -9,13 +9,13 @@
 namespace obscure {
     namespace vulkan {
         template<std::size_t Size>
-        struct pipeline_collection : protected virtual vk::Device
+        struct pipeline_collection : private vk::Device
         {
             std::array<vk::Pipeline, Size> pipelines;
             std::array<vk::PipelineLayout, Size> pipeline_layouts;
 
         private:
-            [[nodiscard]] vk::Device get_device() const
+            [[nodiscard]] vk::Device get_device() const noexcept
             {
                 return static_cast<vk::Device>(*this);
             }

@@ -2,7 +2,7 @@
 #define OBSCURE_VULKAN_LOGGER_DEFINITION 1
 #include "glfw_vulkan_include.hpp"
 #include "obscure/helper_templates/max_set_bit.hpp"
-#include "obscure/context.hpp"
+#include "obscure/application_context.hpp"
 #include "obscure/obscure_properties.hpp"
 #include <iostream>
 #include <fstream>

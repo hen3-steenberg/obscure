@@ -1,6 +1,6 @@
 #ifndef OBSCURE_VULKAN_SURFACE_DEFINITION
 #define OBSCURE_VULKAN_SURFACE_DEFINITION
-#include "obscure/context.hpp"
+#include "obscure/application_context.hpp"
 #include "obscure/helper_templates/parent_reference.hpp"
 #include "obscure/glfw/glfw_window.hpp"
 #include "obscure/obscure_properties.hpp"
