@@ -34,5 +34,10 @@ namespace obscure
     {
         return {0.0f, 0.0f, 0.0f, 1.0f};
     }
+
+    [[nodiscard]] consteval std::size_t max_image_count()
+    {
+        return 5;
+    }
 }
 #endif

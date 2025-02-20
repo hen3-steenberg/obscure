@@ -8,7 +8,8 @@
 #include "obscure/vulkan/semaphore.hpp"
 #include "obscure/vulkan/fence.hpp"
 #include "obscure/helper_templates/vector_initialize.hpp"
-#include <vector>
+#include "obscure/obscure_properties.hpp"
+#include <array>
 #include <limits>
 
 namespace obscure
@@ -20,15 +21,16 @@ namespace obscure
 			vk::Format format;
 			vk::Extent2D extent;
 			vk::RenderPass render_pass;
-			std::vector<vk::Image> images;
-			std::vector<image_view> image_views;
-			std::vector<vk::Framebuffer> framebuffers;
-
-			std::vector<obscure::vulkan::semaphore> image_available;
-			std::vector<obscure::vulkan::semaphore> render_finished;
-			std::vector<obscure::vulkan::fence> in_flight;
-			std::size_t current_frame;
 			uint32_t current_frame_index;
+			uint32_t image_count;
+			std::array<vk::Image, max_image_count()> images;
+			std::array<image_view, max_image_count()> image_views;
+			std::array<vk::Framebuffer, max_image_count()> framebuffers;
+			std::array<obscure::vulkan::semaphore, max_image_count()> image_available;
+			std::array<obscure::vulkan::semaphore, max_image_count()> render_finished;
+			std::array<obscure::vulkan::fence, max_image_count()> in_flight;
+			std::size_t current_frame;
+
 
 
 		private:
@@ -165,14 +167,61 @@ namespace obscure
 
 			}
 
-			static inline std::vector<obscure::vulkan::semaphore> initialize_semaphores(std::size_t size, vk::Device device)
+			template<std::size_t ... Idxs>
+			static inline std::array<obscure::vulkan::semaphore, sizeof...(Idxs)> initialize_semaphores(vk::Device device, std::index_sequence<Idxs...>)
 			{
-				return obscure::helper_templates::initialize_vector<obscure::vulkan::semaphore>(size, device);
+				return std::array<obscure::vulkan::semaphore, sizeof...(Idxs)> { (Idxs, obscure::vulkan::semaphore { device })... };
 			}
 
-			static inline std::vector<obscure::vulkan::fence> initialize_fences(std::size_t size, vk::Device device, bool Signaled)
+			static inline std::array<obscure::vulkan::semaphore, max_image_count()> initialize_semaphores(vk::Device device) {
+				return initialize_semaphores(device, std::make_index_sequence<max_image_count()>{});
+			}
+
+			template<std::size_t ... Idxs>
+			static inline std::array<obscure::vulkan::fence, sizeof...(Idxs)> initialize_fences(vk::Device device, bool Signaled, std::index_sequence<Idxs...>) {
+				return std::array<obscure::vulkan::fence, sizeof...(Idxs)> { (Idxs, obscure::vulkan::fence {device, Signaled})... };
+			}
+
+			static inline std::array<obscure::vulkan::fence, max_image_count()> initialize_fences(vk::Device device, bool Signaled)
 			{
-				return obscure::helper_templates::initialize_vector<obscure::vulkan::fence>(size, device, Signaled);
+				return initialize_fences(device, Signaled, std::make_index_sequence<max_image_count()>{});
+			}
+
+			static inline std::array<vk::Image, max_image_count()> load_images(vk::Device device, vk::SwapchainKHR swapchain, uint32_t & image_count) {
+				std::array<vk::Image, max_image_count()> result {};
+				auto err0 = device.getSwapchainImagesKHR(swapchain, &image_count, nullptr);
+				auto err1 = device.getSwapchainImagesKHR(swapchain, &image_count, result.data());
+				return result;
+			}
+
+			static inline std::array<image_view, max_image_count()> load_image_views(std::array<vk::Image, max_image_count()> const& images, vk::Device device, vk::Format format) {
+				std::array<image_view, max_image_count()> result{};
+				for (std::size_t idx = 0; idx < max_image_count(); ++idx) {
+					result[idx] = image_view{device, images[idx], format};
+				}
+				return result;
+			}
+
+			static inline std::array<vk::Framebuffer, max_image_count()> load_framebuffers(std::array<image_view, max_image_count()> const& image_views, vk::Device device, vk::RenderPass render_pass, vk::Extent2D extent) {
+				std::array<vk::Framebuffer, max_image_count()> result{};
+				for (std::size_t idx = 0; idx < max_image_count(); ++idx) {
+					if (image_views[idx] != VK_NULL_HANDLE) {
+						vk::FramebufferCreateInfo create_info {
+							{},
+							render_pass,
+							1,
+							&image_views[idx],
+							extent.width,
+							extent.height,
+							1
+						};
+						result[idx] = device.createFramebuffer(create_info);
+					}
+					else {
+						result[idx] = VK_NULL_HANDLE;
+					}
+				}
+				return result;
 			}
 
 			swap_chain_data(obscure::vulkan::device const& device, vk::SurfaceKHR _surface, vk::SurfaceFormatKHR _format, vk::PresentModeKHR _present_mode, vk::Extent2D _extent)
@@ -180,36 +229,16 @@ namespace obscure
 				format(_format.format),
 				extent(_extent),
 				render_pass(create_render_pass(device.get_device(), format)),
-				images(device.getSwapchainImagesKHR(get_swap_chain())),
-				image_views(),
-				framebuffers(),
-				image_available(initialize_semaphores(images.size(), device.get_device())),
-				render_finished(initialize_semaphores(images.size(), device.get_device())),
-				in_flight(initialize_fences(images.size(), device.get_device(), true)),
-				current_frame(),
-				current_frame_index()
+				current_frame_index(),
+				image_count(),
+				images(load_images(device.get_device(), get_swap_chain(), image_count)),
+				image_views(load_image_views(images, device.get_device(), format)),
+				framebuffers(load_framebuffers(image_views, device.get_device(), render_pass, extent)),
+				image_available(initialize_semaphores(device.get_device())),
+				render_finished(initialize_semaphores(device.get_device())),
+				in_flight(initialize_fences(device.get_device(), true)),
+				current_frame()
 			{
-				image_views.reserve(images.size());
-				for (auto image : images)
-				{
-					image_views.emplace_back(device, image, format);
-				}
-
-				framebuffers.reserve(images.size());
-				for (auto image : image_views)
-				{
-					vk::FramebufferCreateInfo create_info {
-						{},
-						render_pass,
-						1,
-						&image,
-						extent.width,
-						extent.height,
-						1
-					};
-
-					framebuffers.push_back(device.createFramebuffer(create_info));
-				}
 			}
 
 		public:
@@ -245,7 +274,7 @@ namespace obscure
 
 			[[nodiscard]] std::size_t get_frame_count() const noexcept
 			{
-				return images.size();
+				return image_count;
 			}
 
 			[[nodiscard]] vk::Format     get_format() const noexcept

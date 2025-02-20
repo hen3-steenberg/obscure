@@ -14,32 +14,40 @@ namespace obscure
 		private:
 			static vk::ImageView create_image_view(vk::Device device, vk::Image image, vk::Format format)
 			{
-				vk::ImageViewCreateInfo create_info
-				{
-					{},
-					image,
-					vk::ImageViewType::e2D,
-					format,
-					vk::ComponentMapping
+				if (image) {
+					vk::ImageViewCreateInfo create_info
 					{
-						vk::ComponentSwizzle::eIdentity,
-						vk::ComponentSwizzle::eIdentity,
-						vk::ComponentSwizzle::eIdentity,
-						vk::ComponentSwizzle::eIdentity
-					},
-					vk::ImageSubresourceRange
-					{
-						vk::ImageAspectFlagBits::eColor,
-						0,
-						1,
-						0,
-						1
-					}
-				};
-				return device.createImageView(create_info);
+						{},
+						image,
+						vk::ImageViewType::e2D,
+						format,
+						vk::ComponentMapping
+						{
+							vk::ComponentSwizzle::eIdentity,
+							vk::ComponentSwizzle::eIdentity,
+							vk::ComponentSwizzle::eIdentity,
+							vk::ComponentSwizzle::eIdentity
+						},
+						vk::ImageSubresourceRange
+						{
+							vk::ImageAspectFlagBits::eColor,
+							0,
+							1,
+							0,
+							1
+						}
+					};
+					return device.createImageView(create_info);
+				}
+				else return VK_NULL_HANDLE;
+
 			}
 
 		public:
+			image_view()
+				: vk::ImageView(VK_NULL_HANDLE)
+			{}
+
 			image_view(vk::Device device, vk::Image image, vk::Format format)
 				: vk::ImageView(create_image_view(device, image, format))
 			{}
@@ -51,7 +59,9 @@ namespace obscure
 
 			void free(vk::Device device) noexcept
 			{
-				device.destroyImageView(*this);
+				if (get() != VK_NULL_HANDLE) {
+					device.destroyImageView(get());
+				}
 			}
 		};
 	}
