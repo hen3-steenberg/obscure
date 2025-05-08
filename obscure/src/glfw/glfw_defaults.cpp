@@ -1,12 +1,11 @@
 #include "obscure/glfw/glfw_defaults.hpp"
 
-
-
 struct default_monitor
 {
 	const GLFWvidmode* mode;
 	default_monitor()
 	{
+
 		glfwInit();
 		GLFWmonitor* PrimaryMonitor = glfwGetPrimaryMonitor();
 		mode = glfwGetVideoMode(PrimaryMonitor);
@@ -22,8 +21,7 @@ struct default_monitor
 		return mode->width;
 	}
 
-	~default_monitor()
-	{
+	~default_monitor() {
 		glfwTerminate();
 	}
 };

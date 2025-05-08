@@ -23,6 +23,10 @@ obscure::glfw::glfw_window::glfw_window(glfw_window&& other)
 	other.window_ptr = nullptr;
 }
 
+[[nodiscard]] obscure::glfw::glfw_window_ref obscure::glfw::glfw_window::get_window_ref() const noexcept {
+	return static_cast<obscure::glfw::glfw_window_ref>(*this);
+}
+
 obscure::glfw::glfw_window::~glfw_window()
 {
 	if (window_ptr)

@@ -21,9 +21,9 @@ namespace obscure
 			: major(Major), minor(Minor), patch(Patch)
 		{}
 
-		uint32_t major : 10;
-		uint32_t minor : 10;
 		uint32_t patch : 12;
+		uint32_t minor : 10;
+		uint32_t major : 10;
 
 		[[nodiscard]] constexpr  uint32_t vulkan_version() const noexcept
 		{

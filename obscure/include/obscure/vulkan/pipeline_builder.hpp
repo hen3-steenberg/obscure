@@ -14,7 +14,9 @@ namespace obscure
 		template<typename T>
 		concept pipeline_builder = requires(T t)
 		{
-			{ t.get_create_info() } -> std::convertible_to<vk::GraphicsPipelineCreateInfo>;
+			{ t.get_create_info() } ->
+				std::convertible_to<vk::GraphicsPipelineCreateInfo>;
+
 			{ t.get_layout() } -> std::convertible_to<vk::PipelineLayout>;
 		};
 
@@ -235,7 +237,8 @@ namespace obscure
 				vk::BlendOp::eAdd,
 				vk::BlendFactor::eOne,
 				vk::BlendFactor::eZero,
-				vk::BlendOp::eAdd
+				vk::BlendOp::eAdd,
+				vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
 			};
 #pragma endregion
 

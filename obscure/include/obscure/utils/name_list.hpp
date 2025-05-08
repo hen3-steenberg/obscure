@@ -42,6 +42,9 @@ namespace obscure
         {
             return names;
         }
+
+        void push_back(const char*) const noexcept
+        {}
     };
 }
 

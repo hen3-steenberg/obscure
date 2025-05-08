@@ -1,13 +1,14 @@
 #include "obscure/vulkan/builtin_pipelines/test_triangle.hpp"
-#include "obscure/application.hpp"
+#include "obscure/graphics_context.hpp"
+#include "obscure/application_context.hpp"
 
 
 int main()
 {
-
-	obscure::application<obscure::vulkan::builtin_pipelines::test_triangle> app{"Test App", obscure::version{1,0,0}};
+	obscure::initialize("Test App", obscure::version{1,0,0});
 
 	{
+		obscure::graphics_context<obscure::vulkan::builtin_pipelines::test_triangle> app{};
 
 		while (!app.window.should_close())
 		{
@@ -16,9 +17,16 @@ int main()
 			{
 				break;
 			}
+			{
+				auto frame = app.begin_frame();
+				frame.draw_test_triangle();
+			}
+			app.submit_frame();
+			app.draw_frame();
 		}
 	}
 	
+	obscure::free_instance();
 
 	return 0;
 }
