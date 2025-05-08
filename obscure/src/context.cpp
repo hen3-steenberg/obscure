@@ -92,14 +92,21 @@ struct ApplicationInstance : vk::Instance {
         : vk::Instance(create_instance(app_name, app_version))
     {}
 
-    ~ApplicationInstance() {
-        destroy();
+    [[nodiscard]] vk::Instance get_instance() const noexcept {
+        return *this;
+    }
+
+    void free() const noexcept {
+        if (get_instance() != VK_NULL_HANDLE) {
+            destroy();
+        }
+    }
+
+    ~ApplicationInstance() noexcept{
+        free();
     }
 
 };
-
-struct ApplicationContext {
-    ApplicationInstance instance;
     using logger_t =
         obscure::vulkan::logger_collection<
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose,
@@ -107,23 +114,23 @@ struct ApplicationContext {
             obscure::vulkan::console_logger,
             obscure::vulkan::json_logger>;
 
-    logger_t vk_loggers;
-
-    ApplicationContext(const char * app_name, obscure::version app_version)
-        : instance(app_name, app_version), vk_loggers() {
-
-    }
-};
-
-std::optional<ApplicationContext> ctx;
+std::optional<ApplicationInstance> ctx;
+std::optional<logger_t> logger;
 
 void obscure::initialize(const char * app_name, obscure::version app_version)
 {
-    if (!ctx.has_value())
+    if (!ctx.has_value()) {
         ctx.emplace(app_name, app_version);
+        logger.emplace();
+    }
 }
 
 vk::Instance obscure::get_application_instance()
 {
-    return ctx->instance;
+    return ctx->get_instance();
+}
+
+void obscure::free_instance() noexcept {
+    logger.reset();
+    ctx.reset();
 }

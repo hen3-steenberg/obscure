@@ -18,6 +18,7 @@
 #include <mutex>
 #include <optional>
 #include <thread>
+#include <mutex>
 
 namespace obscure
 {
@@ -50,17 +51,13 @@ namespace obscure
         consteval vk::DebugUtilsMessageTypeFlagsEXT get_type_flags()
         {
             vk::DebugUtilsMessageTypeFlagsEXT result{};
-            if constexpr (vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation >= min_type)
-            {
-                result |= vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
-            }
-            if constexpr (vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding >= min_type)
-            {
-                result |= vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding;
-            }
             if constexpr (vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral >= min_type)
             {
                 result |= vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral;
+            }
+            if constexpr (vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation >= min_type)
+            {
+                result |= vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
             }
             if constexpr (vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance >= min_type)
             {
@@ -106,7 +103,7 @@ namespace obscure
             {
                 if(is_valid_severity<min_severity>(messageSeverity) && is_valid_type<min_type>(messageType) && pUserData)
                 {
-                    logger_base* logger = static_cast<logger_base*>(pUserData);
+                    auto logger = static_cast<logger_base*>(pUserData);
                     logger->LogEvent(messageSeverity, messageType, *pCallbackData);
                 }
                 return VK_FALSE;
@@ -129,9 +126,17 @@ namespace obscure
                 LoggerHandle = instance.createDebugUtilsMessengerEXT(create_info);
             }
 
-            ~logger_base()
+            void free() noexcept {
+                if (LoggerHandle != VK_NULL_HANDLE) {
+                    auto instance = get_instance();
+                    instance.destroyDebugUtilsMessengerEXT(LoggerHandle);
+                    LoggerHandle = VK_NULL_HANDLE;
+                }
+            }
+
+            virtual ~logger_base() noexcept
             {
-                get_instance().destroyDebugUtilsMessengerEXT(LoggerHandle);
+                free();
             }
 
             protected:

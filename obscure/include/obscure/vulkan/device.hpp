@@ -277,6 +277,7 @@ namespace obscure
             ~device()
             {
                 if (get_device() != VK_NULL_HANDLE) {
+                    get_device().waitIdle();
                     destroy();
                 }
             }
