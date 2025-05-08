@@ -1,4 +1,3 @@
-add_subdirectory("resources")
 
 file(GLOB_RECURSE src "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 

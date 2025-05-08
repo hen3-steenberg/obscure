@@ -29,6 +29,6 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Vulkan)
 
+add_subdirectory("shaders")
 add_subdirectory("obscure")
 add_subdirectory("developer_test")
-add_subdirectory("examples")
