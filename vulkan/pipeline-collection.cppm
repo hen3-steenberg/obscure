@@ -1,13 +1,14 @@
-#ifndef OBSCURE_VULKAN_PIPELINE_COLLECTION_DEFINITION
-#define OBSCURE_VULKAN_PIPELINE_COLLECTION_DEFINITION 1
+module;
 #include <array>
-#include "obscure/vulkan/pipeline_definition.hpp"
-#include "obscure/vulkan/device.hpp"
-#include "obscure/helper_templates/parent_reference.hpp"
-#include "glfw_vulkan_include.hpp"
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#include <vulkan/vulkan.hpp>
+#include <GLFW/glfw3.h>
+export module pipeline:collection;
+import :builder;
+import :definition;
 
-namespace obscure {
-    namespace vulkan {
+export namespace obscure::vulkan
+{
         template<std::size_t Size>
         struct pipeline_collection : private vk::Device
         {
@@ -53,6 +54,4 @@ namespace obscure {
                 }
             }
         };
-    }
 }
-#endif

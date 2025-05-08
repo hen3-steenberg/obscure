@@ -1,6 +1,6 @@
 #ifndef OBSCURE_VULKAN_SHADER_MODULE_DEFINITION
 #define OBSCURE_VULKAN_SHADER_MODULE_DEFINITION 1
-#include "glfw_vulkan_include.hpp"
+#include "../../../../modules/glfw_vulkan_include.hpp"
 #include <initializer_list>
 #include <array>
 

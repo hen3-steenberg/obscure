@@ -1,11 +1,20 @@
-#include "obscure/application_context.hpp"
-
-#include "obscure/obscure_properties.hpp"
-#include "obscure/utils/name_list.hpp"
-#include "obscure/vulkan/logger.hpp"
-
+module;
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#include <vulkan/vulkan.hpp>
+#include <GLFW/glfw3.h>
 #include <iostream>
-#include <optional>
+export module application_context;
+export import version;
+import properties;
+import name_list;
+import logger;
+
+export namespace obscure
+{
+    void initialize(const char * app_name, obscure::version app_version);
+    vk::Instance get_application_instance();
+    void free_instance() noexcept;
+}
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 

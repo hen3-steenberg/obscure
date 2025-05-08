@@ -1,6 +1,6 @@
 #ifndef OBSCURE_VULKAN_FENCE_DEFINITION
 #define OBSCURE_VULKAN_FENCE_DEFINITION 1
-#include "glfw_vulkan_include.hpp"
+#include "../../../../modules/glfw_vulkan_include.hpp"
 #include <limits>
 #include <chrono>
 

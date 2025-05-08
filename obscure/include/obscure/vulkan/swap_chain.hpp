@@ -1,6 +1,6 @@
 #ifndef OBSCURE_VULKAN_SWAP_CHAIN_DEFINITION
 #define OBSCURE_VULKAN_SWAP_CHAIN_DEFINITION 1
-#include "glfw_vulkan_include.hpp"
+#include "../../../../modules/glfw_vulkan_include.hpp"
 #include "obscure/helper_templates/parent_reference.hpp"
 #include "obscure/vulkan/device.hpp"
 #include "obscure/glfw/glfw_window.hpp"

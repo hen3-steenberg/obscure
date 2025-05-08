@@ -1,6 +1,6 @@
 #ifndef OBSCURE_VULKAN_IMAGE_VIEW_DEFINITION
 #define OBSCURE_VULKAN_IMAGE_VIEW_DEFINITION 1
-#include "glfw_vulkan_include.hpp"
+#include "../../../../modules/glfw_vulkan_include.hpp"
 #include "obscure/helper_templates/parent_reference.hpp"
 #include <vector>
 

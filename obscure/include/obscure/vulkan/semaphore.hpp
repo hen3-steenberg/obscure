@@ -1,6 +1,6 @@
 #ifndef OBSCURE_VULKAN_SEMAPHORE_DEFINITION
 #define OBSCURE_VULKAN_SEMAPHORE_DEFINITION 1
-#include "glfw_vulkan_include.hpp"
+#include "../../../../modules/glfw_vulkan_include.hpp"
 
 
 namespace obscure
