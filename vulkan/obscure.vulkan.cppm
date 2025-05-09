@@ -1,0 +1,15 @@
+module;
+export module obscure.vulkan;
+export import obscure.vulkan.application_context;
+export import obscure.vulkan.command_pool;
+export import obscure.vulkan.command_session;
+export import obscure.vulkan.device;
+export import obscure.vulkan.device_context;
+export import obscure.vulkan.fence;
+export import obscure.vulkan.graphics_context;
+export import obscure.vulkan.image_view;
+export import obscure.vulkan.pipeline;
+export import obscure.vulkan.semaphore;
+export import obscure.vulkan.shader;
+export import obscure.vulkan.surface;
+export import obscure.vulkan.swap_chain;

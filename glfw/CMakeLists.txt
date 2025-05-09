@@ -2,9 +2,9 @@ add_library(obscure_glfw)
 target_sources(obscure_glfw
         PUBLIC
         FILE_SET CXX_MODULES FILES
-        "glfw.cppm"
-        "glfw-defaults.cppm"
-        "glfw-window.cppm"
+        "obscure.glfw.cppm"
+        "obscure.glfw-defaults.cppm"
+        "obscure.glfw-window.cppm"
 )
 
 target_link_libraries(obscure_glfw PUBLIC glfw)
