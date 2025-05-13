@@ -9,7 +9,7 @@ export namespace obscure::builtin
     enum class shader
     {
         no_shader,
-        test_triangle_fragment,
+        color_fragment,
         test_triangle_vertex,
     };
 
@@ -17,7 +17,7 @@ export namespace obscure::builtin
     std::span<const uint32_t> get_data() = delete;
 
     template<>
-    std::span<const uint32_t> get_data<shader::test_triangle_fragment>();
+    std::span<const uint32_t> get_data<shader::color_fragment>();
 
     template<>
     std::span<const uint32_t> get_data<shader::test_triangle_vertex>();

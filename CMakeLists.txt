@@ -27,6 +27,7 @@ project ("obscure" CXX)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Vulkan)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
 add_subdirectory("shaders")
 add_subdirectory("utils")

@@ -14,6 +14,7 @@ target_sources(builtin
 target_link_libraries(builtin PUBLIC glfw)
 target_link_libraries(builtin PUBLIC glm::glm)
 target_link_libraries(builtin PUBLIC Vulkan::Vulkan)
+target_link_libraries(builtin PUBLIC GPUOpen::VulkanMemoryAllocator)
 
 target_link_libraries(builtin PUBLIC utils)
 target_link_libraries(builtin PUBLIC helper_templates)
