@@ -1,6 +1,5 @@
 module;
 #include <cstdint>
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 #include <array>
 export module obscure.properties;

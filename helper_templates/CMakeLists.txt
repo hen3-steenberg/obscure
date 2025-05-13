@@ -6,4 +6,5 @@ target_sources(helper_templates
         "obscure.helper_templates.parent_reference.cppm"
         "obscure.helper_templates.sum.cppm"
         "obscure.helper_templates.vector_initialize.cppm"
+        "obscure.helper_templates.cppm"
 )

@@ -1,10 +1,19 @@
 module;
 #include  <span>
 #include <array>
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
-#include <GLFW/glfw3.h>
 export module obscure.vulkan.shader:modules;
+export import :data;
+
+export
+template<auto Key>
+struct shader_loader;
+
+export template<auto shader>
+obscure::vulkan::shader_data auto get_shader_data() {
+    return shader_loader<shader>::load_shader();
+}
+
 
 export namespace obscure::vulkan
 {

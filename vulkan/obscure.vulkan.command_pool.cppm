@@ -1,7 +1,5 @@
 module;
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
-#include <GLFW/glfw3.h>
 export module obscure.vulkan.command_pool;
 
 export import obscure.vulkan.device;

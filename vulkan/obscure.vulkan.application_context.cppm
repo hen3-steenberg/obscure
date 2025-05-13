@@ -1,6 +1,5 @@
 module;
 #include <iostream>
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 #include <fstream>
@@ -77,23 +76,23 @@ namespace obscure::vulkan
         }
 
         template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity>
-        constexpr bool is_valid_severity(VkDebugUtilsMessageSeverityFlagBitsEXT severity)
+        constexpr bool is_valid_severity(vk::DebugUtilsMessageSeverityFlagBitsEXT const severity) noexcept
         {
-            constexpr uint32_t min_value = std::bit_cast<uint32_t>(min_severity);
-            return severity >= min_value;
+            constexpr static auto min_value = std::bit_cast<uint32_t>(min_severity);
+            return std::bit_cast<uint32_t>(severity) >= min_value;
         }
 
         template<>
-        constexpr bool is_valid_severity<vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose>(VkDebugUtilsMessageSeverityFlagBitsEXT severity)
+        constexpr bool is_valid_severity<vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose>(vk::DebugUtilsMessageSeverityFlagBitsEXT const severity) noexcept
         {
             return true;
         }
 
         template<vk::DebugUtilsMessageTypeFlagBitsEXT min_type>
-        constexpr bool is_valid_type(VkDebugUtilsMessageTypeFlagsEXT messageType)
+        constexpr bool is_valid_type(vk::DebugUtilsMessageTypeFlagsEXT const messageType)
         {
-            constexpr uint32_t min_value = std::bit_cast<uint32_t>(min_type);
-            return messageType >= min_value;
+            constexpr static auto min_value = std::bit_cast<uint32_t>(min_type);
+            return std::bit_cast<uint32_t>(messageType) >= min_value;
         }
 
 
@@ -106,9 +105,14 @@ namespace obscure::vulkan
                     return obscure::get_application_instance();
                 }
 
-            static VKAPI_ATTR VkBool32 VKAPI_CALL LogCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                                VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                                                const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                static vk::detail::DispatchLoaderDynamic & get_dispatch() {
+                    static vk::detail::DispatchLoaderDynamic loader {get_instance(), vkGetInstanceProcAddr};
+                    return loader;
+                }
+
+            static VKAPI_ATTR vk::Bool32 VKAPI_CALL LogCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                                vk::DebugUtilsMessageTypeFlagsEXT messageType,
+                                                                const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                                 void* pUserData)
             {
                 if(is_valid_severity<min_severity>(messageSeverity) && is_valid_type<min_type>(messageType) && pUserData)
@@ -125,7 +129,7 @@ namespace obscure::vulkan
 
             logger_base()
             {
-                vk::DebugUtilsMessengerCreateInfoEXT create_info {
+                vk::DebugUtilsMessengerCreateInfoEXT const create_info {
                         {},
                         get_severity_flags<min_severity>(),
                         get_type_flags<min_type>(),
@@ -133,13 +137,13 @@ namespace obscure::vulkan
                         this
                     };
                 auto instance = get_instance();
-                LoggerHandle = instance.createDebugUtilsMessengerEXT(create_info);
+                LoggerHandle = instance.createDebugUtilsMessengerEXT(create_info, nullptr, get_dispatch());
             }
 
             void free() noexcept {
                 if (LoggerHandle != VK_NULL_HANDLE) {
-                    auto instance = get_instance();
-                    instance.destroyDebugUtilsMessengerEXT(LoggerHandle);
+                    const auto instance = get_instance();
+                    instance.destroyDebugUtilsMessengerEXT(LoggerHandle, nullptr, get_dispatch());
                     LoggerHandle = VK_NULL_HANDLE;
                 }
             }
@@ -151,15 +155,14 @@ namespace obscure::vulkan
 
             protected:
 
-            virtual void LogEvent(VkDebugUtilsMessageSeverityFlagsEXT Severity, VkDebugUtilsMessageTypeFlagsEXT Type, const VkDebugUtilsMessengerCallbackDataEXT & Data) = 0;
+            virtual void LogEvent(vk::DebugUtilsMessageSeverityFlagsEXT Severity, vk::DebugUtilsMessageTypeFlagsEXT Type, const vk::DebugUtilsMessengerCallbackDataEXT & Data) = 0;
 
         };
 
-        constexpr const char* get_message_severity_text(VkDebugUtilsMessageSeverityFlagsEXT Severity) noexcept
+        constexpr const char* get_message_severity_text(vk::DebugUtilsMessageSeverityFlagsEXT const Severity) noexcept
         {
             using namespace obscure::helper_templates;
-            constexpr auto verbose = max_set_bits(VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT);
-            switch(max_set_bits(Severity))
+            switch(max_set_bits(std::bit_cast<uint32_t>(Severity)))
             {
                 case max_set_bits(VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT):
                     return "VERBOSE";
@@ -174,10 +177,10 @@ namespace obscure::vulkan
             }
         }
 
-        constexpr const char* get_message_type_text(VkDebugUtilsMessageTypeFlagsEXT Type) noexcept
+        constexpr const char* get_message_type_text(vk::DebugUtilsMessageTypeFlagsEXT const Type) noexcept
         {
             using namespace obscure::helper_templates;
-            switch (max_set_bits(Type))
+            switch (max_set_bits(std::bit_cast<uint32_t>(Type)))
             {
                 case max_set_bits(VkDebugUtilsMessageTypeFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT):
                     return "    GENERAL";
@@ -195,8 +198,8 @@ namespace obscure::vulkan
 
         struct Event
         {
-            VkDebugUtilsMessageSeverityFlagsEXT Severity;
-            VkDebugUtilsMessageTypeFlagsEXT Type;
+            vk::DebugUtilsMessageSeverityFlagsEXT Severity;
+            vk::DebugUtilsMessageTypeFlagsEXT Type;
             struct LogData
             {
 
@@ -205,7 +208,7 @@ namespace obscure::vulkan
                     std::string name;
                     std::array<float, 4> color;
 
-                    Label(vk::DebugUtilsLabelEXT const& lbl)
+                    explicit Label(vk::DebugUtilsLabelEXT const& lbl)
                         : name(lbl.pLabelName ? lbl.pLabelName : "NO NAME"), color(lbl.color)
                     {}
                 };
@@ -216,7 +219,7 @@ namespace obscure::vulkan
                     uint64_t Handle;
                     std::string name;
 
-                    Object(vk::DebugUtilsObjectNameInfoEXT const& obj)
+                    explicit Object(vk::DebugUtilsObjectNameInfoEXT const& obj)
                         : Type(obj.objectType), Handle(obj.objectHandle), name(obj.pObjectName ? obj.pObjectName : "NO NAME")
                     {}
                 };
@@ -230,7 +233,7 @@ namespace obscure::vulkan
 
                 std::vector<Object> objects;
 
-                LogData(const VkDebugUtilsMessengerCallbackDataEXT & Data)
+                explicit LogData(const VkDebugUtilsMessengerCallbackDataEXT & Data)
                     :   ID(Data.messageIdNumber),
                         IDName(Data.pMessageIdName ? Data.pMessageIdName : "NO NAME"),
                         Message(Data.pMessage ? Data.pMessage : "NO MESSAGE"),
@@ -265,7 +268,7 @@ namespace obscure::vulkan
                     }
                 }
             } data;
-            Event(VkDebugUtilsMessageSeverityFlagsEXT _Severity, VkDebugUtilsMessageTypeFlagsEXT _Type, const VkDebugUtilsMessengerCallbackDataEXT & _Data)
+            Event(vk::DebugUtilsMessageSeverityFlagsEXT _Severity, vk::DebugUtilsMessageTypeFlagsEXT _Type, const VkDebugUtilsMessengerCallbackDataEXT & _Data)
                 : Severity(_Severity), Type(_Type), data(_Data)
             {
 
@@ -277,13 +280,13 @@ namespace obscure::vulkan
             std::queue<std::unique_ptr<Event>> events;
             std::mutex queue_mtx;
 
-            void enqueue(VkDebugUtilsMessageSeverityFlagsEXT Severity, VkDebugUtilsMessageTypeFlagsEXT Type, const VkDebugUtilsMessengerCallbackDataEXT & Data)
+            void enqueue(vk::DebugUtilsMessageSeverityFlagsEXT Severity, vk::DebugUtilsMessageTypeFlagsEXT Type, const vk::DebugUtilsMessengerCallbackDataEXT & Data)
             {
                 std::lock_guard queue_guard{queue_mtx};
                 events.push(std::make_unique<Event>(Severity, Type, Data));
             }
 
-            bool empty() const
+            [[nodiscard]] bool empty() const
             {
                 return events.empty();
             }
@@ -305,7 +308,7 @@ namespace obscure::vulkan
         struct console_logger : logger_base<min_severity, min_type>
         {
         private:
-            void LogEvent(VkDebugUtilsMessageSeverityFlagsEXT Severity, VkDebugUtilsMessageTypeFlagsEXT Type, const VkDebugUtilsMessengerCallbackDataEXT& Data) final
+            void LogEvent(vk::DebugUtilsMessageSeverityFlagsEXT Severity, vk::DebugUtilsMessageTypeFlagsEXT Type, const vk::DebugUtilsMessengerCallbackDataEXT& Data) final
             {
                 std::cout << get_message_severity_text(Severity) << ", " << get_message_type_text(Type) << " : " << Data.pMessage << "\n";
             }
@@ -436,7 +439,7 @@ namespace obscure::vulkan
                 json_file << "}\n";
             }
 
-            void LogEvent(VkDebugUtilsMessageSeverityFlagsEXT Severity, VkDebugUtilsMessageTypeFlagsEXT Type, const VkDebugUtilsMessengerCallbackDataEXT& Data) final
+            void LogEvent(vk::DebugUtilsMessageSeverityFlagsEXT Severity, vk::DebugUtilsMessageTypeFlagsEXT Type, const vk::DebugUtilsMessengerCallbackDataEXT& Data) final
             {
                 event_queue.enqueue(Severity, Type, Data);
             }
@@ -473,10 +476,10 @@ obscure::name_list<obscure::enable_debug_validation()> get_required_extensions()
     return result;
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL InstanceLifetimeCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+static VKAPI_ATTR vk::Bool32 VKAPI_CALL InstanceLifetimeCallback(
+    vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    vk::DebugUtilsMessageTypeFlagsEXT messageType,
+    const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void* pUserData) {
         std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
         return VK_FALSE;
@@ -510,14 +513,14 @@ vk::Instance create_instance(const char * app_name, obscure::version app_version
                 {},
                 vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
                 vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::eDeviceAddressBinding | vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
-                &InstanceLifetimeCallback,
+                InstanceLifetimeCallback,
                 nullptr
             }
         };
 
-        VULKAN_HPP_DEFAULT_DISPATCHER.init();
+        //VULKAN_HPP_DEFAULT_DISPATCHER.init();
         auto res = vk::createInstance(create_info.get());
-        VULKAN_HPP_DEFAULT_DISPATCHER.init(res);
+        //VULKAN_HPP_DEFAULT_DISPATCHER.init(res);
         return res;
     }
     else
@@ -532,9 +535,9 @@ vk::Instance create_instance(const char * app_name, obscure::version app_version
             extension_list.get_names()
         };
 
-        VULKAN_HPP_DEFAULT_DISPATCHER.init();
+        //VULKAN_HPP_DEFAULT_DISPATCHER.init();
         auto res = vk::createInstance(create_info);
-        VULKAN_HPP_DEFAULT_DISPATCHER.init(res);
+        //VULKAN_HPP_DEFAULT_DISPATCHER.init(res);
         return res;
     }
 }

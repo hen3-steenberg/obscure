@@ -1,8 +1,6 @@
 module;
 #include <span>
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
-#include <GLFW/glfw3.h>
 export module obscure.vulkan.pipeline:draw_call_base;
 
 export namespace obscure::vulkan

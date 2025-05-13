@@ -1,8 +1,6 @@
 module;
 #include <array>
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
-#include <GLFW/glfw3.h>
 export module obscure.vulkan.swap_chain;
 
 export import obscure.vulkan.device;
@@ -166,19 +164,24 @@ export namespace obscure::vulkan
 
 			}
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value"
+			// your code for which the warning gets suppressed
+
 			template<std::size_t ... Idxs>
 			static inline std::array<obscure::vulkan::semaphore, sizeof...(Idxs)> initialize_semaphores(vk::Device device, std::index_sequence<Idxs...>)
 			{
 				return std::array<obscure::vulkan::semaphore, sizeof...(Idxs)> { (Idxs, obscure::vulkan::semaphore { device })... };
 			}
 
-			static inline std::array<obscure::vulkan::semaphore, max_image_count()> initialize_semaphores(vk::Device device) {
-				return initialize_semaphores(device, std::make_index_sequence<max_image_count()>{});
-			}
-
 			template<std::size_t ... Idxs>
 			static inline std::array<obscure::vulkan::fence, sizeof...(Idxs)> initialize_fences(vk::Device device, bool Signaled, std::index_sequence<Idxs...>) {
 				return std::array<obscure::vulkan::fence, sizeof...(Idxs)> { (Idxs, obscure::vulkan::fence {device, Signaled})... };
+			}
+#pragma clang diagnostic pop
+
+			static inline std::array<obscure::vulkan::semaphore, max_image_count()> initialize_semaphores(vk::Device device) {
+				return initialize_semaphores(device, std::make_index_sequence<max_image_count()>{});
 			}
 
 			static inline std::array<obscure::vulkan::fence, max_image_count()> initialize_fences(vk::Device device, bool Signaled)
@@ -290,15 +293,15 @@ export namespace obscure::vulkan
 			}
 
 			[[nodiscard]] vk::Semaphore const* get_image_available_ptr() const noexcept {
-				return image_available[current_frame].get_semaphore_ptr();
+				return image_available[current_frame_index].get_semaphore_ptr();
 			}
 
 			[[nodiscard]] vk::Semaphore const* get_render_finished_ptr() const noexcept {
-				return render_finished[current_frame].get_semaphore_ptr();
+				return render_finished[current_frame_index].get_semaphore_ptr();
 			}
 
 			[[nodiscard]] vk::Fence get_in_flight_fence() const noexcept {
-				return in_flight[current_frame].get_fence();
+				return in_flight[current_frame_index].get_fence();
 			}
 		};
 

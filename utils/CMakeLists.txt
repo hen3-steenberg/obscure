@@ -9,4 +9,5 @@ target_sources(utils
         "obscure.utils.stopwatch.cppm"
         "obscure.utils.value_list.cppm"
         "obscure.utils.version.cppm"
+        "obscure.utils.cppm"
 )
