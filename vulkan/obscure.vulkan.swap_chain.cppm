@@ -293,7 +293,7 @@ export namespace obscure::vulkan
 			}
 
 			[[nodiscard]] vk::Semaphore const* get_image_available_ptr() const noexcept {
-				return image_available[current_frame_index].get_semaphore_ptr();
+				return image_available[current_frame].get_semaphore_ptr();
 			}
 
 			[[nodiscard]] vk::Semaphore const* get_render_finished_ptr() const noexcept {
@@ -301,7 +301,7 @@ export namespace obscure::vulkan
 			}
 
 			[[nodiscard]] vk::Fence get_in_flight_fence() const noexcept {
-				return in_flight[current_frame_index].get_fence();
+				return in_flight[current_frame].get_fence();
 			}
 		};
 
