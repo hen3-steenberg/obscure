@@ -12,7 +12,7 @@ This is also indicative that this is the first time I will be attempting to writ
 - [ ] Implement memory interface
 - [ ] Implement auto descriptors
 - [ ] Implement a pipeline to draw each basic shape
-  - [x] Implement a pipeline to draw triangles
+  - [ ] Implement a pipeline to draw triangles
   - [ ] Implement a pipeline to draw rectangles
   - [ ] Implement a pipeline to draw squares
   - [ ] Implement a pipeline to draw circles
