@@ -10,7 +10,7 @@ export namespace obscure::builtin::pipeline
     {
         using shader_list = obscure::make_set<
             obscure::builtin::shader::test_triangle_vertex,
-            obscure::builtin::shader::test_triangle_fragment
+            obscure::builtin::shader::color_fragment
         >;
 
         static obscure::vulkan::static_pipeline_builder<2, 2, 0, 0> initialize(

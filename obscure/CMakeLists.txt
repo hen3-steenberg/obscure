@@ -8,6 +8,7 @@ target_sources(obscure
 target_link_libraries(obscure PUBLIC glfw)
 target_link_libraries(obscure PUBLIC glm::glm)
 target_link_libraries(obscure PUBLIC Vulkan::Vulkan)
+target_link_libraries(obscure PUBLIC GPUOpen::VulkanMemoryAllocator)
 
 target_link_libraries(obscure PUBLIC utils)
 target_link_libraries(obscure PUBLIC helper_templates)

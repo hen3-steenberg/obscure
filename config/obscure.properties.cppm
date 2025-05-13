@@ -12,6 +12,10 @@ export namespace obscure
         return version {1, 0, 0};
     }
 
+    [[nodiscard]] consteval uint32_t vulkan_version() {
+        return VK_API_VERSION_1_0;
+    }
+
     [[nodiscard]] consteval bool enable_debug_validation()
     {
 #ifdef DEBUG

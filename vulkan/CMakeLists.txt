@@ -1,5 +1,7 @@
 add_library(obscure_vulkan)
 target_sources(obscure_vulkan
+        PRIVATE
+        "obscure.vulkan.application_context.cxx"
         PUBLIC
         FILE_SET CXX_MODULES FILES
         "obscure.vulkan.application_context.cppm"
@@ -28,6 +30,7 @@ target_sources(obscure_vulkan
 target_link_libraries(obscure_vulkan PUBLIC glfw)
 target_link_libraries(obscure_vulkan PUBLIC glm::glm)
 target_link_libraries(obscure_vulkan PUBLIC Vulkan::Vulkan)
+target_link_libraries(obscure_vulkan PUBLIC GPUOpen::VulkanMemoryAllocator)
 
 target_link_libraries(obscure_vulkan PUBLIC utils)
 target_link_libraries(obscure_vulkan PUBLIC helper_templates)

@@ -2,12 +2,12 @@ module;
 #include <functional>
 #include <stdexcept>
 #include <vulkan/vulkan.hpp>
+#include <vk_mem_alloc.h>
 export module obscure.vulkan.device;
 import obscure.vulkan.application_context;
 import obscure.properties;
 
-namespace obscure::vulkan
-{
+namespace obscure::vulkan {
     inline bool is_device_suitable(vk::PhysicalDevice device, vk::SurfaceKHR surface)
     {
         //check that all required extensions are supported
@@ -47,21 +47,21 @@ namespace obscure::vulkan
         float device_score = 0;
         auto device_properties = device.getProperties();
         switch (device_properties.deviceType) {
-        case vk::PhysicalDeviceType::eDiscreteGpu:
-            device_score += 100.0f;
-            break;
-        case vk::PhysicalDeviceType::eIntegratedGpu:
-            device_score += 10.0f;
-            break;
-        case vk::PhysicalDeviceType::eVirtualGpu:
-            device_score += 1.0f;
-            break;
-        case vk::PhysicalDeviceType::eCpu:
-            device_score += 0.1f;
-            break;
-        case vk::PhysicalDeviceType::eOther:
-        default:
-            break;
+            case vk::PhysicalDeviceType::eDiscreteGpu:
+                device_score += 100.0f;
+                break;
+            case vk::PhysicalDeviceType::eIntegratedGpu:
+                device_score += 10.0f;
+                break;
+            case vk::PhysicalDeviceType::eVirtualGpu:
+                device_score += 1.0f;
+                break;
+            case vk::PhysicalDeviceType::eCpu:
+                device_score += 0.1f;
+                break;
+            case vk::PhysicalDeviceType::eOther:
+            default:
+                break;
         }
         return device_score;
     }
@@ -148,6 +148,7 @@ namespace obscure::vulkan
 
     export struct device : vk::Device {
         vk::PhysicalDevice physical_device;
+        VmaAllocator allocator;
         uint32_t graphics_queue_index;
         uint32_t present_queue_index;
 
@@ -163,18 +164,18 @@ namespace obscure::vulkan
         {
             vk::DeviceQueueCreateInfo
             {
-                                {},
-                                indices.graphics_queue_index.value(),
-                                1,
-                                &priority,
-                            },
-                            vk::DeviceQueueCreateInfo
-                            {
-                                {},
-                                indices.present_queue_index.value(),
-                                1,
-                                &priority,
-                            }
+                                    {},
+                                    indices.graphics_queue_index.value(),
+                                    1,
+                                    &priority,
+                                },
+                                vk::DeviceQueueCreateInfo
+                                {
+                                    {},
+                                    indices.present_queue_index.value(),
+                                    1,
+                                    &priority,
+                                }
         };
 
         constexpr auto extensions = required_device_extensions();
@@ -186,16 +187,16 @@ namespace obscure::vulkan
             const char* debug_layer_name = "VK_LAYER_KHRONOS_validation";
             vk::DeviceCreateInfo create_info
             {
-                                {},
-                                indices.queue_count(),
-                                queue_infos.data(),
-                                1,
-                                &debug_layer_name,
-                                extension_count,
-                                extensions.data(),
-                                &required_features
+                                    {},
+                                    indices.queue_count(),
+                                    queue_infos.data(),
+                                    1,
+                                    &debug_layer_name,
+                                    extension_count,
+                                    extensions.data(),
+                                    &required_features
 
-                            };
+                                };
 
             return physical_device.createDevice(create_info);
         }
@@ -203,22 +204,36 @@ namespace obscure::vulkan
         {
             vk::DeviceCreateInfo create_info
             {
-                                {},
-                                indices.queue_count(),
-                                queue_infos.data(),
-                                0,
-                                nullptr,
-                                extension_count,
-                                extensions.data(),
-                                &required_features
+                                    {},
+                                    indices.queue_count(),
+                                    queue_infos.data(),
+                                    0,
+                                    nullptr,
+                                    extension_count,
+                                    extensions.data(),
+                                    &required_features
 
-                            };
+                                };
             return physical_device.createDevice(create_info);
         }
     }
 
+    static VmaAllocator create_allocator(vk::Device device, vk::PhysicalDevice physical_device)
+    {
+        VmaAllocatorCreateInfo create_info{};
+        create_info.vulkanApiVersion = obscure::vulkan_version();
+        create_info.instance = get_application_instance();
+        create_info.physicalDevice = physical_device;
+        create_info.device = device;
+
+        VmaAllocator result{};
+        vmaCreateAllocator(&create_info, &result);
+        return result;
+    }
+
         device(vk::PhysicalDevice physical_device, queue_indices indices)
             : vk::Device(create_logical_device(physical_device, indices)), physical_device(physical_device),
+            allocator(create_allocator(get_device(), physical_device)),
             graphics_queue_index(indices.graphics_queue_index.value()),
             present_queue_index(indices.present_queue_index.value())
     {
@@ -246,6 +261,10 @@ namespace obscure::vulkan
         [[nodiscard]] vk::Device get_device() const noexcept
         {
             return static_cast<vk::Device>(*this);
+        }
+
+        [[nodiscard]] VmaAllocator get_vma_allocator() const noexcept {
+            return allocator;
         }
 
         [[nodiscard]] vk::PhysicalDevice get_physical_device() const noexcept
@@ -277,6 +296,7 @@ namespace obscure::vulkan
         {
             if (get_device() != VK_NULL_HANDLE) {
                 get_device().waitIdle();
+                vmaDestroyAllocator(allocator);
                 destroy();
             }
         }

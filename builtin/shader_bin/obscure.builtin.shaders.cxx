@@ -6,8 +6,8 @@ using namespace obscure::builtin;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wc23-extensions"
-constexpr const unsigned char test_triangle_frag[] = {
-#embed "test_triangle.frag.spv"
+constexpr const unsigned char color_frag[] = {
+#embed "color.frag.spv"
     ,0, 0, 0, 0
     };
 
@@ -33,9 +33,9 @@ template<shader shader>
 size_t get_builtin_size() = delete;
 
 template<>
-size_t get_builtin_size<shader::test_triangle_fragment>()
+size_t get_builtin_size<shader::color_fragment>()
 {
-    constexpr size_t size = sizeof(test_triangle_frag);
+    constexpr size_t size = sizeof(color_frag);
     return get_actual_size(size);
 }
 
@@ -48,10 +48,10 @@ size_t get_builtin_size<shader::test_triangle_vertex>()
 
 
 template<>
-std::span<const uint32_t>  obscure::builtin::get_data<shader::test_triangle_fragment>()
+std::span<const uint32_t>  obscure::builtin::get_data<shader::color_fragment>()
 {
-    static auto data = reinterpret_cast<const uint32_t*>(test_triangle_frag);
-    return std::span<const uint32_t> {data, get_builtin_size<shader::test_triangle_fragment>()};
+    static auto data = reinterpret_cast<const uint32_t*>(color_frag);
+    return std::span<const uint32_t> {data, get_builtin_size<shader::color_fragment>()};
 }
 
 template<>
