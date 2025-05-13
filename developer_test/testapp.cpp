@@ -26,7 +26,6 @@ int main()
 			app.draw_frame();
 		}
 	}
-	
 	obscure::free_instance();
 
 	return 0;
