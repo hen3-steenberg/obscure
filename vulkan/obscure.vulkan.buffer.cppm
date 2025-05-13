@@ -114,7 +114,7 @@ export namespace obscure::vulkan
         }
     };
 
-    template<typename T, VkBufferUsageFlags Usage>
+    template<VkBufferUsageFlags Usage, typename T = void>
     struct write_view
     {
         using buffer_t = buffer<Usage, alignof(T)>;
@@ -178,7 +178,7 @@ export namespace obscure::vulkan
     };
 
     template<VkBufferUsageFlags Usage>
-    struct write_view<void, Usage>
+    struct write_view<Usage, void>
     {
         using buffer_t = buffer<Usage>;
         std::reference_wrapper<buffer_t> device_buffer;
