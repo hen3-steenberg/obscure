@@ -3,8 +3,7 @@
 #
 cmake_minimum_required (VERSION 3.28)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_C_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -29,6 +28,12 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Vulkan)
 
+add_subdirectory("shaders")
+add_subdirectory("utils")
+add_subdirectory("helper_templates")
+add_subdirectory("config")
+add_subdirectory("glfw")
+add_subdirectory("vulkan")
+add_subdirectory("builtin")
 add_subdirectory("obscure")
 add_subdirectory("developer_test")
-add_subdirectory("examples")

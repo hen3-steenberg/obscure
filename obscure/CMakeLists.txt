@@ -1,13 +1,18 @@
-add_subdirectory("resources")
+add_library(obscure)
+target_sources(obscure
+        PUBLIC
+        FILE_SET CXX_MODULES FILES
+        "obscure.cppm"
+)
 
-file(GLOB_RECURSE src "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+target_link_libraries(obscure PUBLIC glfw)
+target_link_libraries(obscure PUBLIC glm::glm)
+target_link_libraries(obscure PUBLIC Vulkan::Vulkan)
 
-add_library(Obscure STATIC ${src})
-
-target_include_directories(Obscure PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-target_link_libraries(Obscure PUBLIC glfw)
-target_link_libraries(Obscure PUBLIC glm::glm)
-target_link_libraries(Obscure PUBLIC Vulkan::Vulkan)
-add_dependencies(Obscure OBSCURE_SHADERS)
+target_link_libraries(obscure PUBLIC utils)
+target_link_libraries(obscure PUBLIC helper_templates)
+target_link_libraries(obscure PUBLIC config)
+target_link_libraries(obscure PUBLIC obscure_glfw)
+target_link_libraries(obscure PUBLIC obscure_vulkan)
+target_link_libraries(obscure PUBLIC builtin)
 

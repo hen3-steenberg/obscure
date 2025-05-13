@@ -1,14 +1,15 @@
-#include "obscure/vulkan/builtin_pipelines/test_triangle.hpp"
-#include "obscure/graphics_context.hpp"
-#include "obscure/application_context.hpp"
+#include <GLFW/glfw3.h>
+
+import obscure;
 
 
 int main()
 {
 	obscure::initialize("Test App", obscure::version{1,0,0});
 
+
 	{
-		obscure::graphics_context<obscure::vulkan::builtin_pipelines::test_triangle> app{};
+		obscure::graphics_context<obscure::builtin::pipeline::test_triangle> app{};
 
 		while (!app.window.should_close())
 		{

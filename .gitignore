@@ -10,3 +10,4 @@
 /src/preprocess.txt
 /.cache
 /.idea
+/builtin/shader_bin/*.spv
