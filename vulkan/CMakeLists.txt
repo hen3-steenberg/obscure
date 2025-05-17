@@ -5,6 +5,7 @@ target_sources(obscure_vulkan
         PUBLIC
         FILE_SET CXX_MODULES FILES
         "obscure.vulkan.application_context.cppm"
+        "obscure.vulkan.buffer.cppm"
         "obscure.vulkan.command_pool.cppm"
         "obscure.vulkan.command_session.cppm"
         "obscure.vulkan.device.cppm"
@@ -17,6 +18,7 @@ target_sources(obscure_vulkan
         "obscure.vulkan.pipeline-collection.cppm"
         "obscure.vulkan.pipeline-definition.cppm"
         "obscure.vulkan.pipeline-draw_call_base.cppm"
+        "obscure.vulkan.transfer_session.cppm"
         "obscure.vulkan.semaphore.cppm"
         "obscure.vulkan.shader.cppm"
         "obscure.vulkan.shader-data.cppm"

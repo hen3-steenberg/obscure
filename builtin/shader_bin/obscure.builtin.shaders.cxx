@@ -15,6 +15,11 @@ constexpr const unsigned char test_triangle_vert[] = {
 #embed "test_triangle.vert.spv"
     ,0, 0 , 0, 0
     };
+
+constexpr const unsigned char color_2d_vert[] = {
+#embed "color_2d.vert.spv"
+    ,0, 0 , 0, 0
+    };
 #pragma clang diagnostic pop
 
 constexpr size_t get_actual_size(size_t size)
@@ -46,6 +51,13 @@ size_t get_builtin_size<shader::test_triangle_vertex>()
     return get_actual_size(size);
 }
 
+template<>
+size_t get_builtin_size<shader::color_2d_vertex>()
+{
+    constexpr size_t size = sizeof(color_2d_vert);
+    return get_actual_size(size);
+}
+
 
 template<>
 std::span<const uint32_t>  obscure::builtin::get_data<shader::color_fragment>()
@@ -59,4 +71,11 @@ std::span<const uint32_t> obscure::builtin::get_data<shader::test_triangle_verte
 {
     static auto data = reinterpret_cast<const uint32_t*>(test_triangle_vert);
     return std::span<const uint32_t> {data, get_builtin_size<shader::test_triangle_vertex>()};
+}
+
+template<>
+std::span<const uint32_t> obscure::builtin::get_data<shader::color_2d_vertex>()
+{
+    static auto data = reinterpret_cast<const uint32_t*>(color_2d_vert);
+    return std::span<const uint32_t> {data, get_builtin_size<shader::color_2d_vertex>()};
 }

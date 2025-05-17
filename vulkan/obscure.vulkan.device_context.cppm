@@ -1,6 +1,7 @@
 module;
 #include <functional>
 #include <vulkan/vulkan.hpp>
+#include <initializer_list>
 export module obscure.vulkan.device_context;
 
 export import obscure.vulkan.command_pool;
@@ -9,6 +10,8 @@ export import obscure.vulkan.device;
 export import obscure.vulkan.pipeline;
 export import obscure.vulkan.shader;
 export import obscure.vulkan.surface;
+export import obscure.vulkan.transfer_session;
+export import obscure.vulkan.buffer;
 
 export namespace obscure::vulkan
 {
@@ -25,13 +28,15 @@ export namespace obscure::vulkan
         swap_chain vk_swap_chain;
         pipeline_collection_t vk_pipeline_collection;
         command_pool vk_command_pool;
+        transfer_pool vk_transfer_pool;
 
         device_context(surface const& _surface, glfw::glfw_window_ref _window, std::function<float (vk::PhysicalDevice)> get_device_score)
             : vk_device(_surface, std::move(get_device_score)),
               vk_shaders(vk_device.get_device()),
               vk_swap_chain(vk_device, _surface, _window),
               vk_pipeline_collection(pipeline_collection_t::template make_pipeline_collection<shader_set_t, TPipelines...>(vk_device.get_device(), vk_swap_chain.get_render_pass(), vk_shaders)),
-              vk_command_pool(vk_device, vk_swap_chain.get_frame_count())
+              vk_command_pool(vk_device, vk_swap_chain.get_frame_count()),
+              vk_transfer_pool(vk_device)
         {}
 
         ~device_context() noexcept {
@@ -50,6 +55,15 @@ export namespace obscure::vulkan
         {
             uint32_t frame_index = vk_swap_chain.get_next_frame_index();
             return command_session_t {get_current_buffer(), frame_index, vk_pipeline_collection.pipelines, vk_swap_chain};
+        }
+
+        transfer_session begin_transfers() const
+        {
+            return transfer_session {
+                vk_device.get_device(),
+                vk_transfer_pool.get_command_pool(),
+                vk_device.get_transfer_queue()
+            };
         }
 
         void submit_frame()
@@ -81,5 +95,24 @@ export namespace obscure::vulkan
 
             auto _ = vk_device.get_present_queue().presentKHR(present_info);
         }
+
+        template<typename T>
+        [[nodiscard]] obscure::vulkan::vertex_buffer<T> initialize_vertex_buffer(std::initializer_list<T> data) const
+        {
+
+
+            obscure::vulkan::staging_buffer<T> temp_buffer {vk_device, data.size()};
+            obscure::vulkan::vertex_buffer<T> vertex_buffer {vk_device, data.size()};
+            transfer_session copy_session = begin_transfers();
+
+
+
+            temp_buffer.copy_data(data.begin(), data.size() * sizeof(T));
+            temp_buffer.write_data(copy_session.command_buffer, vertex_buffer);
+
+            return vertex_buffer;
+        }
+
+
     };
 }

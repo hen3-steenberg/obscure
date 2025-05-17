@@ -54,4 +54,39 @@ export namespace obscure::vulkan
         }
 
     };
+
+    struct transfer_pool : vk::CommandPool, private vk::Device
+    {
+    private:
+        [[nodiscard]] vk::Device get_device() const noexcept
+        {
+            return static_cast<vk::Device>(*this);
+        }
+
+        static vk::CommandPool create_command_pool(device const & _device)
+        {
+            vk::CommandPoolCreateInfo create_info {
+                vk::CommandPoolCreateFlagBits::eTransient,
+                _device.transfer_queue_index
+            };
+
+            return _device.createCommandPool(create_info);
+        }
+    public:
+        explicit transfer_pool(device const& _device)
+            : vk::CommandPool(create_command_pool(_device)), vk::Device(_device.get_device())
+        {
+        }
+
+        [[nodiscard]] vk::CommandPool get_command_pool() const&
+        {
+            return static_cast<vk::CommandPool>(*this);
+        }
+
+        ~transfer_pool()
+        {
+            get_device().destroyCommandPool(get_command_pool());
+        }
+
+    };
 }

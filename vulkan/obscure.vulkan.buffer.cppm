@@ -7,10 +7,27 @@ export import obscure.vulkan.device;
 
 export namespace obscure::vulkan
 {
-    template<VkBufferUsageFlags Usage, size_t Alignment = 1>
-    struct buffer : vk::Buffer
-    {
 
+    template<VmaAllocationCreateFlags Flags>
+    consteval bool can_write()
+    {
+        return Flags & (
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+            );
+    }
+
+    template<VmaAllocationCreateFlags Flags>
+    consteval bool can_read()
+    {
+        return Flags & (
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+            );
+    }
+
+    template<VkBufferUsageFlags Usage, VmaMemoryUsage MemoryUsage, VmaAllocationCreateFlags Flags, size_t Alignment>
+    struct buffer_impl : vk::Buffer
+    {
         [[nodiscard]] static consteval vk::BufferUsageFlags get_usage_flags() noexcept
         {
             return std::bit_cast<vk::BufferUsageFlags>(Usage);
@@ -18,13 +35,13 @@ export namespace obscure::vulkan
 
     private:
 
-        static vk::Buffer create_buffer(device const& dev, size_t _size, VmaAllocation & alloc)
+        static std::pair<vk::Buffer, VmaAllocation> create_buffer(device const& dev, size_t _size)
         {
 
+            std::pair<vk::Buffer, VmaAllocation> result{VK_NULL_HANDLE, nullptr};
             if(_size == 0) [[unlikely]]
             {
-                alloc = nullptr;
-                return VK_NULL_HANDLE;
+                return result;
             }
 
             VkBufferCreateInfo create_info = vk::BufferCreateInfo {
@@ -34,9 +51,11 @@ export namespace obscure::vulkan
             };
 
             VmaAllocationCreateInfo alloc_info {};
-            alloc_info.usage = VMA_MEMORY_USAGE_AUTO;
+            alloc_info.usage = MemoryUsage;
+            alloc_info.flags = Flags;
 
-            VkBuffer result{};
+
+            auto * buffer_ptr = reinterpret_cast<VkBuffer*>(&result.first);
 
             if constexpr (Alignment == 1)
             {
@@ -45,8 +64,8 @@ export namespace obscure::vulkan
                     dev.get_vma_allocator(),
                     &create_info,
                     &alloc_info,
-                    &result,
-                    &alloc,
+                    buffer_ptr,
+                    &result.second,
                     nullptr);
             }
             else
@@ -56,33 +75,41 @@ export namespace obscure::vulkan
                     &create_info,
                     &alloc_info,
                     Alignment,
-                    &result,
-                    &alloc,
+                    buffer_ptr,
+                    &result.second,
                     nullptr
                     );
             }
 
-            return static_cast<vk::Buffer>(result);
+            return result;
 
         }
+
+        buffer_impl(const device& device, std::pair<vk::Buffer, VmaAllocation> buf, size_t size)
+            : vk::Buffer(buf.first), allocation(buf.second), vk_device(&device), _size(size)
+        {}
 
     public:
 
         VmaAllocation allocation{};
-        std::reference_wrapper<const device> vk_device;
+        const device * vk_device;
         size_t _size;
 
 
+        buffer_impl()
+            : vk::Buffer(VK_NULL_HANDLE),
+        vk_device(),
+        _size(0) {}
 
-        buffer(const device& device, size_t size) noexcept
-            : vk::Buffer(create_buffer(device, size, allocation)),
-        vk_device(device),
-        _size(size)
-        {}
+        buffer_impl(const device& device, size_t size) noexcept
+            : buffer_impl(device, create_buffer(device, size), size)
+        {
 
-        buffer(buffer const&) = delete;
+        }
 
-        buffer(buffer && other) noexcept
+        buffer_impl(buffer_impl const&) = delete;
+
+        buffer_impl(buffer_impl && other) noexcept
             : vk::Buffer(other),
         allocation(other.allocation),
         vk_device(other.vk_device),
@@ -91,7 +118,7 @@ export namespace obscure::vulkan
             other._size = 0;
         }
 
-        vk::Buffer get_buffer() const noexcept
+        [[nodiscard]] vk::Buffer get_buffer() const noexcept
         {
             return static_cast<vk::Buffer>(*this);
         }
@@ -101,124 +128,165 @@ export namespace obscure::vulkan
             return _size;
         }
 
-        ~buffer() noexcept
+        [[nodiscard]] vk::DeviceSize offset() const noexcept
+        {
+            VmaAllocationInfo info{};
+            vmaGetAllocationInfo(
+                vk_device->get_vma_allocator(),
+                allocation,
+                &info);
+
+            return info.offset;
+        }
+
+
+        template<VmaAllocationCreateFlags Flags2 = Flags>
+        typename std::enable_if_t<can_write<Flags2>(), void> copy_data(void const* data, size_t bytes) const
+        {
+            vmaCopyMemoryToAllocation(
+                vk_device->get_vma_allocator(),
+                data,
+                allocation,
+                offset(),
+                bytes);
+        }
+
+        template<VmaAllocationCreateFlags Flags2 = Flags>
+        typename std::enable_if_t<(Flags2 & VMA_ALLOCATION_CREATE_MAPPED_BIT) != 0, void*> get_mapped_ptr() const
+        {
+            VmaAllocationInfo info{};
+            vmaGetAllocationInfo(
+                vk_device->get_vma_allocator(),
+                allocation,
+                &info);
+
+            return info.pMappedData;
+        }
+
+        ~buffer_impl() noexcept
         {
             if (_size)
             {
+                vk_device->waitIdle();
                 vmaDestroyBuffer(
-                    vk_device.get().get_vma_allocator(),
+                    vk_device->get_vma_allocator(),
                     get_buffer(),
                     allocation);
                 _size = 0;
             }
         }
+
+        operator bool() const noexcept
+        {
+            return _size != 0;
+        }
     };
 
-    template<VkBufferUsageFlags Usage, typename T = void>
-    struct write_view
+    template<typename T>
+    using staging_buffer_impl = buffer_impl<
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+    VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+    std::alignment_of_v<T>>;
+
+    template<typename T>
+    struct staging_buffer : public staging_buffer_impl<T>
     {
-        using buffer_t = buffer<Usage, alignof(T)>;
-        std::reference_wrapper<buffer_t> device_buffer;
-        std::unique_ptr<T[]> data;
-
-
-        explicit write_view(buffer_t const& buffer)
-            : device_buffer(buffer),
-        data(std::make_unique<T[]>(buffer.size() / sizeof(T)))
+        size_t _count;
+        T* _data;
+        staging_buffer(const device& device, size_t count)
+            : staging_buffer_impl<T>(device, count * sizeof(T)),
+            _count(count),
+            _data(std::bit_cast<T*>(staging_buffer_impl<T>::get_mapped_ptr()))
         {}
+
+        template<VkBufferUsageFlags Usage, VmaMemoryUsage MemoryUsage, VmaAllocationCreateFlags Flags>
+        requires ((Usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) != 0)
+        void write_data(vk::CommandBuffer cmd, buffer_impl<Usage, MemoryUsage, Flags, std::alignment_of_v<T>> & dest)
+        {
+            vmaFlushAllocation(
+                staging_buffer_impl<T>::vk_device->get_vma_allocator(),
+                staging_buffer_impl<T>::allocation,
+                0, VK_WHOLE_SIZE);
+
+            vk::BufferCopy copy_region{
+                0,
+                0,
+                staging_buffer_impl<T>::size()
+            };
+
+            cmd.copyBuffer(staging_buffer_impl<T>::get_buffer(), dest.get_buffer(), 1, &copy_region);
+
+        }
+
+
+        T* data() noexcept
+        {
+            return _data;
+        }
+
+        T const* data() const noexcept
+        {
+            return _data;
+        }
+
+        size_t count() const noexcept
+        {
+            return _count;
+        }
 
         T& operator[](size_t idx) noexcept
         {
-            return data[idx];
+            return _data[idx];
         }
 
-        T operator[](size_t idx) const noexcept
+        T const& operator[](size_t idx) const noexcept
         {
-            return data[idx];
+            return _data[idx];
         }
 
         T* begin() noexcept
         {
-            return data;
+            return _data;
+        }
+
+        T const* begin() const noexcept
+        {
+            return _data;
         }
 
         T* end() noexcept
         {
-            return data + device_buffer.size();
+            return _data + _count;
         }
 
-        const T* begin() const noexcept
+        T const* end() const noexcept
         {
-            return data;
-        }
-
-        const T* end() const noexcept
-        {
-            return data + device_buffer.size();
-        }
-
-        ~write_view() noexcept
-        {
-            if (data)
-            {
-                VmaAllocationInfo info{};
-                vmaGetAllocationInfo(
-                    device_buffer.get().get_vma_allocator(),
-                    device_buffer.get().allocation,
-                    &info);
-
-                vmaCopyMemoryToAllocation(
-                    device_buffer.get().get_vma_allocator(),
-                    data.get(),
-                    device_buffer.get().allocation,
-                    info.offset,
-                    device_buffer.size());
-            }
+            return _data + _count;
         }
     };
 
-    template<VkBufferUsageFlags Usage>
-    struct write_view<Usage, void>
+    template<typename T>
+    using vertex_buffer_impl = buffer_impl<
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+    VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+    0,
+    std::alignment_of_v<T>>;
+
+    template<typename T>
+    struct vertex_buffer : vertex_buffer_impl<T>
     {
-        using buffer_t = buffer<Usage>;
-        std::reference_wrapper<buffer_t> device_buffer;
-        std::unique_ptr<void> data;
+        size_t _count;
 
-
-        explicit write_view(buffer_t const& buffer)
-            : device_buffer(buffer),
-        data(std::make_unique<void>(buffer.size()))
+        vertex_buffer(const device& device, size_t count)
+            : vertex_buffer_impl<T>(device, count * sizeof(T)),
+            _count(count)
         {}
 
-        void * get() noexcept
+        [[nodiscard]] size_t count() const noexcept
         {
-            return data.get();
-        }
-
-        const void * get() const noexcept
-        {
-            return data.get();
-        }
-
-        ~write_view() noexcept
-        {
-            if (data)
-            {
-                VmaAllocationInfo info{};
-                vmaGetAllocationInfo(
-                    device_buffer.get().get_vma_allocator(),
-                    device_buffer.get().allocation,
-                    &info);
-
-                vmaCopyMemoryToAllocation(
-                    device_buffer.get().get_vma_allocator(),
-                    data.get(),
-                    device_buffer.get().allocation,
-                    info.offset,
-                    device_buffer.size());
-            }
+            return _count;
         }
     };
-
 
 }

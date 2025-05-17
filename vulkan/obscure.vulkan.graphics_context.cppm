@@ -36,6 +36,12 @@ export namespace obscure
             device_ctx.draw_frame();
         }
 
+        template<typename T>
+        [[nodiscard]] auto init_vertex_buffer(std::initializer_list<T> data) const
+        {
+            return device_ctx.template initialize_vertex_buffer<T>(data);
+        }
+
 #pragma endregion
 
 

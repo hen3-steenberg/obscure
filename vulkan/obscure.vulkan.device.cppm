@@ -101,6 +101,7 @@ namespace obscure::vulkan {
         using index_t = std::optional<uint32_t>;
         index_t graphics_queue_index;
         index_t present_queue_index;
+        index_t transfer_queue_index;
 
         queue_indices(queue_indices const& other) noexcept = default;
         queue_indices(vk::PhysicalDevice physical_device, vk::SurfaceKHR surface)
@@ -113,6 +114,11 @@ namespace obscure::vulkan {
                     graphics_queue_index = index;
                 }
 
+                if (!transfer_queue_index.has_value() && queue_families[index].queueFlags & vk::QueueFlagBits::eTransfer && index != graphics_queue_index.value_or(-1))
+                {
+                    transfer_queue_index = index;
+                }
+
                 if (!present_queue_index.has_value() && physical_device.getSurfaceSupportKHR(index, surface))
                 {
                     present_queue_index = index;
@@ -123,24 +129,47 @@ namespace obscure::vulkan {
                     break;
                 }
             }
+
+            if (!transfer_queue_index.has_value())
+            {
+                transfer_queue_index = graphics_queue_index;
+            }
         }
 
         uint32_t queue_count() const
         {
-            if (graphics_queue_index.has_value() && present_queue_index.has_value())
+            if (!is_complete()) return 0;
+            uint32_t queue_count = 1;
+            if (present_queue_index.value() != graphics_queue_index.value())
             {
-                return (graphics_queue_index.value() == present_queue_index.value()) ? 1 : 2;
+                queue_count++;
             }
-            else if (graphics_queue_index.has_value() || present_queue_index.has_value())
+            if (transfer_queue_index.value() != graphics_queue_index.value() && transfer_queue_index.value() != present_queue_index.value())
             {
-                return 1;
+                queue_count++;
             }
-            else return 0;
+            return queue_count;
+
+        }
+
+        uint32_t get_queue_index_0() const
+        {
+            return graphics_queue_index.value();
+        }
+
+        uint32_t get_queue_index_1() const
+        {
+            return present_queue_index != graphics_queue_index? present_queue_index.value() : transfer_queue_index.value();
+        }
+
+        uint32_t get_queue_index_2() const
+        {
+            return transfer_queue_index.value();
         }
 
         bool is_complete() const noexcept
         {
-            return graphics_queue_index.has_value() && present_queue_index.has_value();
+            return graphics_queue_index.has_value() && present_queue_index.has_value() && transfer_queue_index.has_value();
         }
     };
 
@@ -151,6 +180,7 @@ namespace obscure::vulkan {
         VmaAllocator allocator;
         uint32_t graphics_queue_index;
         uint32_t present_queue_index;
+        uint32_t transfer_queue_index;
 
     private :
 
@@ -160,22 +190,29 @@ namespace obscure::vulkan {
 
         vk::PhysicalDeviceFeatures required_features{};
 
-        std::array<vk::DeviceQueueCreateInfo, 2> queue_infos =
+        std::array<vk::DeviceQueueCreateInfo, 3> queue_infos =
         {
             vk::DeviceQueueCreateInfo
             {
-                                    {},
-                                    indices.graphics_queue_index.value(),
-                                    1,
-                                    &priority,
-                                },
-                                vk::DeviceQueueCreateInfo
-                                {
-                                    {},
-                                    indices.present_queue_index.value(),
-                                    1,
-                                    &priority,
-                                }
+                {},
+                indices.get_queue_index_0(),
+                1,
+                &priority,
+            },
+            vk::DeviceQueueCreateInfo
+            {
+                {},
+                indices.get_queue_index_1(),
+                1,
+                &priority,
+            },
+            vk::DeviceQueueCreateInfo
+            {
+                {},
+                indices.get_queue_index_2(),
+                1,
+                &priority,
+            }
         };
 
         constexpr auto extensions = required_device_extensions();
@@ -187,16 +224,16 @@ namespace obscure::vulkan {
             const char* debug_layer_name = "VK_LAYER_KHRONOS_validation";
             vk::DeviceCreateInfo create_info
             {
-                                    {},
-                                    indices.queue_count(),
-                                    queue_infos.data(),
-                                    1,
-                                    &debug_layer_name,
-                                    extension_count,
-                                    extensions.data(),
-                                    &required_features
+                {},
+                indices.queue_count(),
+                queue_infos.data(),
+                1,
+                &debug_layer_name,
+                extension_count,
+                extensions.data(),
+                &required_features
 
-                                };
+            };
 
             return physical_device.createDevice(create_info);
         }
@@ -235,7 +272,8 @@ namespace obscure::vulkan {
             : vk::Device(create_logical_device(physical_device, indices)), physical_device(physical_device),
             allocator(create_allocator(get_device(), physical_device)),
             graphics_queue_index(indices.graphics_queue_index.value()),
-            present_queue_index(indices.present_queue_index.value())
+            present_queue_index(indices.present_queue_index.value()),
+            transfer_queue_index(indices.transfer_queue_index.value())
     {
     }
 
@@ -282,6 +320,11 @@ namespace obscure::vulkan {
             return present_queue_index;
         }
 
+        [[nodiscard]] uint32_t get_transfer_queue_index() const noexcept
+        {
+            return transfer_queue_index;
+        }
+
         [[nodiscard]] vk::Queue get_graphics_queue() const
         {
             return get_device().getQueue(graphics_queue_index, 0);
@@ -290,6 +333,11 @@ namespace obscure::vulkan {
         [[nodiscard]] vk::Queue get_present_queue() const
         {
             return get_device().getQueue(present_queue_index, 0);
+        }
+
+        [[nodiscard]] vk::Queue get_transfer_queue() const
+        {
+            return get_device().getQueue(transfer_queue_index, 0);
         }
 
         ~device()
