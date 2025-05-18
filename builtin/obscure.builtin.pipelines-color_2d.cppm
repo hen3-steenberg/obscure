@@ -80,6 +80,9 @@ export namespace obscure::builtin::pipeline
 
             using buffer_t = obscure::vulkan::vertex_buffer<color_2d_vertex>;
 
+            template<vulkan::vk_index T>
+            using index_buffer_t = obscure::vulkan::index_buffer<T>;
+
             void draw_color_2d(buffer_t const& buffer, uint32_t count) const
             {
                 bind_pipeline();
@@ -109,7 +112,47 @@ export namespace obscure::builtin::pipeline
 
                 get_command_buffer().draw(count, 1, 0, 0);
             }
+
+            void draw_color_2d(buffer_t const& buffer) const
+            {
+                draw_color_2d(buffer, buffer.count());
+            }
+
+            template<vulkan::vk_index T>
+            void draw_color_2d(buffer_t const& buffer, index_buffer_t<T> const& indices)
+            {
+                bind_pipeline();
+
+                vk::Viewport viewport {
+                    0.0f,
+                    0.0f,
+                    static_cast<float>(get_extent().width),
+                    static_cast<float>(get_extent().height),
+                    0.0f,
+                    1.0f
+                };
+
+                get_command_buffer().setViewport(0, 1, &viewport);
+
+                vk::Rect2D scissor {
+							                {0, 0},
+                                            get_extent()
+                                        };
+
+                get_command_buffer().setScissor(0, 1, &scissor);
+
+                vk::Buffer buffers[] = { buffer.get_buffer() };
+                vk::DeviceSize offsets[] = { 0 };
+
+                get_command_buffer().bindVertexBuffers(0, 1, buffers, offsets);
+
+                get_command_buffer().bindIndexBuffer(indices.get_buffer(), 0, index_buffer_t<T>::get_index_type());
+
+                get_command_buffer().drawIndexed(indices.count(), 1, 0, 0, 0);
+            }
         };
+
+
     };
 
     static_assert(obscure::vulkan::pipeline_definition<color_2d>);

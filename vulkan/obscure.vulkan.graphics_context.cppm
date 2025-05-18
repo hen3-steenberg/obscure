@@ -1,6 +1,8 @@
 module;
 #include <functional>
 #include <vulkan/vulkan.hpp>
+#include <span>
+#include <initializer_list>
 export module obscure.vulkan.graphics_context;
 export import obscure.glfw;
 export import obscure.vulkan.pipeline;
@@ -39,7 +41,25 @@ export namespace obscure
         template<typename T>
         [[nodiscard]] auto init_vertex_buffer(std::initializer_list<T> data) const
         {
+            return device_ctx.template initialize_vertex_buffer<T>(std::span<const T>{data.begin(), data.size()});
+        }
+
+        template<typename T>
+        [[nodiscard]] auto init_vertex_buffer(std::span<const T> data) const
+        {
             return device_ctx.template initialize_vertex_buffer<T>(data);
+        }
+
+        template<obscure::vulkan::vk_index T>
+        [[nodiscard]] auto init_index_buffer(std::initializer_list<T> data) const
+        {
+            return device_ctx.template initialize_index_buffer<T>(std::span<const T>{data.begin(), data.size()});
+        }
+
+        template<obscure::vulkan::vk_index T>
+        [[nodiscard]] auto init_index_buffer(std::span<const T> data) const
+        {
+            return device_ctx.template initialize_index_buffer<T>(data);
         }
 
 #pragma endregion

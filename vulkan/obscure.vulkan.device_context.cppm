@@ -2,6 +2,7 @@ module;
 #include <functional>
 #include <vulkan/vulkan.hpp>
 #include <initializer_list>
+#include <span>
 export module obscure.vulkan.device_context;
 
 export import obscure.vulkan.command_pool;
@@ -97,16 +98,27 @@ export namespace obscure::vulkan
         }
 
         template<typename T>
-        [[nodiscard]] obscure::vulkan::vertex_buffer<T> initialize_vertex_buffer(std::initializer_list<T> data) const
+        [[nodiscard]] obscure::vulkan::vertex_buffer<T> initialize_vertex_buffer(std::span<const T> data) const
         {
-
-
             obscure::vulkan::staging_buffer<T> temp_buffer {vk_device, data.size()};
-            temp_buffer.copy_data(data.begin(), data.size() * sizeof(T));
-
-
+            temp_buffer.copy_data(data.data(), data.size() * sizeof(T));
 
             obscure::vulkan::vertex_buffer<T> vertex_buffer {vk_device, data.size()};
+            {
+                transfer_session copy_session = begin_transfers();
+                copy_session.transfer_data(temp_buffer, vertex_buffer);
+            }
+
+            return vertex_buffer;
+        }
+
+        template<vk_index T>
+        [[nodiscard]] obscure::vulkan::index_buffer<T> initialize_index_buffer(std::span<const T> data) const
+        {
+            obscure::vulkan::staging_buffer<T> temp_buffer {vk_device, data.size()};
+            temp_buffer.copy_data(data.data(), data.size() * sizeof(T));
+
+            obscure::vulkan::index_buffer<T> vertex_buffer {vk_device, data.size()};
             {
                 transfer_session copy_session = begin_transfers();
                 copy_session.transfer_data(temp_buffer, vertex_buffer);
