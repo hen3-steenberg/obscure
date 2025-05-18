@@ -18,6 +18,9 @@ int main()
 			{{0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
 			{{-0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+		});
+
+		auto vertex_buffer2 = app.init_vertex_buffer<obscure::builtin::pipeline::color_2d_vertex>({
 			{{0.4f, -0.4f}, {1.0f, 1.0f, 1.0f}},
 			{{0.4f, 0.4f}, {1.0f, 1.0f, 1.0f}},
 			{{-0.4f, 0.4f}, {1.0f, 1.0f, 1.0f}},
@@ -35,7 +38,8 @@ int main()
 			}
 			{
 				auto frame = app.begin_frame();
-				frame.draw_color_2d(vertex_buffer1, 12);
+				frame.draw_color_2d(vertex_buffer1, 6);
+				frame.draw_color_2d(vertex_buffer2, 6);
 
 			}
 			app.submit_frame();

@@ -25,6 +25,24 @@ export namespace obscure::vulkan
             );
     }
 
+    template<VmaAllocationCreateFlags Flags>
+    consteval bool is_mapped()
+    {
+        return Flags & VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    }
+
+    template<VkBufferUsageFlags Usage>
+    consteval bool is_transfer_source()
+    {
+        return Usage & (VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    }
+
+    template<VkBufferUsageFlags Usage>
+    consteval bool is_transfer_destination()
+    {
+        return Usage & (VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+    }
+
     template<VkBufferUsageFlags Usage, VmaMemoryUsage MemoryUsage, VmaAllocationCreateFlags Flags, size_t Alignment>
     struct buffer_impl : vk::Buffer
     {
@@ -141,7 +159,8 @@ export namespace obscure::vulkan
 
 
         template<VmaAllocationCreateFlags Flags2 = Flags>
-        typename std::enable_if_t<can_write<Flags2>(), void> copy_data(void const* data, size_t bytes) const
+        requires (can_write<Flags>())
+        void copy_data(void const* data, size_t bytes) const
         {
             vmaCopyMemoryToAllocation(
                 vk_device->get_vma_allocator(),
@@ -152,7 +171,8 @@ export namespace obscure::vulkan
         }
 
         template<VmaAllocationCreateFlags Flags2 = Flags>
-        typename std::enable_if_t<(Flags2 & VMA_ALLOCATION_CREATE_MAPPED_BIT) != 0, void*> get_mapped_ptr() const
+        requires (is_mapped<Flags>())
+        [[nodiscard]] void* get_mapped_ptr() const
         {
             VmaAllocationInfo info{};
             vmaGetAllocationInfo(
@@ -199,26 +219,6 @@ export namespace obscure::vulkan
             _count(count),
             _data(std::bit_cast<T*>(staging_buffer_impl<T>::get_mapped_ptr()))
         {}
-
-        template<VkBufferUsageFlags Usage, VmaMemoryUsage MemoryUsage, VmaAllocationCreateFlags Flags>
-        requires ((Usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) != 0)
-        void write_data(vk::CommandBuffer cmd, buffer_impl<Usage, MemoryUsage, Flags, std::alignment_of_v<T>> & dest)
-        {
-            vmaFlushAllocation(
-                staging_buffer_impl<T>::vk_device->get_vma_allocator(),
-                staging_buffer_impl<T>::allocation,
-                0, VK_WHOLE_SIZE);
-
-            vk::BufferCopy copy_region{
-                0,
-                0,
-                staging_buffer_impl<T>::size()
-            };
-
-            cmd.copyBuffer(staging_buffer_impl<T>::get_buffer(), dest.get_buffer(), 1, &copy_region);
-
-        }
-
 
         T* data() noexcept
         {

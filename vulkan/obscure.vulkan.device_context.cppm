@@ -102,13 +102,15 @@ export namespace obscure::vulkan
 
 
             obscure::vulkan::staging_buffer<T> temp_buffer {vk_device, data.size()};
-            obscure::vulkan::vertex_buffer<T> vertex_buffer {vk_device, data.size()};
-            transfer_session copy_session = begin_transfers();
-
-
-
             temp_buffer.copy_data(data.begin(), data.size() * sizeof(T));
-            temp_buffer.write_data(copy_session.command_buffer, vertex_buffer);
+
+
+
+            obscure::vulkan::vertex_buffer<T> vertex_buffer {vk_device, data.size()};
+            {
+                transfer_session copy_session = begin_transfers();
+                copy_session.transfer_data(temp_buffer, vertex_buffer);
+            }
 
             return vertex_buffer;
         }
