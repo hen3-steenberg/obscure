@@ -2,6 +2,8 @@ add_library(helper_templates)
 target_sources(helper_templates
         PUBLIC
         FILE_SET CXX_MODULES FILES
+        "obscure.helper_templates.array_initialize.cppm"
+        "obscure.helper_templates.index_of.cppm"
         "obscure.helper_templates.max_set_bit.cppm"
         "obscure.helper_templates.parent_reference.cppm"
         "obscure.helper_templates.sum.cppm"

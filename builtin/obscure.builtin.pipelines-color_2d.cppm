@@ -16,6 +16,13 @@ export namespace obscure::builtin::pipeline
         glm::vec3 color;
     };
 
+    struct color_2d_uniform
+    {
+        glm::mat4 model;
+        glm::mat4 view;
+        glm::mat4 proj;
+    };
+
     struct color_2d
     {
         using shader_list = obscure::make_set<
@@ -32,7 +39,7 @@ export namespace obscure::builtin::pipeline
             auto result = obscure::vulkan::default_pipeline_builder<1, 2,
                 vk::PrimitiveTopology::eTriangleList,
                 vk::PolygonMode::eFill,
-                vk::FrontFace::eClockwise,
+                vk::FrontFace::eCounterClockwise,
                 vk::ShaderStageFlagBits::eVertex,
                 vk::ShaderStageFlagBits::eFragment>
             (
@@ -62,11 +69,24 @@ export namespace obscure::builtin::pipeline
 
 #pragma endregion
 
+#pragma region uniforms
+
+            auto uniforms = obscure::vulkan::create_uniform_descriptor_bindings<1>({ vk::ShaderStageFlagBits::eVertex });
+            vk::DescriptorSetLayoutCreateInfo uniform_set_layout_info{
+                {},
+                uniforms
+            };
+
+            result.uniform_set_layout = device.createDescriptorSetLayout(uniform_set_layout_info);
+
+
+#pragma endregion
+
 #pragma region pipeline_layout
             vk::PipelineLayoutCreateInfo pipeline_info {
 						        {},
-                                0,
-                                nullptr,
+                                1,
+                                &result.uniform_set_layout,
                                 0,
                                 nullptr
                             };
@@ -78,12 +98,13 @@ export namespace obscure::builtin::pipeline
 
         struct draw_calls : obscure::vulkan::draw_call_base {
 
-            using buffer_t = obscure::vulkan::vertex_buffer<color_2d_vertex>;
+            using triangles_t = obscure::vulkan::vertex_buffer<color_2d_vertex>;
+            using uniform_t = obscure::vulkan::uniform_buffer<color_2d_uniform>;
 
             template<vulkan::vk_index T>
             using index_buffer_t = obscure::vulkan::index_buffer<T>;
 
-            void draw_color_2d(buffer_t const& buffer, uint32_t count) const
+            void draw_color_2d(uniform_t & uniform_buffer, triangles_t const& triangles) const
             {
                 bind_pipeline();
 
@@ -105,21 +126,25 @@ export namespace obscure::builtin::pipeline
 
                 get_command_buffer().setScissor(0, 1, &scissor);
 
-                vk::Buffer buffers[] = { buffer.get_buffer() };
+                vk::Buffer buffers[] = { triangles.get_buffer() };
                 vk::DeviceSize offsets[] = { 0 };
 
                 get_command_buffer().bindVertexBuffers(0, 1, buffers, offsets);
 
-                get_command_buffer().draw(count, 1, 0, 0);
-            }
+                get_command_buffer().bindDescriptorSets(
+                    vk::PipelineBindPoint::eGraphics,
+                    get_pipeline_layout(),
+                    0,
+                    1,
+                    &uniform_buffer.descriptor_sets[get_frame_index()],
+                    0,
+                    nullptr);
 
-            void draw_color_2d(buffer_t const& buffer) const
-            {
-                draw_color_2d(buffer, buffer.count());
+                get_command_buffer().draw(triangles.count(), 1, 0, 0);
             }
 
             template<vulkan::vk_index T>
-            void draw_color_2d(buffer_t const& buffer, index_buffer_t<T> const& indices)
+            void draw_color_2d(uniform_t & uniform_buffer, triangles_t const& triangles, index_buffer_t<T> const& indices)
             {
                 bind_pipeline();
 
@@ -134,19 +159,28 @@ export namespace obscure::builtin::pipeline
 
                 get_command_buffer().setViewport(0, 1, &viewport);
 
-                vk::Rect2D scissor {
-							                {0, 0},
-                                            get_extent()
-                                        };
+                vk::Rect2D scissor{
+                    {0, 0},
+                    get_extent()
+                };
 
                 get_command_buffer().setScissor(0, 1, &scissor);
 
-                vk::Buffer buffers[] = { buffer.get_buffer() };
+                vk::Buffer buffers[] = { triangles.get_buffer() };
                 vk::DeviceSize offsets[] = { 0 };
 
                 get_command_buffer().bindVertexBuffers(0, 1, buffers, offsets);
 
                 get_command_buffer().bindIndexBuffer(indices.get_buffer(), 0, index_buffer_t<T>::get_index_type());
+
+                get_command_buffer().bindDescriptorSets(
+                    vk::PipelineBindPoint::eGraphics,
+                    get_pipeline_layout(),
+                    0,
+                    1,
+                    &uniform_buffer.descriptor_sets[get_frame_index()],
+                    0,
+                    nullptr);
 
                 get_command_buffer().drawIndexed(indices.count(), 1, 0, 0, 0);
             }

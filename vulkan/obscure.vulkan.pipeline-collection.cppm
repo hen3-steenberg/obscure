@@ -12,6 +12,7 @@ export namespace obscure::vulkan
         {
             std::array<vk::Pipeline, Size> pipelines;
             std::array<vk::PipelineLayout, Size> pipeline_layouts;
+            std::array<vk::DescriptorSetLayout, Size> uniform_descriptor_layouts;
 
         private:
             [[nodiscard]] vk::Device get_device() const noexcept
@@ -22,7 +23,10 @@ export namespace obscure::vulkan
             template<pipeline_builder ... PipelineBuilders>
                 requires (sizeof...(PipelineBuilders) == Size)
             explicit pipeline_collection(vk::Device device, PipelineBuilders ... builders)
-                : vk::Device(device), pipeline_layouts{ static_cast<vk::PipelineLayout>(builders.get_layout())... } {
+                : vk::Device(device),
+                pipeline_layouts{ static_cast<vk::PipelineLayout>(builders.get_layout())... },
+                uniform_descriptor_layouts{ static_cast<vk::DescriptorSetLayout>(builders.get_uniform_descriptor_layout())... }
+            {
 
                 const std::array<vk::GraphicsPipelineCreateInfo, Size> pipeline_create_infos {
                     static_cast<vk::GraphicsPipelineCreateInfo>(builders.get_create_info())...
@@ -41,6 +45,12 @@ export namespace obscure::vulkan
 
             ~pipeline_collection()
             {
+
+                for (auto uniform_layout : uniform_descriptor_layouts)
+                {
+                    get_device().destroyDescriptorSetLayout(uniform_layout);
+                }
+
                 for(auto pipeline : pipelines)
                 {
                     get_device().destroyPipeline(pipeline);

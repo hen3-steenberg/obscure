@@ -11,7 +11,9 @@ export namespace obscure::vulkan
             [[nodiscard]] virtual vk::CommandBuffer get_command_buffer() const = 0;
             [[nodiscard]] virtual std::uint32_t get_frame_index() const = 0;
             [[nodiscard]] virtual std::span<vk::Pipeline> get_all_pipelines() const = 0;
+            [[nodiscard]] virtual std::span<vk::PipelineLayout> get_all_layouts() const = 0;
             [[nodiscard]] virtual vk::Extent2D get_extent() const = 0;
+            [[nodiscard]] virtual std::span<vk::DescriptorSetLayout> get_all_uniform_descriptor_layouts() const = 0;
 
         public:
             virtual ~shared_draw_call_base() = default;
@@ -25,6 +27,16 @@ export namespace obscure::vulkan
             [[nodiscard]] vk::Pipeline get_graphics_pipeline() const
             {
                 return get_all_pipelines()[get_pipeline_index()];
+            }
+
+            [[nodiscard]] vk::PipelineLayout get_pipeline_layout() const
+            {
+                return get_all_layouts()[get_pipeline_index()];
+            }
+
+            [[nodiscard]] vk::DescriptorSetLayout get_uniform_layout() const
+            {
+                return get_all_uniform_descriptor_layouts()[get_pipeline_index()];
             }
 
             void bind_pipeline() const

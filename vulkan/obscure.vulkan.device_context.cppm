@@ -13,6 +13,7 @@ export import obscure.vulkan.shader;
 export import obscure.vulkan.surface;
 export import obscure.vulkan.transfer_session;
 export import obscure.vulkan.buffer;
+import obscure.helper_templates.index_of;
 
 export namespace obscure::vulkan
 {
@@ -55,7 +56,7 @@ export namespace obscure::vulkan
         command_session_t begin_frame()
         {
             uint32_t frame_index = vk_swap_chain.get_next_frame_index();
-            return command_session_t {get_current_buffer(), frame_index, vk_pipeline_collection.pipelines, vk_swap_chain};
+            return command_session_t {get_current_buffer(), frame_index, vk_swap_chain, vk_pipeline_collection};
         }
 
         transfer_session begin_transfers() const
@@ -125,6 +126,17 @@ export namespace obscure::vulkan
             }
 
             return vertex_buffer;
+        }
+
+        template<typename T, obscure::vulkan::pipeline_definition TPipeline>
+        [[nodiscard]] obscure::vulkan::uniform_buffer<T> create_uniform(uint32_t binding) const
+        {
+            constexpr size_t pipeline_idx = obscure::helper_templates::index_of<TPipeline, TPipelines...>();
+            return obscure::vulkan::uniform_buffer<T>{
+                vk_device,
+                vk_pipeline_collection.uniform_descriptor_layouts[pipeline_idx],
+                binding
+            };
         }
 
 

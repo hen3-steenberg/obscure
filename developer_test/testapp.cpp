@@ -1,4 +1,8 @@
 #include <GLFW/glfw3.h>
+#define GLM_FORCE_RADIANS
+#include <ratio>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 import obscure;
 
@@ -27,6 +31,9 @@ int main()
 
 		auto rectangle_indices = app.init_index_buffer<uint16_t>({0, 1, 2, 2, 3, 0});
 
+		auto uniform = app.create_uniform<obscure::builtin::pipeline::color_2d_uniform, obscure::builtin::pipeline::color_2d>(0);
+
+		obscure::stopwatch frame_timer{};
 		while (!app.window.should_close())
 		{
 			glfwPollEvents();
@@ -36,8 +43,17 @@ int main()
 			}
 			{
 				auto frame = app.begin_frame();
-				frame.draw_color_2d(vertex_buffer1, rectangle_indices);
-				frame.draw_color_2d(vertex_buffer2, rectangle_indices);
+				uniform.set_current_index(frame.get_frame_index());
+				auto extent = frame.get_extent();
+
+				float time = static_cast<float>(frame_timer.total_time().count());
+				uniform->model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+				uniform->view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+				uniform->proj = glm::perspective(glm::radians(45.0f), extent.width / (float) extent.height, 0.1f, 10.0f);
+				uniform->proj[1][1]*= -1;
+
+				frame.draw_color_2d(uniform, vertex_buffer1, rectangle_indices);
+				frame.draw_color_2d(uniform, vertex_buffer2, rectangle_indices);
 
 			}
 			app.submit_frame();

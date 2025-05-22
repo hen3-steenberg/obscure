@@ -15,6 +15,8 @@ export namespace obscure::vulkan
 				std::convertible_to<vk::GraphicsPipelineCreateInfo>;
 
 			{ t.get_layout() } -> std::convertible_to<vk::PipelineLayout>;
+
+			{ t.get_uniform_descriptor_layout() } -> std::convertible_to<vk::DescriptorSetLayout>;
 		};
 
 		template<uint32_t ShaderCount, uint32_t DynamicCount, uint32_t VertexBindingCount, uint32_t VertexAttributeCount>
@@ -52,6 +54,8 @@ export namespace obscure::vulkan
 
 			vk::RenderPass render_pass;
 
+			vk::DescriptorSetLayout uniform_set_layout = VK_NULL_HANDLE;
+
 			uint32_t sub_pass {0};
 
 			vk::Pipeline base_pipeline {nullptr};
@@ -73,6 +77,11 @@ export namespace obscure::vulkan
 
 			[[nodiscard]] vk::PipelineLayout get_layout() const {
 				return layout;
+			}
+
+			[[nodiscard]] vk::DescriptorSetLayout get_uniform_descriptor_layout() const
+			{
+				return uniform_set_layout;
 			}
 
 			[[nodiscard]] vk::GraphicsPipelineCreateInfo get_create_info()
@@ -244,5 +253,22 @@ export namespace obscure::vulkan
 #pragma endregion
 
 			return result;
+		}
+
+		template<uint32_t count, uint32_t offset = 0>
+		consteval std::array<vk::DescriptorSetLayoutBinding, count> create_uniform_descriptor_bindings(std::array<vk::ShaderStageFlags, count> shader_stages)
+		{
+			std::array<vk::DescriptorSetLayoutBinding, count> bindings{};
+			for (uint32_t idx = 0; idx < count; ++idx)
+			{
+				bindings[idx] = vk::DescriptorSetLayoutBinding {
+					idx + offset,
+					vk::DescriptorType::eUniformBuffer,
+					1,
+					shader_stages[idx],
+					nullptr
+				};
+			}
+			return bindings;
 		}
 }

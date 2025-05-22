@@ -62,10 +62,19 @@ export namespace obscure
             return device_ctx.template initialize_index_buffer<T>(data);
         }
 
+        template<typename T, obscure::vulkan::pipeline_definition TPipeline>
+        [[nodiscard]] obscure::vulkan::uniform_buffer<T> create_uniform(uint32_t binding) const
+        {
+            return device_ctx.template create_uniform<T, TPipeline>(binding);
+        }
+
+
+
+
 #pragma endregion
 
 
-        graphics_context(std::function<float (vk::PhysicalDevice)> get_device_score = vulkan::get_device_score_default)
+        explicit graphics_context(std::function<float (vk::PhysicalDevice)> get_device_score = vulkan::get_device_score_default)
             : window(), vk_surface(window), device_ctx(vk_surface, window, get_device_score)
         {
         }
