@@ -16,12 +16,12 @@ export namespace obscure::builtin::pipeline
         glm::vec3 color;
     };
 
-    struct color_2d_uniform
-    {
-        glm::mat4 model;
-        glm::mat4 view;
-        glm::mat4 proj;
-    };
+    // struct color_2d_uniform
+    // {
+    //     glm::mat4 model;
+    //     glm::mat4 view;
+    //     glm::mat4 proj;
+    // };
 
     struct color_2d
     {
@@ -71,24 +71,32 @@ export namespace obscure::builtin::pipeline
 
 #pragma region uniforms
 
-            auto uniforms = obscure::vulkan::create_uniform_descriptor_bindings<1>({ vk::ShaderStageFlagBits::eVertex });
-            vk::DescriptorSetLayoutCreateInfo uniform_set_layout_info{
-                {},
-                uniforms
+            // auto uniforms = obscure::vulkan::create_uniform_descriptor_bindings<1>({ vk::ShaderStageFlagBits::eVertex });
+            // vk::DescriptorSetLayoutCreateInfo uniform_set_layout_info{
+            //     {},
+            //     uniforms
+            // };
+            //
+            // result.uniform_set_layout = device.createDescriptorSetLayout(uniform_set_layout_info);
+
+
+#pragma endregion
+
+#pragma region push_constants
+            vk::PushConstantRange push_constants{
+                vk::ShaderStageFlagBits::eVertex,
+                0,
+                sizeof(glm::mat4)
             };
-
-            result.uniform_set_layout = device.createDescriptorSetLayout(uniform_set_layout_info);
-
-
 #pragma endregion
 
 #pragma region pipeline_layout
             vk::PipelineLayoutCreateInfo pipeline_info {
 						        {},
+                                0, //1,
+                                nullptr, //&result.uniform_set_layout,
                                 1,
-                                &result.uniform_set_layout,
-                                0,
-                                nullptr
+                                &push_constants
                             };
 
             result.layout = device.createPipelineLayout(pipeline_info);
@@ -99,12 +107,11 @@ export namespace obscure::builtin::pipeline
         struct draw_calls : obscure::vulkan::draw_call_base {
 
             using triangles_t = obscure::vulkan::vertex_buffer<color_2d_vertex>;
-            using uniform_t = obscure::vulkan::uniform_buffer<color_2d_uniform>;
 
             template<vulkan::vk_index T>
             using index_buffer_t = obscure::vulkan::index_buffer<T>;
 
-            void draw_color_2d(uniform_t & uniform_buffer, triangles_t const& triangles) const
+            void draw_color_2d(glm::mat4 world, glm::mat4 model, triangles_t const& triangles) const
             {
                 bind_pipeline();
 
@@ -131,20 +138,15 @@ export namespace obscure::builtin::pipeline
 
                 get_command_buffer().bindVertexBuffers(0, 1, buffers, offsets);
 
-                get_command_buffer().bindDescriptorSets(
-                    vk::PipelineBindPoint::eGraphics,
-                    get_pipeline_layout(),
-                    0,
-                    1,
-                    &uniform_buffer.descriptor_sets[get_frame_index()],
-                    0,
-                    nullptr);
+                glm::mat4 transform = world * model;
+
+                get_command_buffer().pushConstants(get_pipeline_layout(), vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &transform);
 
                 get_command_buffer().draw(triangles.count(), 1, 0, 0);
             }
 
             template<vulkan::vk_index T>
-            void draw_color_2d(uniform_t & uniform_buffer, triangles_t const& triangles, index_buffer_t<T> const& indices)
+            void draw_color_2d(glm::mat4 world, glm::mat4 model, triangles_t const& triangles, index_buffer_t<T> const& indices)
             {
                 bind_pipeline();
 
@@ -173,14 +175,10 @@ export namespace obscure::builtin::pipeline
 
                 get_command_buffer().bindIndexBuffer(indices.get_buffer(), 0, index_buffer_t<T>::get_index_type());
 
-                get_command_buffer().bindDescriptorSets(
-                    vk::PipelineBindPoint::eGraphics,
-                    get_pipeline_layout(),
-                    0,
-                    1,
-                    &uniform_buffer.descriptor_sets[get_frame_index()],
-                    0,
-                    nullptr);
+                glm::mat4 transform = world * model;
+
+                get_command_buffer().pushConstants(get_pipeline_layout(), vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &transform);
+
 
                 get_command_buffer().drawIndexed(indices.count(), 1, 0, 0, 0);
             }
