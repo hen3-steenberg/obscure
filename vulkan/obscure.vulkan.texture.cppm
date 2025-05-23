@@ -157,7 +157,7 @@ export namespace obscure::vulkan {
                 barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
                 sourceStage = vk::PipelineStageFlagBits::eTransfer;
-                destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+                destinationStage = srcQueue == dstQueue ? vk::PipelineStageFlagBits::eFragmentShader : vk::PipelineStageFlagBits::eBottomOfPipe;
             }
             else
             {
