@@ -483,6 +483,7 @@ export namespace obscure::vulkan
         ~uniform_buffer()
         {
             data[0].vk_device->waitIdle();
+            current_buffer->~T();
             data[0].vk_device->destroyDescriptorPool(descriptor_pool);
         }
     };

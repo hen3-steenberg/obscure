@@ -26,6 +26,7 @@ target_sources(obscure_vulkan
         "obscure.vulkan.shader-set.cppm"
         "obscure.vulkan.surface.cppm"
         "obscure.vulkan.swap_chain.cppm"
+        "obscure.vulkan.texture.cppm"
         "obscure.vulkan.cppm"
 )
 
