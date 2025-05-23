@@ -33,7 +33,7 @@ int main()
 
 		auto uniform = app.create_uniform<obscure::builtin::pipeline::color_2d_uniform, obscure::builtin::pipeline::color_2d>(0);
 
-		obscure::stopwatch frame_timer{};
+		obscure::stopwatch<float> frame_timer{};
 		while (!app.window.should_close())
 		{
 			glfwPollEvents();
@@ -46,7 +46,7 @@ int main()
 				uniform.set_current_index(frame.get_frame_index());
 				auto extent = frame.get_extent();
 
-				float time = static_cast<float>(frame_timer.total_time().count());
+				float time = frame_timer.total_time().count();
 				uniform->model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 				uniform->view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 				uniform->proj = glm::perspective(glm::radians(45.0f), extent.width / (float) extent.height, 0.1f, 10.0f);
