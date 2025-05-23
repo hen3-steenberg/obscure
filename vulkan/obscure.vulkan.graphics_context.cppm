@@ -3,6 +3,7 @@ module;
 #include <vulkan/vulkan.hpp>
 #include <span>
 #include <initializer_list>
+#include <filesystem>
 export module obscure.vulkan.graphics_context;
 export import obscure.glfw;
 export import obscure.vulkan.pipeline;
@@ -66,6 +67,15 @@ export namespace obscure
         [[nodiscard]] obscure::vulkan::uniform_buffer<T> create_uniform(uint32_t binding) const
         {
             return device_ctx.template create_uniform<T, TPipeline>(binding);
+        }
+
+        [[nodiscard]] obscure::vulkan::rgba_2d_texture load_texture(std::filesystem::path const& image_path) const
+        {
+            if (!std::filesystem::exists(image_path))
+            {
+                throw std::runtime_error("Failed to load texture: " + image_path.string() + " cwd: " + std::filesystem::current_path().string());
+            }
+            return device_ctx.load_texture(image_path);
         }
 
 

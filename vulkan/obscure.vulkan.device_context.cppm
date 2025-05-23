@@ -3,6 +3,8 @@ module;
 #include <vulkan/vulkan.hpp>
 #include <initializer_list>
 #include <span>
+#include <filesystem>
+#include "stb/stb_image.h"
 export module obscure.vulkan.device_context;
 
 export import obscure.vulkan.command_pool;
@@ -13,6 +15,7 @@ export import obscure.vulkan.shader;
 export import obscure.vulkan.surface;
 export import obscure.vulkan.transfer_session;
 export import obscure.vulkan.buffer;
+export import obscure.vulkan.texture;
 import obscure.helper_templates.index_of;
 
 export namespace obscure::vulkan
@@ -62,9 +65,8 @@ export namespace obscure::vulkan
         transfer_session begin_transfers() const
         {
             return transfer_session {
-                vk_device.get_device(),
+                vk_device,
                 vk_transfer_pool.get_command_pool(),
-                vk_device.get_transfer_queue()
             };
         }
 
@@ -138,6 +140,30 @@ export namespace obscure::vulkan
                 binding
             };
         }
+
+        [[nodiscard]] obscure::vulkan::rgba_2d_texture load_texture(std::filesystem::path const& image_path) const
+        {
+            int texWidth, texHeight, texChannels;
+            stbi_uc* pixels = stbi_load(image_path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            size_t imageSize = texWidth * texHeight * 4;
+            vk::Extent3D image_extent{
+                static_cast<uint32_t>(texWidth),
+                static_cast<uint32_t>(texHeight),
+                1
+            };
+
+            obscure::vulkan::staging_buffer<stbi_uc> temp_buffer {vk_device, imageSize};
+            temp_buffer.copy_data(pixels, imageSize);
+
+            obscure::vulkan::rgba_2d_texture result {vk_device, image_extent};
+            {
+                transfer_session copy_session = begin_transfers();
+                copy_session.copy_buffer_to_texture(temp_buffer, result);
+            }
+            return result;
+        }
+
+
 
 
     };

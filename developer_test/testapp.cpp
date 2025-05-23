@@ -3,6 +3,7 @@
 #include <ratio>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <filesystem>
 
 import obscure;
 
@@ -33,6 +34,7 @@ int main()
 
 		glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
+		auto texture = app.load_texture("./texture.jpg");
 
 		obscure::stopwatch<float> frame_timer{};
 		while (!app.window.should_close())

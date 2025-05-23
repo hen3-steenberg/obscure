@@ -2,7 +2,9 @@ module;
 #include <vulkan/vulkan.hpp>
 #include <vk_mem_alloc.h>
 export module obscure.vulkan.transfer_session;
+export import obscure.vulkan.device;
 export import obscure.vulkan.buffer;
+export import obscure.vulkan.texture;
 
 export namespace obscure::vulkan
 {
@@ -33,12 +35,16 @@ export namespace obscure::vulkan
         vk::CommandPool command_pool;
         vk::Queue transfer_queue;
         vk::CommandBuffer command_buffer;
+        uint32_t graphics_queue_family_index;
+        uint32_t transfer_queue_family_index;
 
-        transfer_session(vk::Device _device, vk::CommandPool _command_pool, vk::Queue _transfer_queue)
-            : device(_device),
+        transfer_session(obscure::vulkan::device const& _device, vk::CommandPool _command_pool)
+            : device(_device.get_device()),
             command_pool(_command_pool),
-            transfer_queue(_transfer_queue),
-            command_buffer(create_command_buffer(device, command_pool))
+            transfer_queue(_device.get_transfer_queue()),
+            command_buffer(create_command_buffer(device, command_pool)),
+            graphics_queue_family_index(_device.get_graphics_queue_index()),
+            transfer_queue_family_index(_device.get_transfer_queue_index())
         {}
 
         template<
@@ -76,6 +82,34 @@ export namespace obscure::vulkan
 
             command_buffer.copyBuffer(data_src.get_buffer(), data_dest.get_buffer(), copy_region);
         }
+
+        template<
+            VkBufferUsageFlags Usage,
+            VmaMemoryUsage MemoryUsage,
+            VmaAllocationCreateFlags Flags,
+            size_t Alignment>
+        requires (is_transfer_source<Usage>())
+        void copy_buffer_to_texture(buffer_impl<Usage, MemoryUsage, Flags, Alignment> const& data_src, rgba_2d_texture & data_dst)
+        {
+            vk::BufferImageCopy copy_region{
+                0,
+                0,
+                0,
+                vk::ImageSubresourceLayers{
+                    vk::ImageAspectFlagBits::eColor,
+                    0,
+                    0,
+                    1
+                },
+                vk::Offset3D{0, 0, 0},
+                data_dst.extent
+            };
+
+            data_dst.transition_layout<vk::ImageLayout::eTransferDstOptimal>(command_buffer);
+            command_buffer.copyBufferToImage(data_src.get_buffer(), data_dst.get_image(), vk::ImageLayout::eTransferDstOptimal, 1, &copy_region);
+            data_dst.transition_layout<vk::ImageLayout::eShaderReadOnlyOptimal>(command_buffer, transfer_queue_family_index, graphics_queue_family_index);
+        }
+
 
 
         ~transfer_session()

@@ -46,6 +46,8 @@ export namespace obscure::vulkan {
             return result;
         }
 
+
+
         texture_impl(const device& _device, std::pair<vk::Image, VmaAllocation> alloced_image, vk::Extent3D _extent)
             : vk::Image{alloced_image.first},
             allocation(alloced_image.second),
@@ -104,17 +106,32 @@ export namespace obscure::vulkan {
 
     struct rgba_2d_texture : rgba_2d_texture_impl
     {
+    private:
+        template<vk::ImageLayout new_layout>
+        static consteval bool can_transition()
+        {
+            return new_layout == vk::ImageLayout::eTransferDstOptimal ||
+                new_layout == vk::ImageLayout::eShaderReadOnlyOptimal;
+        }
+    public:
         vk::ImageLayout image_layout = vk::ImageLayout::eUndefined;
 
+        rgba_2d_texture(const device& _device, vk::Extent3D _extent)
+            : rgba_2d_texture_impl(_device, _extent)
+        {}
+
         template<vk::ImageLayout new_layout>
-        void transition_layout(vk::CommandBuffer cmd) {
+            requires (can_transition<new_layout>())
+        void transition_layout(vk::CommandBuffer cmd, uint32_t srcQueue = VK_QUEUE_FAMILY_IGNORED, uint32_t dstQueue = VK_QUEUE_FAMILY_IGNORED) {
+
+
             vk::ImageMemoryBarrier barrier{
                 {},
                 {},
                 image_layout,
                 new_layout,
-                VK_QUEUE_FAMILY_IGNORED,
-                VK_QUEUE_FAMILY_IGNORED,
+                srcQueue,
+                dstQueue,
                 get_image(),
                 vk::ImageSubresourceRange {
                     vk::ImageAspectFlagBits::eColor,
@@ -125,16 +142,39 @@ export namespace obscure::vulkan {
                 }
             };
 
+            vk::PipelineStageFlags sourceStage{};
+            vk::PipelineStageFlags destinationStage{};
+
+            if (new_layout == vk::ImageLayout::eTransferDstOptimal && image_layout == vk::ImageLayout::eUndefined)
+            {
+                barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+                sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+                destinationStage = vk::PipelineStageFlagBits::eTransfer;
+            }
+            else if (new_layout == vk::ImageLayout::eShaderReadOnlyOptimal && image_layout == vk::ImageLayout::eTransferDstOptimal)
+            {
+                barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+                barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+                sourceStage = vk::PipelineStageFlagBits::eTransfer;
+                destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+            }
+            else
+            {
+                return;
+            }
+
             cmd.pipelineBarrier(
-                0,
-                0,
-                0,
+                sourceStage,
+                destinationStage,
+                {},
                 0,
                 nullptr,
                 0,
                 nullptr,
                 1,
                 &barrier);
+            image_layout = new_layout;
         }
     };
 }
