@@ -12,6 +12,11 @@ export namespace obscure
         using duration_t = std::chrono::duration<Rep, Per>;
         using time_t = clock::time_point;
 
+        static inline duration_t get_duration(time_t start, time_t end) noexcept
+        {
+            return std::chrono::duration_cast<duration_t>(end - start);
+        }
+
         static time_t now() noexcept {
             return clock::now();
         }
@@ -26,14 +31,14 @@ export namespace obscure
         duration_t lap_time() noexcept
         {
             time_t lap_end = now();
-            duration_t elapsed = duration_t{lap_end - lap_start};
+            duration_t elapsed = get_duration(lap_start, lap_end);
             lap_start = lap_end;
             return elapsed;
         }
 
         duration_t total_time() const noexcept
         {
-            return duration_t{now() - watch_start};
+            return get_duration(watch_start, now());
         }
     };
 }
