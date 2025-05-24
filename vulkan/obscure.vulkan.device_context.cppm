@@ -67,6 +67,7 @@ export namespace obscure::vulkan
             return transfer_session {
                 vk_device,
                 vk_transfer_pool.get_command_pool(),
+                get_current_buffer()
             };
         }
 
@@ -141,8 +142,14 @@ export namespace obscure::vulkan
             };
         }
 
-        [[nodiscard]] obscure::vulkan::rgba_2d_texture load_texture(std::filesystem::path const& image_path) const
+        template<
+            obscure::vulkan::pipeline_definition TPipeline,
+            vk::SamplerAddressMode modeU,
+            vk::SamplerAddressMode modeV,
+            vk::SamplerAddressMode modeW>
+        [[nodiscard]] obscure::vulkan::rgba_2d_texture<modeU, modeV, modeW> load_texture(std::filesystem::path const& image_path, uint32_t binding) const
         {
+            constexpr size_t pipeline_idx = obscure::helper_templates::index_of<TPipeline, TPipelines...>();
             int texWidth, texHeight, texChannels;
             stbi_uc* pixels = stbi_load(image_path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
             size_t imageSize = texWidth * texHeight * 4;
@@ -155,7 +162,13 @@ export namespace obscure::vulkan
             obscure::vulkan::staging_buffer<stbi_uc> temp_buffer {vk_device, imageSize};
             temp_buffer.copy_data(pixels, imageSize);
 
-            obscure::vulkan::rgba_2d_texture result {vk_device, image_extent};
+            obscure::vulkan::rgba_2d_texture result {
+                vk_device,
+                image_extent,
+                vk_pipeline_collection.texture_descriptor_layouts[pipeline_idx],
+                binding
+            };
+
             {
                 transfer_session copy_session = begin_transfers();
                 copy_session.copy_buffer_to_texture(temp_buffer, result);

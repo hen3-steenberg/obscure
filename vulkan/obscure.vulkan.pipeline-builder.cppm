@@ -17,6 +17,7 @@ export namespace obscure::vulkan
 			{ t.get_layout() } -> std::convertible_to<vk::PipelineLayout>;
 
 			{ t.get_uniform_descriptor_layout() } -> std::convertible_to<vk::DescriptorSetLayout>;
+			{ t.get_texture_descriptor_layout() } -> std::convertible_to<vk::DescriptorSetLayout>;
 		};
 
 		template<uint32_t ShaderCount, uint32_t DynamicCount, uint32_t VertexBindingCount, uint32_t VertexAttributeCount>
@@ -55,6 +56,7 @@ export namespace obscure::vulkan
 			vk::RenderPass render_pass;
 
 			vk::DescriptorSetLayout uniform_set_layout = VK_NULL_HANDLE;
+			vk::DescriptorSetLayout texture_set_layout = VK_NULL_HANDLE;
 
 			uint32_t sub_pass {0};
 
@@ -82,6 +84,11 @@ export namespace obscure::vulkan
 			[[nodiscard]] vk::DescriptorSetLayout get_uniform_descriptor_layout() const
 			{
 				return uniform_set_layout;
+			}
+
+			[[nodiscard]] vk::DescriptorSetLayout get_texture_descriptor_layout() const
+			{
+				return texture_set_layout;
 			}
 
 			[[nodiscard]] vk::GraphicsPipelineCreateInfo get_create_info()

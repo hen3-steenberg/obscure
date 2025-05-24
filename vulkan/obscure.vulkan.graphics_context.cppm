@@ -69,13 +69,18 @@ export namespace obscure
             return device_ctx.template create_uniform<T, TPipeline>(binding);
         }
 
-        [[nodiscard]] obscure::vulkan::rgba_2d_texture load_texture(std::filesystem::path const& image_path) const
+        template<
+            obscure::vulkan::pipeline_definition TPipeline,
+            vk::SamplerAddressMode modeU = vk::SamplerAddressMode::eRepeat,
+            vk::SamplerAddressMode modeV = modeU,
+            vk::SamplerAddressMode modeW = modeV>
+        [[nodiscard]] obscure::vulkan::rgba_2d_texture<modeU, modeV, modeW> load_texture(std::filesystem::path const& image_path, uint32_t binding) const
         {
             if (!std::filesystem::exists(image_path))
             {
                 throw std::runtime_error("Failed to load texture: " + image_path.string() + " cwd: " + std::filesystem::current_path().string());
             }
-            return device_ctx.load_texture(image_path);
+            return device_ctx.template load_texture<TPipeline, modeU, modeV, modeW>(image_path, binding);
         }
 
 

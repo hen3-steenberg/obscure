@@ -11,12 +11,8 @@ export namespace obscure::vulkan
     template<pipeline_definition TPipeline>
     using draw_call_t = typename TPipeline::draw_calls;
 
-
-    template<std::size_t index, pipeline_definition ... TPipelines>
-    struct draw_call_collection;
-
-    template<std::size_t index, pipeline_definition TPipeline, pipeline_definition ... TPipelines>
-    struct draw_calls_impl : draw_call_t<TPipeline>, draw_call_collection<index + 1, TPipelines...>::type
+    template<std::size_t index, pipeline_definition TPipeline>
+    struct draw_calls_impl : draw_call_t<TPipeline>
     {
     private:
         [[nodiscard]] std::size_t get_pipeline_index() const final
@@ -25,21 +21,21 @@ export namespace obscure::vulkan
         };
     };
 
+    template<std::size_t index, pipeline_definition ... TPipelines>
+    struct draw_call_collection;
+
+
     template<std::size_t index, pipeline_definition TPipeline, pipeline_definition ... TPipelines>
-    struct draw_call_collection<index, TPipeline, TPipelines...>
-    {
-        using type = draw_calls_impl<index,TPipeline, TPipelines...>;
-    };
+    struct draw_call_collection<index, TPipeline, TPipelines...> : draw_calls_impl<index, TPipeline>, draw_call_collection<index + 1, TPipelines...>
+    {};
 
     template<size_t index>
     struct draw_call_collection<index>
-    {
-        struct type {};
-    };
+    {};
 
 
     template<pipeline_definition ... TPipelines>
-    struct command_session final : draw_call_collection<0, TPipelines...>::type
+    struct command_session final : draw_call_collection<0, TPipelines...>
     {
     private:
         vk::CommandBuffer command_buffer;
@@ -48,6 +44,7 @@ export namespace obscure::vulkan
         std::span<vk::PipelineLayout> pipeline_layout_refs;
         vk::Extent2D extent;
         std::span<vk::DescriptorSetLayout> uniform_descriptor_set_layouts;
+        std::span<vk::DescriptorSetLayout> texture_descriptor_set_layouts;
 
         [[nodiscard]] vk::CommandBuffer get_command_buffer() const final
         {
@@ -68,6 +65,11 @@ export namespace obscure::vulkan
         {
             return pipeline_layout_refs;
         }
+
+        [[nodiscard]] std::span<vk::DescriptorSetLayout> get_all_texture_descriptor_layouts() const final
+        {
+            return texture_descriptor_set_layouts;
+        }
     public:
 
         command_session(vk::CommandBuffer _command_buffer, std::uint32_t index, swap_chain_ref swap_chain, pipeline_collection<sizeof...(TPipelines)> & pipeline_collection)
@@ -76,7 +78,8 @@ export namespace obscure::vulkan
                 pipeline_refs(pipeline_collection.pipelines),
                 pipeline_layout_refs(pipeline_collection.pipeline_layouts),
                 extent(swap_chain.get().extent),
-                uniform_descriptor_set_layouts(pipeline_collection.uniform_descriptor_layouts)
+                uniform_descriptor_set_layouts(pipeline_collection.uniform_descriptor_layouts),
+                texture_descriptor_set_layouts(pipeline_collection.texture_descriptor_layouts)
         {
             command_buffer.reset( vk::CommandBufferResetFlags {} );
 

@@ -9,6 +9,7 @@ target_sources(builtin
         "obscure.builtin.pipelines.cppm"
         "obscure.builtin.pipelines-test_triangle.cppm"
         "obscure.builtin.pipelines-color_2d.cppm"
+        "obscure.builtin.pipelines-texture_2d.cppm"
         "obscure.builtin.cppm"
 )
 

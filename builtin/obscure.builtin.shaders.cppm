@@ -12,6 +12,8 @@ export namespace obscure::builtin
         color_fragment,
         test_triangle_vertex,
         color_2d_vertex,
+        texture_2d_fragment,
+        texture_2d_vertex
     };
 
     template<shader shader>
@@ -25,6 +27,12 @@ export namespace obscure::builtin
 
     template<>
     std::span<const uint32_t> get_data<shader::color_2d_vertex>();
+
+    template<>
+    std::span<const uint32_t> get_data<shader::texture_2d_vertex>();
+
+    template<>
+    std::span<const uint32_t> get_data<shader::texture_2d_fragment>();
 }
 
 export
