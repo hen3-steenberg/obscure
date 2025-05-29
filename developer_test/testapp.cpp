@@ -6,7 +6,10 @@
 #include <vulkan/vulkan.hpp>
 #include <filesystem>
 
-import obscure;
+import obscure.vulkan;
+import obscure.utils.stopwatch;
+import obscure.builtin.pipelines.color_2d;
+import obscure.builtin.pipelines.texture_2d2d;
 
 
 int main()
@@ -15,7 +18,7 @@ int main()
 
 
 	{
-		obscure::graphics_context<obscure::builtin::pipeline::color_2d, obscure::builtin::pipeline::texture_2d> app{};
+		obscure::graphics_context<obscure::builtin::pipeline::color_2d, obscure::builtin::pipeline::texture_2d2d> app{};
 
 		auto vertex_buffer1 = app.init_vertex_buffer<obscure::builtin::pipeline::color_2d_vertex>({
 			{{0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
@@ -24,7 +27,7 @@ int main()
 			{{-0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}
 		});
 
-		auto vertex_buffer2 = app.init_vertex_buffer<obscure::builtin::pipeline::texture_2d_vertex>({
+		auto vertex_buffer2 = app.init_vertex_buffer<obscure::builtin::pipeline::texture_2d2d_vertex>({
 			{{0.4f, -0.4f}, {1.0f, 0.0f}},
 			{{0.4f, 0.4f}, {0.0f, 0.0f}},
 			{{-0.4f, 0.4f}, {0.0f, 1.0f}},
@@ -35,7 +38,7 @@ int main()
 
 		glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-		auto texture = app.load_texture<obscure::builtin::pipeline::texture_2d, vk::SamplerAddressMode::eRepeat> ("./texture.jpg", 0);
+		auto texture = app.load_texture<obscure::builtin::pipeline::texture_2d2d, vk::SamplerAddressMode::eRepeat> ("./texture.jpg", 0);
 
 
 		obscure::stopwatch<float> frame_timer{};

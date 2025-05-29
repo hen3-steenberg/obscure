@@ -7,9 +7,9 @@ target_sources(builtin
     FILES
         "obscure.builtin.shaders.cppm"
         "obscure.builtin.pipelines.cppm"
-        "obscure.builtin.pipelines-test_triangle.cppm"
-        "obscure.builtin.pipelines-color_2d.cppm"
-        "obscure.builtin.pipelines-texture_2d.cppm"
+        "obscure.builtin.pipelines.test_triangle.cppm"
+        "obscure.builtin.pipelines.color_2d.cppm"
+        "obscure.builtin.pipelines.texture_2d2d.cppm"
         "obscure.builtin.cppm"
 )
 

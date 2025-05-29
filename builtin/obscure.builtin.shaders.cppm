@@ -12,7 +12,9 @@ export namespace obscure::builtin
         color_fragment,
         test_triangle_vertex,
         color_2d_vertex,
+        color_vertex,
         texture_2d_fragment,
+        texture_2d2d_vertex,
         texture_2d_vertex
     };
 
@@ -26,13 +28,19 @@ export namespace obscure::builtin
     std::span<const uint32_t> get_data<shader::test_triangle_vertex>();
 
     template<>
+    std::span<const uint32_t> get_data<shader::color_vertex>();
+
+    template<>
     std::span<const uint32_t> get_data<shader::color_2d_vertex>();
 
     template<>
-    std::span<const uint32_t> get_data<shader::texture_2d_vertex>();
+    std::span<const uint32_t> get_data<shader::texture_2d2d_vertex>();
 
     template<>
     std::span<const uint32_t> get_data<shader::texture_2d_fragment>();
+
+    template<>
+    std::span<const uint32_t> get_data<shader::texture_2d_vertex>();
 }
 
 export

@@ -1,6 +1,6 @@
 module;
 #include <vulkan/vulkan.hpp>
-export module obscure.builtin.pipelines:test_triangle;
+export module obscure.builtin.pipelines.test_triangle;
 export import obscure.builtin.shaders;
 export import obscure.vulkan.pipeline;
 

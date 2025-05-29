@@ -1,29 +1,33 @@
 module;
 #include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
-export module obscure.builtin.pipelines:texture_2d;
+export module obscure.builtin.pipelines.color_2d;
 
 export import obscure.builtin.shaders;
 export import obscure.vulkan.pipeline;
 export import obscure.vulkan.buffer;
-export import obscure.vulkan.texture;
 
 export namespace obscure::builtin::pipeline
 {
 
-    struct texture_2d_vertex
+    struct color_2d_vertex
     {
         glm::vec2 position;
-        glm::vec2 texture_coord;
+        glm::vec3 color;
     };
 
+    // struct color_2d_uniform
+    // {
+    //     glm::mat4 model;
+    //     glm::mat4 view;
+    //     glm::mat4 proj;
+    // };
 
-
-    struct texture_2d
+    struct color_2d
     {
         using shader_list = obscure::make_set<
-            obscure::builtin::shader::texture_2d_vertex,
-            obscure::builtin::shader::texture_2d_fragment
+            obscure::builtin::shader::color_2d_vertex,
+            obscure::builtin::shader::color_fragment
         >;
 
         static obscure::vulkan::static_pipeline_builder<2, 2, 1, 2> initialize(
@@ -44,7 +48,7 @@ export namespace obscure::builtin::pipeline
                 {
                     vk::VertexInputBindingDescription {
                         0,
-                        sizeof(texture_2d_vertex),
+                        sizeof(color_2d_vertex),
                         vk::VertexInputRate::eVertex
                     }
                 },
@@ -53,13 +57,13 @@ export namespace obscure::builtin::pipeline
                     0,
                     0,
                     vk::Format::eR32G32Sfloat,
-                    offsetof(texture_2d_vertex, position)
+                    offsetof(color_2d_vertex, position)
                 },
                 vk::VertexInputAttributeDescription {
                     1,
                     0,
-                    vk::Format::eR32G32Sfloat,
-                    offsetof(texture_2d_vertex, texture_coord)
+                    vk::Format::eR32G32B32Sfloat,
+                    offsetof(color_2d_vertex, color)
                 }
             });
 
@@ -78,24 +82,6 @@ export namespace obscure::builtin::pipeline
 
 #pragma endregion
 
-            vk::DescriptorSetLayoutBinding texture_binding{
-                0,
-                vk::DescriptorType::eCombinedImageSampler,
-                1,
-                vk::ShaderStageFlagBits::eFragment,
-                nullptr
-            };
-
-            vk::DescriptorSetLayoutCreateInfo texture_set_layout_info{
-                {},
-                1,
-                &texture_binding
-            };
-
-            result.texture_set_layout = device.createDescriptorSetLayout(texture_set_layout_info);
-#pragma region textures
-#pragma endregion
-
 #pragma region push_constants
             vk::PushConstantRange push_constants{
                 vk::ShaderStageFlagBits::eVertex,
@@ -107,8 +93,8 @@ export namespace obscure::builtin::pipeline
 #pragma region pipeline_layout
             vk::PipelineLayoutCreateInfo pipeline_info {
 						        {},
-                                1,
-                                &result.texture_set_layout,
+                                0, //1,
+                                nullptr, //&result.uniform_set_layout,
                                 1,
                                 &push_constants
                             };
@@ -120,21 +106,12 @@ export namespace obscure::builtin::pipeline
 
         struct draw_calls : obscure::vulkan::draw_call_base {
 
-            using triangles_t = obscure::vulkan::vertex_buffer<texture_2d_vertex>;
-            template<
-                vk::SamplerAddressMode modeU,
-                vk::SamplerAddressMode modeV,
-                vk::SamplerAddressMode modeW>
-            using texture_t = obscure::vulkan::rgba_2d_texture<modeU, modeV, modeW>;
+            using triangles_t = obscure::vulkan::vertex_buffer<color_2d_vertex>;
 
             template<vulkan::vk_index T>
             using index_buffer_t = obscure::vulkan::index_buffer<T>;
 
-            template<
-                vk::SamplerAddressMode modeU,
-                vk::SamplerAddressMode modeV,
-                vk::SamplerAddressMode modeW>
-            void draw_texture_2d(glm::mat4 world, glm::mat4 model, triangles_t const& triangles, texture_t<modeU, modeV, modeW> const& texture) const
+            void draw_color_2d(glm::mat4 world, glm::mat4 model, triangles_t const& triangles) const
             {
                 bind_pipeline();
 
@@ -163,26 +140,13 @@ export namespace obscure::builtin::pipeline
 
                 glm::mat4 transform = world * model;
 
-                get_command_buffer().bindDescriptorSets(
-                    vk::PipelineBindPoint::eGraphics,
-                    get_pipeline_layout(),
-                    0,
-                    1,
-                    texture.descriptor_sets[get_frame_index()],
-                    0,
-                    nullptr);
-
                 get_command_buffer().pushConstants(get_pipeline_layout(), vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &transform);
 
                 get_command_buffer().draw(triangles.count(), 1, 0, 0);
             }
 
-            template<
-                vulkan::vk_index T,
-                vk::SamplerAddressMode modeU,
-                vk::SamplerAddressMode modeV,
-                vk::SamplerAddressMode modeW>
-            void draw_texture_2d(glm::mat4 world, glm::mat4 model, triangles_t const& triangles, index_buffer_t<T> const& indices, texture_t<modeU, modeV, modeW> const& texture)
+            template<vulkan::vk_index T>
+            void draw_color_2d(glm::mat4 world, glm::mat4 model, triangles_t const& triangles, index_buffer_t<T> const& indices)
             {
                 bind_pipeline();
 
@@ -213,15 +177,6 @@ export namespace obscure::builtin::pipeline
 
                 glm::mat4 transform = world * model;
 
-                get_command_buffer().bindDescriptorSets(
-                    vk::PipelineBindPoint::eGraphics,
-                    get_pipeline_layout(),
-                    0,
-                    1,
-                    &texture.descriptor_sets[get_frame_index()],
-                    0,
-                    nullptr);
-
                 get_command_buffer().pushConstants(get_pipeline_layout(), vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &transform);
 
 
@@ -232,5 +187,5 @@ export namespace obscure::builtin::pipeline
 
     };
 
-    static_assert(obscure::vulkan::pipeline_definition<texture_2d>);
+    static_assert(obscure::vulkan::pipeline_definition<color_2d>);
 }
