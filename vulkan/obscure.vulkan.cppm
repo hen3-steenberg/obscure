@@ -3,6 +3,7 @@ export module obscure.vulkan;
 export import obscure.vulkan.application_context;
 export import obscure.vulkan.command_pool;
 export import obscure.vulkan.command_session;
+export import obscure.vulkan.depth_buffer;
 export import obscure.vulkan.device;
 export import obscure.vulkan.device_context;
 export import obscure.vulkan.fence;

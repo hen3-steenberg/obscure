@@ -255,6 +255,21 @@ export namespace obscure::vulkan
 			};
 #pragma endregion
 
+#pragma region DepthStencilState
+			result.depth_stensil_state = vk::PipelineDepthStencilStateCreateInfo {
+				{},
+				vk::True,
+				vk::True,
+				vk::CompareOp::eLess,
+				vk::False,
+				vk::False,
+				{},
+				{},
+				0.0f,
+				1.0f
+			};
+#pragma endregion
+
 #pragma region DynamicState
 			result.dynamic_states = { vk::DynamicState::eViewport, vk::DynamicState::eScissor };
 #pragma endregion

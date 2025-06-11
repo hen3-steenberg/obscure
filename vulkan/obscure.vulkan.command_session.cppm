@@ -87,14 +87,14 @@ export namespace obscure::vulkan
 
             command_buffer.begin(begin_info);
 
-            vk::ClearValue clear_color { get_clear_color() };
+            vk::ClearValue clear_values[2] = { get_clear_color(), vk::ClearDepthStencilValue{1.0f, 0} };
 
             vk::RenderPassBeginInfo render_info {
                 swap_chain.get().render_pass,
                 swap_chain.get().framebuffers[frame_index],
                 { {0,0}, extent },
-                1,
-                &clear_color
+                2,
+                clear_values
             };
 
             command_buffer.beginRenderPass(render_info, vk::SubpassContents::eInline);

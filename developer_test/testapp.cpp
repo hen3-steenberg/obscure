@@ -1,5 +1,6 @@
 #include <GLFW/glfw3.h>
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <ratio>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -9,7 +10,7 @@
 import obscure.vulkan;
 import obscure.utils.stopwatch;
 import obscure.builtin.pipelines.color_2d;
-import obscure.builtin.pipelines.texture_2d2d;
+import obscure.builtin.pipelines.texture_3d2d;
 
 
 int main()
@@ -18,7 +19,7 @@ int main()
 
 
 	{
-		obscure::graphics_context<obscure::builtin::pipeline::color_2d, obscure::builtin::pipeline::texture_2d2d> app{};
+		obscure::graphics_context<obscure::builtin::pipeline::color_2d, obscure::builtin::pipeline::texture_3d2d> app{};
 
 		auto vertex_buffer1 = app.init_vertex_buffer<obscure::builtin::pipeline::color_2d_vertex>({
 			{{0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
@@ -27,18 +28,29 @@ int main()
 			{{-0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}
 		});
 
-		auto vertex_buffer2 = app.init_vertex_buffer<obscure::builtin::pipeline::texture_2d2d_vertex>({
-			{{0.4f, -0.4f}, {1.0f, 0.0f}},
-			{{0.4f, 0.4f}, {0.0f, 0.0f}},
-			{{-0.4f, 0.4f}, {0.0f, 1.0f}},
-			{{-0.4f, -0.4f}, {1.0f, 1.0f}}
+		auto vertex_buffer2 = app.init_vertex_buffer<obscure::builtin::pipeline::texture_3d2d_vertex>({
+				{{-0.5f, -0.5f, 0.0f},  {0.0f, 0.0f}},
+				{{0.5f, -0.5f, 0.0f},   {1.0f, 0.0f}},
+				{{0.5f, 0.5f, 0.0f},    {1.0f, 1.0f}},
+				{{-0.5f, 0.5f, 0.0f},   {0.0f, 1.0f}},
+				{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}},
+				{{0.5f, -0.5f, -0.5f},  {1.0f, 0.0f}},
+				{{0.5f, 0.5f, -0.5f},   {1.0f, 1.0f}},
+				{{-0.5f, 0.5f, -0.5f},  {0.0f, 1.0f}}
 		});
 
-		auto rectangle_indices = app.init_index_buffer<uint16_t>({0, 1, 2, 2, 3, 0});
+		auto rectangle_indices = app.init_index_buffer<uint16_t>(
+			{
+				0, 1, 2,
+				2, 3, 0,
 
-		glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				4, 5, 6,
+				6, 7, 4
+			});
 
-		auto texture = app.load_texture<obscure::builtin::pipeline::texture_2d2d, vk::SamplerAddressMode::eRepeat> ("./texture.jpg", 0);
+		glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		auto texture = app.load_texture<obscure::builtin::pipeline::texture_3d2d, vk::SamplerAddressMode::eRepeat> ("./texture.jpg", 0);
 
 
 		obscure::stopwatch<float> frame_timer{};
@@ -60,7 +72,7 @@ int main()
 
 				glm::mat4 viewproj = proj * view;
 
-				frame.draw_color_2d(viewproj, model, vertex_buffer1, rectangle_indices);
+				//frame.draw_color_2d(viewproj, model, vertex_buffer1, rectangle_indices);
 				frame.draw_texture_2d(viewproj, model, vertex_buffer2, rectangle_indices, texture);
 
 			}

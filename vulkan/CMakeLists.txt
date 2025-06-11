@@ -8,6 +8,7 @@ target_sources(obscure_vulkan
         "obscure.vulkan.buffer.cppm"
         "obscure.vulkan.command_pool.cppm"
         "obscure.vulkan.command_session.cppm"
+        "obscure.vulkan.depth_buffer.cppm"
         "obscure.vulkan.device.cppm"
         "obscure.vulkan.device_context.cppm"
         "obscure.vulkan.fence.cppm"
