@@ -4,6 +4,7 @@ module;
 #include <initializer_list>
 #include <span>
 #include <filesystem>
+#include <cmath>
 #include "stb/stb_image.h"
 export module obscure.vulkan.device_context;
 
@@ -153,6 +154,7 @@ export namespace obscure::vulkan
             int texWidth, texHeight, texChannels;
             stbi_uc* pixels = stbi_load(image_path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
             size_t imageSize = texWidth * texHeight * 4;
+            uint32_t mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
             vk::Extent3D image_extent{
                 static_cast<uint32_t>(texWidth),
                 static_cast<uint32_t>(texHeight),
@@ -166,7 +168,8 @@ export namespace obscure::vulkan
                 vk_device,
                 image_extent,
                 vk_pipeline_collection.texture_descriptor_layouts[pipeline_idx],
-                binding
+                binding,
+                mipLevels
             };
 
             {

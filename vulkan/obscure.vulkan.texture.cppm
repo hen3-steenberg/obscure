@@ -12,21 +12,23 @@ import obscure.properties;
 export namespace obscure::vulkan {
 
     template<vk::ImageType type, vk::Format format, vk::SampleCountFlagBits samples, vk::ImageTiling tiling, VmaMemoryUsage MemoryUsage, VmaAllocationCreateFlags Flags>
-
     struct texture_impl : vk::Image {
-
+        VmaAllocation allocation{};
+        const device * vk_device;
+        vk::Extent3D extent;
+        uint32_t mip_levels;
     private:
-        static std::pair<vk::Image, VmaAllocation> create_texture(device const& _device, vk::Extent3D extent) {
+        static std::pair<vk::Image, VmaAllocation> create_texture(device const& _device, vk::Extent3D extent, uint32_t miplevels) {
             vk::ImageCreateInfo info{
                 {},
                 type,
                 format,
                 extent,
-                1,
+                miplevels,
                 1,
                 samples,
                 tiling,
-                vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+                vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
                 vk::SharingMode::eExclusive
             };
 
@@ -49,11 +51,12 @@ export namespace obscure::vulkan {
 
 
 
-        texture_impl(const device& _device, std::pair<vk::Image, VmaAllocation> alloced_image, vk::Extent3D _extent)
+        texture_impl(const device& _device, std::pair<vk::Image, VmaAllocation> alloced_image, vk::Extent3D _extent, uint32_t _mip_levels)
             : vk::Image{alloced_image.first},
             allocation(alloced_image.second),
             vk_device(&_device),
-            extent(_extent)
+            extent(_extent),
+            mip_levels(_mip_levels)
         {}
 
     public:
@@ -62,11 +65,12 @@ export namespace obscure::vulkan {
             : vk::Image{VK_NULL_HANDLE},
             allocation(nullptr),
             vk_device(nullptr),
-            extent()
+            extent(),
+            mip_levels()
         {}
 
-        texture_impl(const device& _device, vk::Extent3D _extent)
-            : texture_impl(_device, create_texture(_device, _extent), _extent)
+        texture_impl(const device& _device, vk::Extent3D _extent, uint32_t _mip_levels = 1)
+            : texture_impl(_device, create_texture(_device, _extent, _mip_levels), _extent, _mip_levels)
         {}
 
         texture_impl(const texture_impl& ) = delete;
@@ -74,14 +78,13 @@ export namespace obscure::vulkan {
             : vk::Image{other.get_image()},
             allocation(other.allocation),
             vk_device(other.vk_device),
-            extent(other.extent)
+            extent(other.extent),
+            mip_levels(other.mip_levels)
         {
             other.vk_device = nullptr;
         }
 
-        VmaAllocation allocation{};
-        const device * vk_device;
-        vk::Extent3D extent;
+
 
         vk::Image get_image() const noexcept {
             return static_cast<vk::Image>(*this);
@@ -119,7 +122,7 @@ export namespace obscure::vulkan {
                 new_layout == vk::ImageLayout::eShaderReadOnlyOptimal;
         }
 
-        static vk::ImageView create_image_view(vk::Device device_, vk::Image image)
+        static vk::ImageView create_image_view(vk::Device device_, vk::Image image, uint32_t mip_levels)
         {
             vk::ImageViewCreateInfo view_info{
                 {},
@@ -130,7 +133,7 @@ export namespace obscure::vulkan {
                 vk::ImageSubresourceRange {
                     vk::ImageAspectFlagBits::eColor,
                     0,
-                    1,
+                    mip_levels,
                     0,
                     1
                 }
@@ -139,7 +142,7 @@ export namespace obscure::vulkan {
             return device_.createImageView(view_info);
         }
 
-        static vk::Sampler create_sampler(device const& device_)
+        static vk::Sampler create_sampler(device const& device_, uint32_t mip_levels)
         {
 
             auto props = device_.get_physical_device().getProperties();
@@ -158,7 +161,7 @@ export namespace obscure::vulkan {
                 vk::False,
                 vk::CompareOp::eAlways,
                 0.0f,
-                0.0f,
+                static_cast<float>(mip_levels),
                 vk::BorderColor::eFloatTransparentBlack,
                 vk::False
             };
@@ -207,10 +210,10 @@ export namespace obscure::vulkan {
         vk::ImageLayout image_layout = vk::ImageLayout::eUndefined;
 
 
-        rgba_2d_texture(const device& _device, vk::Extent3D _extent, vk::DescriptorSetLayout layout, uint32_t binding)
-            : rgba_2d_texture_impl(_device, _extent),
-            texture_view(create_image_view(_device.get_device(), get_image())),
-            texture_sampler(create_sampler(_device)),
+        rgba_2d_texture(const device& _device, vk::Extent3D _extent, vk::DescriptorSetLayout layout, uint32_t binding, uint32_t _mip_levels)
+            : rgba_2d_texture_impl(_device, _extent, _mip_levels),
+            texture_view(create_image_view(_device.get_device(), get_image(), _mip_levels)),
+            texture_sampler(create_sampler(_device, _mip_levels)),
             descriptor_pool(create_descriptor_pool(_device)),
             descriptor_sets(create_descriptor_sets(_device, descriptor_pool, layout))
         {
@@ -248,6 +251,112 @@ export namespace obscure::vulkan {
             image_layout(other.image_layout)
         {}
 
+        void generate_mipmaps(vk::CommandBuffer cmd)
+        {
+            vk::ImageMemoryBarrier barrier{
+                    vk::AccessFlagBits::eTransferWrite,
+                    vk::AccessFlagBits::eTransferRead,
+                    vk::ImageLayout::eTransferDstOptimal,
+                    vk::ImageLayout::eTransferSrcOptimal,
+                    VK_QUEUE_FAMILY_IGNORED,
+                    VK_QUEUE_FAMILY_IGNORED,
+                    get_image(),
+                    vk::ImageSubresourceRange {
+                        vk::ImageAspectFlagBits::eColor,
+                        0,
+                        1,
+                        0,
+                        1
+                    }
+            };
+
+            int32_t mipWidth = extent.width;
+            int32_t mipHeight = extent.height;
+
+            for (uint32_t mip = 1; mip < mip_levels; ++mip)
+            {
+                barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+                barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
+                barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+                barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+                barrier.subresourceRange.baseMipLevel = mip - 1;
+
+                cmd.pipelineBarrier(
+                    vk::PipelineStageFlagBits::eTransfer,
+                    vk::PipelineStageFlagBits::eTransfer,
+                    {},
+                    0, nullptr,
+                    0, nullptr,
+                    1, &barrier);
+
+                vk::ImageBlit blit{
+                    vk::ImageSubresourceLayers {
+                        vk::ImageAspectFlagBits::eColor,
+                        mip - 1,
+                        0,
+                        1
+                    },
+                    std::array<vk::Offset3D, 2> {
+                        vk::Offset3D {0, 0, 0},
+                        vk::Offset3D {mipWidth, mipHeight, 1}
+                    },
+                    vk::ImageSubresourceLayers {
+                        vk::ImageAspectFlagBits::eColor,
+                        mip,
+                        0,
+                        1
+                    },
+                    std::array<vk::Offset3D, 2> {
+                        vk::Offset3D {0, 0, 0},
+                        vk::Offset3D {
+                            mipWidth > 1 ? mipWidth / 2 : 1,
+                            mipHeight > 1 ? mipHeight / 2 : 1,
+                            1
+                        }
+                    },
+                };
+
+                cmd.blitImage(
+                    get_image(), vk::ImageLayout::eTransferSrcOptimal,
+                    get_image(), vk::ImageLayout::eTransferDstOptimal,
+                    1, &blit,
+                    vk::Filter::eLinear);
+
+
+                barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+                barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+                barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+                barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+                cmd.pipelineBarrier(
+                    vk::PipelineStageFlagBits::eTransfer,
+                    vk::PipelineStageFlagBits::eFragmentShader,
+                    {},
+                    0, nullptr,
+                    0, nullptr,
+                    1, &barrier);
+
+                if (mipWidth > 1) mipWidth /= 2;
+                if (mipHeight > 1) mipHeight /= 2;
+            }
+
+            barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+            barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+            barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+            barrier.subresourceRange.baseMipLevel = mip_levels - 1;
+
+            cmd.pipelineBarrier(
+                vk::PipelineStageFlagBits::eTransfer,
+                vk::PipelineStageFlagBits::eFragmentShader,
+                {},
+                0, nullptr,
+                0, nullptr,
+                1, &barrier);
+
+            image_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+        }
+
         template<vk::ImageLayout new_layout>
             requires (can_transition<new_layout>())
         void transition_layout(vk::CommandBuffer cmd) {
@@ -264,7 +373,7 @@ export namespace obscure::vulkan {
                 vk::ImageSubresourceRange {
                     vk::ImageAspectFlagBits::eColor,
                     0,
-                    1,
+                    mip_levels,
                     0,
                     1
                 }

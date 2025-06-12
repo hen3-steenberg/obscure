@@ -120,7 +120,16 @@ export namespace obscure::vulkan
 
             data_dst.template transition_layout<vk::ImageLayout::eTransferDstOptimal>(graphics_command_buffer);
             graphics_command_buffer.copyBufferToImage(data_src.get_buffer(), data_dst.get_image(), vk::ImageLayout::eTransferDstOptimal, 1, &copy_region);
-            data_dst.template transition_layout<vk::ImageLayout::eShaderReadOnlyOptimal>(graphics_command_buffer);
+
+            if (data_dst.mip_levels > 1)
+            {
+                data_dst.generate_mipmaps(graphics_command_buffer);
+            }
+            else
+            {
+                data_dst.template transition_layout<vk::ImageLayout::eShaderReadOnlyOptimal>(graphics_command_buffer);
+            }
+
         }
 
 
