@@ -14,6 +14,7 @@ target_sources(obscure_vulkan
         "obscure.vulkan.fence.cppm"
         "obscure.vulkan.graphics_context.cppm"
         "obscure.vulkan.image_view.cppm"
+        "obscure.vulkan.msaa_buffer.cppm"
         "obscure.vulkan.pipeline.cppm"
         "obscure.vulkan.pipeline-builder.cppm"
         "obscure.vulkan.pipeline-collection.cppm"

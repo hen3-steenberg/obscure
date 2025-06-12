@@ -40,7 +40,7 @@ export namespace obscure::vulkan
             : vk_device(_surface, std::move(get_device_score)),
               vk_shaders(vk_device.get_device()),
               vk_swap_chain(vk_device, _surface, _window),
-              vk_pipeline_collection(pipeline_collection_t::template make_pipeline_collection<shader_set_t, TPipelines...>(vk_device.get_device(), vk_swap_chain.get_render_pass(), vk_shaders)),
+              vk_pipeline_collection(pipeline_collection_t::template make_pipeline_collection<shader_set_t, TPipelines...>(vk_device.get_device(), vk_swap_chain.get_render_pass(), vk_swap_chain.multisaa_buffer.msaa_samples, vk_shaders)),
               vk_command_pool(vk_device, vk_swap_chain.get_frame_count()),
               vk_transfer_pool(vk_device)
         {}

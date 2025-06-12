@@ -20,9 +20,10 @@ export namespace obscure::vulkan
             requires (
                 vk::Device d,
                 vk::RenderPass r,
+                vk::SampleCountFlagBits samples,
                 std::array<vk::ShaderModule, T::shader_list::size()> s)
         {
-            { T::initialize(d, r, s) } -> pipeline_builder;
+            { T::initialize(d, r, samples, s) } -> pipeline_builder;
         };
 
         template<pipeline_definition Pipeline>

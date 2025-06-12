@@ -40,8 +40,8 @@ export namespace obscure::vulkan
         public:
 
             template<typename TShaderSet, pipeline_definition ... Pipelines>
-            static pipeline_collection<sizeof...(Pipelines)> make_pipeline_collection(vk::Device device, vk::RenderPass render_pass, TShaderSet const& shaders) {
-                return pipeline_collection(device, Pipelines::initialize(device, render_pass, shaders.get_shaders( typename Pipelines::shader_list {} ))...);
+            static pipeline_collection<sizeof...(Pipelines)> make_pipeline_collection(vk::Device device, vk::RenderPass render_pass, vk::SampleCountFlagBits samples, TShaderSet const& shaders) {
+                return pipeline_collection(device, Pipelines::initialize(device, render_pass, samples, shaders.get_shaders( typename Pipelines::shader_list {} ))...);
             }
 
 

@@ -16,6 +16,7 @@ export namespace obscure::builtin::pipeline
         static obscure::vulkan::static_pipeline_builder<2, 2, 0, 0> initialize(
             vk::Device device,
             vk::RenderPass render_pass,
+            vk::SampleCountFlagBits samples,
             std::array<vk::ShaderModule, 2> const& shaders)
         {
 #pragma region shaders_fixed_functions
@@ -25,7 +26,7 @@ export namespace obscure::builtin::pipeline
                 vk::FrontFace::eClockwise,
                 vk::ShaderStageFlagBits::eVertex,
                 vk::ShaderStageFlagBits::eFragment
-            >(render_pass, shaders, {}, {});
+            >(render_pass, samples, shaders, {}, {});
 
 #pragma endregion
 

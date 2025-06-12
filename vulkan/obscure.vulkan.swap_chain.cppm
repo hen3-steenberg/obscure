@@ -10,6 +10,7 @@ export import obscure.vulkan.image_view;
 import obscure.properties;
 export import obscure.vulkan.semaphore;
 export import obscure.vulkan.depth_buffer;
+export import obscure.vulkan.msaa_buffer;
 
 
 export namespace obscure::vulkan
@@ -18,17 +19,19 @@ export namespace obscure::vulkan
 		{
 			vk::Format format;
 			vk::Extent2D extent;
+			msaa_buffer multisaa_buffer;
 			depth_buffer depth_buffer_;
 			vk::RenderPass render_pass;
 			uint32_t current_frame_index;
 			uint32_t image_count;
+			uint32_t current_frame;
 			std::array<vk::Image, max_image_count()> images;
 			std::array<image_view, max_image_count()> image_views;
 			std::array<vk::Framebuffer, max_image_count()> framebuffers;
 			std::array<obscure::vulkan::semaphore, max_image_count()> image_available;
 			std::array<obscure::vulkan::semaphore, max_image_count()> render_finished;
 			std::array<obscure::vulkan::fence, max_image_count()> in_flight;
-			std::size_t current_frame;
+
 
 
 
@@ -76,18 +79,18 @@ export namespace obscure::vulkan
 				}
 			}
 
-			static vk::RenderPass create_render_pass(vk::Device device, vk::Format color_format, vk::Format depth_format)
+			static vk::RenderPass create_render_pass(vk::Device device, vk::Format color_format, vk::Format depth_format, vk::SampleCountFlagBits samples)
 			{
 				vk::AttachmentDescription color_attachment{
 					{},
 					color_format,
-					vk::SampleCountFlagBits::e1,
+					samples,
 					vk::AttachmentLoadOp::eClear,
 					vk::AttachmentStoreOp::eStore,
 					vk::AttachmentLoadOp::eDontCare,
 					vk::AttachmentStoreOp::eDontCare,
 					vk::ImageLayout::eUndefined,
-					vk::ImageLayout::ePresentSrcKHR
+					vk::ImageLayout::eColorAttachmentOptimal
 				};
 
 				vk::AttachmentReference color_attachment_ref {
@@ -98,7 +101,7 @@ export namespace obscure::vulkan
 				vk::AttachmentDescription depth_attachment{
 					{},
 					depth_format,
-					vk::SampleCountFlagBits::e1,
+					samples,
 					vk::AttachmentLoadOp::eClear,
 					vk::AttachmentStoreOp::eDontCare,
 					vk::AttachmentLoadOp::eDontCare,
@@ -112,6 +115,23 @@ export namespace obscure::vulkan
 					vk::ImageLayout::eDepthStencilAttachmentOptimal
 				};
 
+				vk::AttachmentDescription color_resolve_attachment{
+					{},
+					color_format,
+					vk::SampleCountFlagBits::e1,
+					vk::AttachmentLoadOp::eDontCare,
+					vk::AttachmentStoreOp::eStore,
+					vk::AttachmentLoadOp::eDontCare,
+					vk::AttachmentStoreOp::eDontCare,
+					vk::ImageLayout::eUndefined,
+					vk::ImageLayout::ePresentSrcKHR
+				};
+
+				vk::AttachmentReference color_resolve_attachment_ref {
+					2,
+					vk::ImageLayout::eColorAttachmentOptimal
+				};
+
 				vk::SubpassDescription subpass {
 	                        {},
 							vk::PipelineBindPoint::eGraphics,
@@ -119,7 +139,7 @@ export namespace obscure::vulkan
 							nullptr,
 							1,
 							&color_attachment_ref,
-							nullptr,
+							&color_resolve_attachment_ref,
 							&depth_attachment_ref,
 							0,
 							nullptr
@@ -135,10 +155,10 @@ export namespace obscure::vulkan
 					{}
 				};
 
-				vk::AttachmentDescription attachments[2] = {color_attachment, depth_attachment};
+				vk::AttachmentDescription attachments[3] = {color_attachment, depth_attachment, color_resolve_attachment};
 				vk::RenderPassCreateInfo create_info {
 	                        {},
-							2,
+							3,
 							attachments,
 							1,
 							&subpass,
@@ -224,15 +244,15 @@ export namespace obscure::vulkan
 				return result;
 			}
 
-			static inline std::array<vk::Framebuffer, max_image_count()> load_framebuffers(std::array<image_view, max_image_count()> const& image_views, depth_buffer const& depth_buffer_, vk::Device device, vk::RenderPass render_pass, vk::Extent2D extent) {
+			static inline std::array<vk::Framebuffer, max_image_count()> load_framebuffers(std::array<image_view, max_image_count()> const& image_views, depth_buffer const& depth_buffer_, msaa_buffer const& color_buffer, vk::Device device, vk::RenderPass render_pass, vk::Extent2D extent) {
 				std::array<vk::Framebuffer, max_image_count()> result{};
 				for (std::size_t idx = 0; idx < max_image_count(); ++idx) {
 					if (image_views[idx] != VK_NULL_HANDLE) {
-						vk::ImageView views[2] = {image_views[idx], depth_buffer_.views[idx]};
+						vk::ImageView views[3] = {color_buffer.sample_image_views[idx], depth_buffer_.views[idx], image_views[idx]};
 						vk::FramebufferCreateInfo create_info {
 							{},
 							render_pass,
-							2,
+							3,
 							views,
 							extent.width,
 							extent.height,
@@ -251,17 +271,18 @@ export namespace obscure::vulkan
 				: vk::SwapchainKHR(create_swap_chain(device, _surface, _format, _present_mode, _extent)),
 				format(_format.format),
 				extent(_extent),
-				depth_buffer_(device, vk::Extent3D{extent, 1}),
-				render_pass(create_render_pass(device.get_device(), format, depth_buffer_.format)),
+				multisaa_buffer(device, format, extent),
+				depth_buffer_(device, vk::Extent3D{extent, 1}, multisaa_buffer.msaa_samples),
+				render_pass(create_render_pass(device.get_device(), format, depth_buffer_.format, multisaa_buffer.msaa_samples)),
 				current_frame_index(),
 				image_count(),
+				current_frame(),
 				images(load_images(device.get_device(), get_swap_chain(), image_count)),
 				image_views(load_image_views(images, device.get_device(), format)),
-				framebuffers(load_framebuffers(image_views, depth_buffer_, device.get_device(), render_pass, extent)),
+				framebuffers(load_framebuffers(image_views, depth_buffer_, multisaa_buffer, device.get_device(), render_pass, extent)),
 				image_available(initialize_semaphores(device.get_device())),
 				render_finished(initialize_semaphores(device.get_device())),
-				in_flight(initialize_fences(device.get_device(), true)),
-				current_frame()
+				in_flight(initialize_fences(device.get_device(), true))
 			{
 			}
 
@@ -380,6 +401,7 @@ export namespace obscure::vulkan
 				}
 				get_device().destroyRenderPass(render_pass);
 				depth_buffer_.free(vk_device);
+				multisaa_buffer.free(vk_device);
 				get_device().destroySwapchainKHR(get_swap_chain());
 			}
 

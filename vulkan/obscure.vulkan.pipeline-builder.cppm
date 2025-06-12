@@ -168,6 +168,7 @@ export namespace obscure::vulkan
 			vk::ShaderStageFlagBits ... Flags>
 		static_pipeline_builder<sizeof...(Flags), 2, VertexBindingCount, VertexAttributeCount> default_pipeline_builder(
 			vk::RenderPass render_pass,
+			vk::SampleCountFlagBits samples,
 			std::array<vk::ShaderModule, sizeof...(Flags)> const& shaders,
 			std::array<vk::VertexInputBindingDescription, VertexBindingCount> vertex_bindings,
 			std::array<vk::VertexInputAttributeDescription, VertexAttributeCount> vertex_attributes
@@ -233,7 +234,7 @@ export namespace obscure::vulkan
 #pragma region MultisampleState
 			result.multisample_state = vk::PipelineMultisampleStateCreateInfo {
 				{},
-				vk::SampleCountFlagBits::e1,
+				samples,
 				vk::False,
 				1.0f,
 				nullptr,

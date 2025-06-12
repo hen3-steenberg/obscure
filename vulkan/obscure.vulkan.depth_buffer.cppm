@@ -40,7 +40,7 @@ export namespace obscure::vulkan
             return vk::Format::eD32Sfloat;
         }
 
-        static std::tuple<vk::Image, vk::ImageView, VmaAllocation> allocate_image(device const& device_, vk::Format format, vk::Extent3D extent)
+        static std::tuple<vk::Image, vk::ImageView, VmaAllocation> allocate_image(device const& device_, vk::Format format, vk::Extent3D extent, vk::SampleCountFlagBits samples)
         {
             std::tuple<vk::Image, vk::ImageView, VmaAllocation> result{};
             vk::ImageCreateInfo info{
@@ -50,7 +50,7 @@ export namespace obscure::vulkan
                 extent,
                 1,
                 1,
-                vk::SampleCountFlagBits::e1,
+                samples,
                 vk::ImageTiling::eOptimal,
                 vk::ImageUsageFlagBits::eDepthStencilAttachment,
                 vk::SharingMode::eExclusive
@@ -88,12 +88,12 @@ export namespace obscure::vulkan
         }
     public:
 
-        depth_buffer(device const& device_, vk::Extent3D extent)
+        depth_buffer(device const& device_, vk::Extent3D extent, vk::SampleCountFlagBits samples)
             : format(get_format(device_))
         {
             for (size_t idx = 0; idx < buffer_count; ++idx)
             {
-                auto[img, view, alloc] = allocate_image(device_, format, extent);
+                auto[img, view, alloc] = allocate_image(device_, format, extent, samples);
                 images[idx] = img;
                 views[idx] = view;
                 allocations[idx] = alloc;

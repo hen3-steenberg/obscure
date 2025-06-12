@@ -29,6 +29,7 @@ export namespace obscure::builtin::pipeline
         static obscure::vulkan::static_pipeline_builder<2, 2, 1, 2> initialize(
             vk::Device device,
             vk::RenderPass render_pass,
+            vk::SampleCountFlagBits samples,
             std::array<vk::ShaderModule, 2> const& shaders)
         {
 #pragma region shaders_fixed_functions
@@ -40,6 +41,7 @@ export namespace obscure::builtin::pipeline
                 vk::ShaderStageFlagBits::eFragment>
             (
                 render_pass,
+                samples,
                 shaders,
                 {
                     vk::VertexInputBindingDescription {
