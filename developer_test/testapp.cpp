@@ -1,16 +1,80 @@
 #include <GLFW/glfw3.h>
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <ratio>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vulkan/vulkan.hpp>
 #include <filesystem>
+#include <iostream>
+
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
 
 import obscure.vulkan;
 import obscure.utils.stopwatch;
 import obscure.builtin.pipelines.color_2d;
 import obscure.builtin.pipelines.texture_3d2d;
+
+using pipeline_t = obscure::builtin::pipeline::texture_3d2d;
+using gfx_ctx_t = obscure::graphics_context<pipeline_t>;
+using vertex_t = obscure::builtin::pipeline::texture_3d2d_vertex;
+
+struct object_3d
+{
+	obscure::vulkan::vertex_buffer<vertex_t> vertex_buffer;
+	obscure::vulkan::index_buffer<uint32_t> index_buffer;
+	obscure::vulkan::rgba_2d_texture<> color_texture;
+
+	static object_3d load(gfx_ctx_t const& ctx, std::filesystem::path obj_path)
+	{
+		if (!std::filesystem::exists(obj_path))
+		{
+			throw std::runtime_error("Object does not exist");
+		}
+
+		tinyobj::ObjReader reader;
+		if (!reader.ParseFromFile(obj_path))
+		{
+			throw std::runtime_error("Failed to parse obj file");
+		}
+
+		std::vector<vertex_t> vertices;
+		std::vector<uint32_t> indices;
+
+		for (auto const& shape : reader.GetShapes())
+		{
+			for (auto index : shape.mesh.indices)
+			{
+				vertices.emplace_back(vertex_t {
+					{
+						reader.GetAttrib().vertices[3 * index.vertex_index + 0],
+						reader.GetAttrib().vertices[3 * index.vertex_index + 1],
+						reader.GetAttrib().vertices[3 * index.vertex_index + 2]
+					},
+					{
+						reader.GetAttrib().texcoords[2 * index.texcoord_index + 0],
+						1.0f - reader.GetAttrib().texcoords[2 * index.texcoord_index + 1]
+					}
+				});
+
+				indices.emplace_back(indices.size());
+			}
+		}
+
+		obj_path.replace_extension(".png");
+		if (!std::filesystem::exists(obj_path))
+		{
+			throw std::runtime_error("Texture does not exist");
+		}
+		std::cout << "Loading texture: " << obj_path << std::endl;
+
+		return object_3d {
+			ctx.init_vertex_buffer<vertex_t>(vertices),
+			ctx.init_index_buffer<uint32_t>(indices),
+			ctx.load_texture<pipeline_t>(obj_path, 0)
+		};
+	}
+};
 
 
 int main()
@@ -19,38 +83,11 @@ int main()
 
 
 	{
-		obscure::graphics_context<obscure::builtin::pipeline::color_2d, obscure::builtin::pipeline::texture_3d2d> app{};
+		gfx_ctx_t app{};
 
-		auto vertex_buffer1 = app.init_vertex_buffer<obscure::builtin::pipeline::color_2d_vertex>({
-			{{0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-			{{-0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}
-		});
+		object_3d model_3d = object_3d::load(app, "viking_room.obj");
 
-		auto vertex_buffer2 = app.init_vertex_buffer<obscure::builtin::pipeline::texture_3d2d_vertex>({
-				{{-0.5f, -0.5f, 0.0f},  {0.0f, 0.0f}},
-				{{0.5f, -0.5f, 0.0f},   {1.0f, 0.0f}},
-				{{0.5f, 0.5f, 0.0f},    {1.0f, 1.0f}},
-				{{-0.5f, 0.5f, 0.0f},   {0.0f, 1.0f}},
-				{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}},
-				{{0.5f, -0.5f, -0.5f},  {1.0f, 0.0f}},
-				{{0.5f, 0.5f, -0.5f},   {1.0f, 1.0f}},
-				{{-0.5f, 0.5f, -0.5f},  {0.0f, 1.0f}}
-		});
-
-		auto rectangle_indices = app.init_index_buffer<uint16_t>(
-			{
-				0, 1, 2,
-				2, 3, 0,
-
-				4, 5, 6,
-				6, 7, 4
-			});
-
-		glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-		auto texture = app.load_texture<obscure::builtin::pipeline::texture_3d2d, vk::SamplerAddressMode::eRepeat> ("./texture.jpg", 0);
+		glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 
 		obscure::stopwatch<float> frame_timer{};
@@ -72,8 +109,7 @@ int main()
 
 				glm::mat4 viewproj = proj * view;
 
-				//frame.draw_color_2d(viewproj, model, vertex_buffer1, rectangle_indices);
-				frame.draw_texture_2d(viewproj, model, vertex_buffer2, rectangle_indices, texture);
+				frame.draw_texture_2d(viewproj, model, model_3d.vertex_buffer, model_3d.index_buffer, model_3d.color_texture);
 
 			}
 			app.submit_frame();
