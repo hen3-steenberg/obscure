@@ -29,6 +29,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(Vulkan)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
+
 add_subdirectory("shaders")
 add_subdirectory("utils")
 add_subdirectory("helper_templates")
@@ -37,4 +38,5 @@ add_subdirectory("glfw")
 add_subdirectory("vulkan")
 add_subdirectory("builtin")
 add_subdirectory("obscure")
+add_subdirectory("3rd_party")
 add_subdirectory("developer_test")

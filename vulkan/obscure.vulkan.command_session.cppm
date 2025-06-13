@@ -46,10 +46,7 @@ export namespace obscure::vulkan
         std::span<vk::DescriptorSetLayout> uniform_descriptor_set_layouts;
         std::span<vk::DescriptorSetLayout> texture_descriptor_set_layouts;
 
-        [[nodiscard]] vk::CommandBuffer get_command_buffer() const final
-        {
-            return command_buffer;
-        }
+
 
         [[nodiscard]] std::span<vk::Pipeline> get_all_pipelines() const final
         {
@@ -118,6 +115,11 @@ export namespace obscure::vulkan
         [[nodiscard]] vk::Extent2D get_extent() const final
         {
             return extent;
+        }
+
+        [[nodiscard]] vk::CommandBuffer get_command_buffer() const final
+        {
+            return command_buffer;
         }
 
 

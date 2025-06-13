@@ -9,11 +9,13 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
+#include "imgui.h"
 
 import obscure.vulkan;
 import obscure.utils.stopwatch;
 import obscure.builtin.pipelines.color_2d;
 import obscure.builtin.pipelines.texture_3d2d;
+import obscure.imgui;
 
 using pipeline_t = obscure::builtin::pipeline::texture_3d2d;
 using gfx_ctx_t = obscure::graphics_context<pipeline_t>;
@@ -82,9 +84,11 @@ int main()
 	obscure::initialize("Test App", obscure::version{1,0,0});
 
 
+
+
 	{
 		gfx_ctx_t app{};
-
+		obscure::imgui::ctx imgui_ctx{app};
 		object_3d model_3d = object_3d::load(app, "viking_room.obj");
 
 		glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -100,17 +104,22 @@ int main()
 			}
 			{
 				auto frame = app.begin_frame();
-				auto extent = frame.get_extent();
+				{
+					auto extent = frame.get_extent();
 
-				float time = frame_timer.total_time().count();
-				glm::mat4 model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-				glm::mat4 proj = glm::perspective(glm::radians(45.0f), extent.width / (float) extent.height, 0.1f, 10.0f);
-				proj[1][1]*= -1;
+					float time = frame_timer.total_time().count();
+					glm::mat4 model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+					glm::mat4 proj = glm::perspective(glm::radians(45.0f), extent.width / (float) extent.height, 0.1f, 10.0f);
+					proj[1][1]*= -1;
 
-				glm::mat4 viewproj = proj * view;
+					glm::mat4 viewproj = proj * view;
 
-				frame.draw_texture_2d(viewproj, model, model_3d.vertex_buffer, model_3d.index_buffer, model_3d.color_texture);
-
+					frame.draw_texture_2d(viewproj, model, model_3d.vertex_buffer, model_3d.index_buffer, model_3d.color_texture);
+				}
+				{
+					obscure::imgui::frame imgui_frame {frame.get_command_buffer()};
+					ImGui::ShowDemoWindow();
+				}
 			}
 			app.submit_frame();
 			app.draw_frame();
