@@ -179,6 +179,42 @@ export namespace obscure::vulkan
             return result;
         }
 
+        template<
+            obscure::vulkan::pipeline_definition TPipeline,
+            vk::SamplerAddressMode modeU,
+            vk::SamplerAddressMode modeV,
+            vk::SamplerAddressMode modeW>
+        [[nodiscard]] obscure::vulkan::rgba_2d_texture<modeU, modeV, modeW> load_texture(std::span<const stbi_uc> data, uint32_t binding) const
+        {
+            constexpr size_t pipeline_idx = obscure::helper_templates::index_of<TPipeline, TPipelines...>();
+            int texWidth, texHeight, texChannels;
+            stbi_uc* pixels = stbi_load_from_memory(data.data(), static_cast<int>(data.size()), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            size_t imageSize = texWidth * texHeight * 4;
+            uint32_t mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+            vk::Extent3D image_extent{
+                static_cast<uint32_t>(texWidth),
+                static_cast<uint32_t>(texHeight),
+                1
+            };
+
+            obscure::vulkan::staging_buffer<stbi_uc> temp_buffer {vk_device, imageSize};
+            temp_buffer.copy_data(pixels, imageSize);
+
+            obscure::vulkan::rgba_2d_texture result {
+                vk_device,
+                image_extent,
+                vk_pipeline_collection.texture_descriptor_layouts[pipeline_idx],
+                binding,
+                mipLevels
+            };
+
+            {
+                transfer_session copy_session = begin_transfers();
+                copy_session.copy_buffer_to_texture(temp_buffer, result);
+            }
+            return result;
+        }
+
 
 
 
