@@ -1,6 +1,7 @@
 module;
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
+#include <tuple>
 export module obscure.glfw:window;
 import :defaults;
 import obscure.properties;
@@ -20,6 +21,13 @@ export namespace obscure::glfw
         {
             return glfwGetKey(window_ptr, KeyCode) & GLFW_PRESS;
         }
+
+        std::pair<double, double> getCursorPos() const {
+            std::pair<double, double> cursor_pos{};
+            glfwGetCursorPos(window_ptr, &cursor_pos.first, &cursor_pos.second);
+            return cursor_pos;
+        }
+
 
         vk::SurfaceKHR create_surface(vk::Instance inst) const
         {
