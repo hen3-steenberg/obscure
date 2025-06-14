@@ -18,7 +18,7 @@ export namespace obscure::glfw
 
         bool isKeyPressed(int KeyCode) const
         {
-            return glfwGetKey(window_ptr, KeyCode) & (GLFW_PRESS | GLFW_RELEASE);
+            return glfwGetKey(window_ptr, KeyCode) & GLFW_PRESS;
         }
 
         vk::SurfaceKHR create_surface(vk::Instance inst) const
