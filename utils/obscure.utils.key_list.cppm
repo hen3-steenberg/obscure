@@ -6,10 +6,21 @@ export module obscure.utils.key_list;
 
 export namespace obscure
 {
+
+    template<auto Key1, auto Key2>
+    consteval bool is_equal() {
+        if constexpr (std::is_same_v<decltype(Key1), decltype(Key2)>) {
+            return Key1 == Key2;
+        }
+        else {
+            return false;
+        }
+    }
+
     template<auto Key, auto Key1, auto ... Keys>
     constexpr bool has_key_impl()
     {
-        if constexpr (std::is_same_v<decltype(Key), decltype(Key1)> && Key == Key1)
+        if constexpr (is_equal<Key, Key1>())
         {
             return true;
         }
@@ -26,7 +37,7 @@ export namespace obscure
     template<std::size_t index, auto Key, auto Key1, auto ... Keys>
     constexpr std::size_t get_index_impl()
     {
-        if constexpr (std::is_same_v<decltype(Key), decltype(Key1)> && Key == Key1)
+        if constexpr (is_equal<Key, Key1>())
         {
             return index;
         }
