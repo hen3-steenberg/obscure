@@ -23,11 +23,22 @@ endif()
 
 project ("obscure" CXX)
 
+if(NOT TARGET glfw)
+	message(STATUS "Searching for GLFW.")
+	find_package(glfw3 CONFIG REQUIRED)
+endif()
 
-find_package(glfw3 CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
+if(NOT TARGET glm::glm)
+	message(STATUS "Searching for glm.")
+	find_package(glm CONFIG REQUIRED)
+endif()
+
 find_package(Vulkan)
-find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+
+if(NOT TARGET GPUOpen::VulkanMemoryAllocator)
+	message(STATUS "Searching for VulkanMemoryAllocator.")
+	find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+endif()
 
 
 add_subdirectory("shaders")
@@ -39,4 +50,7 @@ add_subdirectory("vulkan")
 add_subdirectory("builtin")
 add_subdirectory("obscure")
 add_subdirectory("3rd_party")
-add_subdirectory("developer_test")
+
+if(NOT DEFINED OBSCURE_TEST OR OBSCURE_TEST)
+	add_subdirectory("developer_test")
+endif()
