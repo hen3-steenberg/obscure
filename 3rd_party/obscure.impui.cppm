@@ -32,7 +32,7 @@ export namespace obscure::imgui
                 .Subpass = 0,
                 .MinImageCount = gfx_ctx.device_ctx.vk_swap_chain.image_count,
                 .ImageCount = gfx_ctx.device_ctx.vk_swap_chain.image_count,
-                .DescriptorPoolSize = gfx_ctx.device_ctx.vk_swap_chain.image_count * 2,
+                .DescriptorPoolSize = 10,
                 .MSAASamples = static_cast<VkSampleCountFlagBits>(gfx_ctx.device_ctx.vk_swap_chain.multisaa_buffer.msaa_samples),
                 .RenderPass = gfx_ctx.device_ctx.vk_swap_chain.render_pass
             };
