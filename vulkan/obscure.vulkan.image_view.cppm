@@ -58,5 +58,9 @@ export namespace obscure::vulkan
                 device.destroyImageView(get());
             }
         }
+
+        [[nodiscard]] constexpr bool operator==(const image_view &other) const noexcept {
+            return get() == other.get();
+        }
     };
 }
