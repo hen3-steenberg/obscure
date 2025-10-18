@@ -55,7 +55,7 @@ export namespace obscure::vulkan
             return std::bit_cast<vk::BufferUsageFlags>(Usage);
         }
 
-      private:
+    private:
         static std::pair<vk::Buffer, VmaAllocation>
         create_buffer(device const& dev, size_t _size)
         {
@@ -93,7 +93,7 @@ export namespace obscure::vulkan
         {
         }
 
-      public:
+    public:
         VmaAllocation allocation{};
         const device* vk_device;
         size_t _size;
@@ -322,7 +322,7 @@ export namespace obscure::vulkan
         std::array<vk::DescriptorSet, obscure::max_image_count()> descriptor_sets;
         T* current_buffer;
 
-      private:
+    private:
         static buffer_set
         make_buffer_set(const device& _device)
         {
@@ -355,7 +355,7 @@ export namespace obscure::vulkan
             return result;
         }
 
-      public:
+    public:
         explicit uniform_buffer(const device& device, vk::DescriptorSetLayout layout, uint32_t binding)
             : data(make_buffer_set(device))
             , descriptor_pool(create_descriptor_pool(device))

@@ -18,7 +18,7 @@ get_shader_data()
 export namespace obscure::vulkan
 {
     struct shader_module : vk::ShaderModule {
-      private:
+    private:
         static vk::ShaderModule
         create_shader_module(vk::Device device, std::span<const uint32_t> program)
         {
@@ -27,7 +27,7 @@ export namespace obscure::vulkan
             return device.createShaderModule(create_info);
         }
 
-      public:
+    public:
         explicit shader_module(vk::Device device, std::span<const uint32_t> program)
             : vk::ShaderModule(create_shader_module(device, program))
         {

@@ -13,7 +13,7 @@ export namespace obscure::vulkan
 
     template<std::size_t index, pipeline_definition TPipeline>
     struct draw_calls_impl : draw_call_t<TPipeline> {
-      private:
+    private:
         [[nodiscard]] std::size_t
         get_pipeline_index() const final
         {
@@ -36,7 +36,7 @@ export namespace obscure::vulkan
 
     template<pipeline_definition... TPipelines>
     struct command_session final : draw_call_collection<0, TPipelines...> {
-      private:
+    private:
         vk::CommandBuffer command_buffer;
         std::uint32_t frame_index;
         std::span<vk::Pipeline> pipeline_refs;
@@ -69,7 +69,7 @@ export namespace obscure::vulkan
             return texture_descriptor_set_layouts;
         }
 
-      public:
+    public:
         command_session(vk::CommandBuffer _command_buffer,
                         std::uint32_t index,
                         swap_chain_ref swap_chain,

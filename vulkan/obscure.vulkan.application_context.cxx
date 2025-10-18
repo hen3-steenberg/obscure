@@ -84,7 +84,7 @@ namespace obscure::vulkan
 
     template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type>
     struct logger_base {
-      private:
+    private:
         static vk::Instance
         get_instance()
         {
@@ -113,7 +113,7 @@ namespace obscure::vulkan
 
         vk::DebugUtilsMessengerEXT LoggerHandle;
 
-      public:
+    public:
         logger_base()
         {
             vk::DebugUtilsMessengerCreateInfoEXT const create_info{
@@ -135,7 +135,7 @@ namespace obscure::vulkan
 
         virtual ~logger_base() noexcept { free(); }
 
-      protected:
+    protected:
         virtual void
         LogEvent(vk::DebugUtilsMessageSeverityFlagsEXT Severity,
                  vk::DebugUtilsMessageTypeFlagsEXT Type,
@@ -293,7 +293,7 @@ namespace obscure::vulkan
 
     template<vk::DebugUtilsMessageSeverityFlagBitsEXT min_severity, vk::DebugUtilsMessageTypeFlagBitsEXT min_type>
     struct console_logger : logger_base<min_severity, min_type> {
-      private:
+    private:
         void
         LogEvent(vk::DebugUtilsMessageSeverityFlagsEXT Severity,
                  vk::DebugUtilsMessageTypeFlagsEXT Type,
@@ -331,7 +331,7 @@ namespace obscure::vulkan
             json_file.close();
         }
 
-      private:
+    private:
         void
         ProcessMessages()
         {

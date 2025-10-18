@@ -5,7 +5,7 @@ export module obscure.vulkan.semaphore;
 export namespace obscure::vulkan
 {
     struct semaphore : vk::Semaphore {
-      private:
+    private:
         static vk::Semaphore
         create_semaphore(vk::Device _device)
         {
@@ -14,7 +14,7 @@ export namespace obscure::vulkan
             return _device.createSemaphore(create_info);
         }
 
-      public:
+    public:
         semaphore(vk::Device _device)
             : vk::Semaphore(create_semaphore(_device))
         {

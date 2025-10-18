@@ -15,7 +15,7 @@ export namespace obscure::vulkan
         std::array<VmaAllocation, max_image_count()> sample_allocations;
         vk::SampleCountFlagBits msaa_samples;
 
-      private:
+    private:
         static vk::SampleCountFlagBits
         get_sample_count(vk::PhysicalDevice device) noexcept
         {
@@ -37,7 +37,7 @@ export namespace obscure::vulkan
             return vk::SampleCountFlagBits::e1;
         }
 
-      public:
+    public:
         msaa_buffer(device const& device_, vk::Format format, vk::Extent2D extent)
             : msaa_samples(get_sample_count(device_.get_physical_device()))
         {

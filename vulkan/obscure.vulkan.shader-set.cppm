@@ -10,14 +10,14 @@ export namespace obscure::vulkan
 {
     template<auto... Keys>
     struct shader_set : private vk::Device {
-      private:
+    private:
         [[nodiscard]] vk::Device
         get_device() const
         {
             return static_cast<vk::Device>(*this);
         }
 
-      public:
+    public:
         using shader_list = obscure::key_set<Keys...>;
         std::array<shader_module, sizeof...(Keys)> shaders;
 

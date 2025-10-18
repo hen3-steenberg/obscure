@@ -14,7 +14,7 @@ export namespace obscure::vulkan
         std::array<vk::DescriptorSetLayout, Size> uniform_descriptor_layouts;
         std::array<vk::DescriptorSetLayout, Size> texture_descriptor_layouts;
 
-      private:
+    private:
         [[nodiscard]] vk::Device
         get_device() const noexcept
         {
@@ -45,7 +45,7 @@ export namespace obscure::vulkan
                                    // nullptr, pipeline_layouts.data());
         }
 
-      public:
+    public:
         template<typename TShaderSet, pipeline_definition... Pipelines>
         static pipeline_collection<sizeof...(Pipelines)>
         make_pipeline_collection(vk::Device device,

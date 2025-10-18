@@ -9,7 +9,7 @@ export import obscure.vulkan.texture;
 export namespace obscure::vulkan
 {
     struct transfer_session {
-      private:
+    private:
         static vk::CommandBuffer
         create_command_buffer(vk::Device device, vk::CommandPool pool)
         {
@@ -25,7 +25,7 @@ export namespace obscure::vulkan
             return copyCmd;
         }
 
-      public:
+    public:
         vk::Device device;
         vk::CommandPool command_pool;
         vk::Queue transfer_queue;

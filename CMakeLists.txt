@@ -54,3 +54,20 @@ add_subdirectory("3rd_party")
 if(NOT DEFINED OBSCURE_TEST OR OBSCURE_TEST)
 	add_subdirectory("developer_test")
 endif()
+
+find_program(CLANG_FORMAT_EXE clang-format)
+file(GLOB_RECURSE CXX_FILES "*.cppm" "*.cxx" "*.cpp" "*.hpp")
+list(FILTER CXX_FILES EXCLUDE REGEX "3rd_party/imgui")
+file(GLOB_RECURSE SHADER_FILES "*.vert" "*.frag")
+list(FILTER SHADER_FILES EXCLUDE REGEX "3rd_party/imgui")
+
+if(CLANG_FORMAT_EXE)
+	add_custom_target(FORMAT_CODE
+			COMMENT "Formatting files with clang-format..."
+			COMMAND ${CLANG_FORMAT_EXE} -i ${CXX_FILES} ${SHADER_FILES}
+	)
+	message(STATUS "Added 'format' target")
+else()
+	message(WARNING
+			"clang-format not found - format target unavailable")
+endif()

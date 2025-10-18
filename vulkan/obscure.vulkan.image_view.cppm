@@ -5,7 +5,7 @@ export module obscure.vulkan.image_view;
 export namespace obscure::vulkan
 {
     struct image_view : vk::ImageView {
-      private:
+    private:
         static vk::ImageView
         create_image_view(vk::Device device, vk::Image image, vk::Format format)
         {
@@ -25,7 +25,7 @@ export namespace obscure::vulkan
                 return VK_NULL_HANDLE;
         }
 
-      public:
+    public:
         image_view()
             : vk::ImageView(VK_NULL_HANDLE)
         {

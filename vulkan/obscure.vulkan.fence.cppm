@@ -6,7 +6,7 @@ export module obscure.vulkan.fence;
 export namespace obscure::vulkan
 {
     struct fence : vk::Fence {
-      private:
+    private:
         static vk::Fence
         create_fence(vk::Device _device, bool signaled)
         {
@@ -18,7 +18,7 @@ export namespace obscure::vulkan
             return _device.createFence(create_info);
         }
 
-      public:
+    public:
         fence(vk::Device _device, bool signaled = true)
             : vk::Fence(create_fence(_device, signaled))
         {

@@ -30,7 +30,7 @@ export namespace obscure::vulkan
         std::array<obscure::vulkan::semaphore, max_image_count()> render_finished;
         std::array<obscure::vulkan::fence, max_image_count()> in_flight;
 
-      private:
+    private:
         static vk::SurfaceFormatKHR
         get_swap_format(vk::PhysicalDevice device, vk::SurfaceKHR surface)
         {
@@ -281,7 +281,7 @@ export namespace obscure::vulkan
         {
         }
 
-      public:
+    public:
         swap_chain_data(obscure::vulkan::device const& device,
                         vk::SurfaceKHR _surface,
                         obscure::glfw::glfw_window_ref window)
@@ -369,14 +369,14 @@ export namespace obscure::vulkan
     struct swap_chain : swap_chain_data {
         std::reference_wrapper<const device> vk_device;
 
-      private:
+    private:
         [[nodiscard]] vk::Device
         get_device() const noexcept
         {
             return vk_device.get().get_device();
         }
 
-      public:
+    public:
         swap_chain(device const& _device, vk::SurfaceKHR _surface, obscure::glfw::glfw_window_ref window)
             : swap_chain_data(_device, _surface, window)
             , vk_device(_device)

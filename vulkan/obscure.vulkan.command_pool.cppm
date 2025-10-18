@@ -9,7 +9,7 @@ export namespace obscure::vulkan
     struct command_pool
         : vk::CommandPool
         , private vk::Device {
-      private:
+    private:
         [[nodiscard]] vk::Device
         get_device() const noexcept
         {
@@ -25,7 +25,7 @@ export namespace obscure::vulkan
             return _device.createCommandPool(create_info);
         }
 
-      public:
+    public:
         std::vector<vk::CommandBuffer> command_buffers;
 
         explicit command_pool(device const& _device, std::size_t buffer_count)
@@ -57,7 +57,7 @@ export namespace obscure::vulkan
     struct transfer_pool
         : vk::CommandPool
         , private vk::Device {
-      private:
+    private:
         [[nodiscard]] vk::Device
         get_device() const noexcept
         {
@@ -73,7 +73,7 @@ export namespace obscure::vulkan
             return _device.createCommandPool(create_info);
         }
 
-      public:
+    public:
         explicit transfer_pool(device const& _device)
             : vk::CommandPool(create_command_pool(_device))
             , vk::Device(_device.get_device())

@@ -6,7 +6,7 @@ export module obscure.vulkan.pipeline:draw_call_base;
 export namespace obscure::vulkan
 {
     struct shared_draw_call_base {
-      protected:
+    protected:
         [[nodiscard]] virtual vk::CommandBuffer
         get_command_buffer() const = 0;
         [[nodiscard]] virtual std::uint32_t
@@ -22,12 +22,12 @@ export namespace obscure::vulkan
         [[nodiscard]] virtual std::span<vk::DescriptorSetLayout>
         get_all_texture_descriptor_layouts() const = 0;
 
-      public:
+    public:
         virtual ~shared_draw_call_base() = default;
     };
 
     struct draw_call_base : virtual shared_draw_call_base {
-      protected:
+    protected:
         [[nodiscard]] virtual std::size_t
         get_pipeline_index() const = 0;
         [[nodiscard]] vk::Pipeline
@@ -60,7 +60,7 @@ export namespace obscure::vulkan
             get_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, get_graphics_pipeline());
         }
 
-      public:
+    public:
         ~draw_call_base() override = default;
     };
 } // namespace obscure::vulkan

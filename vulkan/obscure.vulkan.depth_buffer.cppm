@@ -16,7 +16,7 @@ export namespace obscure::vulkan
         std::array<vk::ImageView, buffer_count> views;
         std::array<VmaAllocation, buffer_count> allocations;
 
-      private:
+    private:
         static vk::Format
         get_format(device const& device_)
         {
@@ -77,7 +77,7 @@ export namespace obscure::vulkan
             return result;
         }
 
-      public:
+    public:
         depth_buffer(device const& device_, vk::Extent3D extent, vk::SampleCountFlagBits samples)
             : format(get_format(device_))
         {

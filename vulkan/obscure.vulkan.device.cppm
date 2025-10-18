@@ -175,7 +175,7 @@ namespace obscure::vulkan
         uint32_t present_queue_index;
         uint32_t transfer_queue_index;
 
-      private:
+    private:
         static vk::Device
         create_logical_device(vk::PhysicalDevice physical_device, queue_indices indices)
         {
@@ -252,7 +252,7 @@ namespace obscure::vulkan
         {
         }
 
-      public:
+    public:
         device(vk::PhysicalDevice physical_device, vk::SurfaceKHR surface)
             : device(physical_device, queue_indices{ physical_device, surface })
         {

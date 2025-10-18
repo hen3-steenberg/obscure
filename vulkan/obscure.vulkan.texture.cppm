@@ -23,7 +23,7 @@ export namespace obscure::vulkan
         vk::Extent3D extent;
         uint32_t mip_levels;
 
-      private:
+    private:
         static std::pair<vk::Image, VmaAllocation>
         create_texture(device const& _device, vk::Extent3D extent, uint32_t miplevels)
         {
@@ -67,7 +67,7 @@ export namespace obscure::vulkan
         {
         }
 
-      public:
+    public:
         texture_impl() noexcept
             : vk::Image{ VK_NULL_HANDLE }
             , allocation(nullptr)
@@ -118,7 +118,7 @@ export namespace obscure::vulkan
              vk::SamplerAddressMode modeV = modeU,
              vk::SamplerAddressMode modeW = modeV>
     struct rgba_2d_texture : rgba_2d_texture_impl {
-      private:
+    private:
         template<vk::ImageLayout new_layout>
         static consteval bool
         can_transition()
@@ -191,7 +191,7 @@ export namespace obscure::vulkan
             return result;
         }
 
-      public:
+    public:
         vk::ImageView texture_view;
         vk::Sampler texture_sampler;
         vk::DescriptorPool descriptor_pool;
