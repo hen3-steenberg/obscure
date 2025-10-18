@@ -14,6 +14,6 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
 endforeach(GLSL)
 
 add_custom_target(
-        shaders
+        obscure_shaders
         DEPENDS ${SPIRV_BINARY_FILES}
 )

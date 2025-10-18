@@ -1,6 +1,7 @@
-add_library(imgui)
+add_library(obscure_imgui)
+add_library(obscure::imgui ALIAS obscure_imgui)
 
-target_sources(imgui
+target_sources(obscure_imgui
     PRIVATE
         "imgui/imgui.cpp"
         "imgui/imgui_demo.cpp"
@@ -28,4 +29,4 @@ target_sources(imgui
         "obscure.impui.cppm"
 )
 
-target_link_libraries(imgui PUBLIC obscure_vulkan)
+target_link_libraries(obscure_imgui PUBLIC obscure::vulkan)

@@ -1,9 +1,8 @@
 module;
 #include <tuple>
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 #include <vulkan/vulkan.hpp>
-#include "vk_mem_alloc.h"
+#include "vma.hpp"
 export module obscure.vulkan.texture;
 export import obscure.vulkan.buffer;
 export import obscure.vulkan.device;

@@ -1,6 +1,6 @@
 module;
 #include <vulkan/vulkan.hpp>
-#include <vk_mem_alloc.h>
+#include "vma.hpp"
 export module obscure.vulkan.transfer_session;
 export import obscure.vulkan.device;
 export import obscure.vulkan.buffer;

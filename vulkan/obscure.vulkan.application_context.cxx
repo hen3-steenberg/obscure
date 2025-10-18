@@ -15,8 +15,7 @@ module;
 #include <mutex>
 #include <optional>
 #include <thread>
-#define VMA_IMPLEMENTATION
-#include "vk_mem_alloc.h"
+#include "vma.hpp"
 module obscure.vulkan.application_context;
 
 #pragma region logger

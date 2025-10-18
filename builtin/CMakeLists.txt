@@ -1,5 +1,6 @@
-add_library(builtin)
-target_sources(builtin
+add_library(obscure_builtin)
+add_library(obscure::builtin ALIAS obscure_builtin)
+target_sources(obscure_builtin
     PRIVATE
          "${CMAKE_CURRENT_SOURCE_DIR}/shader_bin/obscure.builtin.shaders.cxx"
     PUBLIC
@@ -14,14 +15,10 @@ target_sources(builtin
         "obscure.builtin.cppm"
 )
 
-target_link_libraries(builtin PUBLIC glfw)
-target_link_libraries(builtin PUBLIC glm::glm)
-target_link_libraries(builtin PUBLIC Vulkan::Vulkan)
-target_link_libraries(builtin PUBLIC GPUOpen::VulkanMemoryAllocator)
-
-target_link_libraries(builtin PUBLIC utils)
-target_link_libraries(builtin PUBLIC helper_templates)
-target_link_libraries(builtin PUBLIC config)
-target_link_libraries(builtin PUBLIC obscure_glfw)
-target_link_libraries(builtin PUBLIC obscure_vulkan)
-add_dependencies(builtin shaders)
+target_link_libraries(obscure_builtin PUBLIC obscure::dependencies)
+target_link_libraries(obscure_builtin PUBLIC obscure::utils)
+target_link_libraries(obscure_builtin PUBLIC obscure::helper_templates)
+target_link_libraries(obscure_builtin PUBLIC obscure::config)
+target_link_libraries(obscure_builtin PUBLIC obscure::glfw)
+target_link_libraries(obscure_builtin PUBLIC obscure::vulkan)
+add_dependencies(obscure_builtin obscure_shaders)

@@ -1,4 +1,5 @@
 add_library(obscure_vulkan)
+add_library(obscure::vulkan ALIAS obscure_vulkan)
 target_sources(obscure_vulkan
         PRIVATE
         "obscure.vulkan.application_context.cxx"
@@ -32,12 +33,8 @@ target_sources(obscure_vulkan
         "obscure.vulkan.cppm"
 )
 
-target_link_libraries(obscure_vulkan PUBLIC glfw)
-target_link_libraries(obscure_vulkan PUBLIC glm::glm)
-target_link_libraries(obscure_vulkan PUBLIC Vulkan::Vulkan)
-target_link_libraries(obscure_vulkan PUBLIC GPUOpen::VulkanMemoryAllocator)
-
-target_link_libraries(obscure_vulkan PUBLIC utils)
-target_link_libraries(obscure_vulkan PUBLIC helper_templates)
-target_link_libraries(obscure_vulkan PUBLIC config)
-target_link_libraries(obscure_vulkan PUBLIC obscure_glfw)
+target_link_libraries(obscure_vulkan PUBLIC obscure::dependencies)
+target_link_libraries(obscure_vulkan PUBLIC obscure::utils)
+target_link_libraries(obscure_vulkan PUBLIC obscure::helper_templates)
+target_link_libraries(obscure_vulkan PUBLIC obscure::config)
+target_link_libraries(obscure_vulkan PUBLIC obscure::glfw)

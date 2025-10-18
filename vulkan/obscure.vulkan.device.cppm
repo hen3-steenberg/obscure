@@ -2,7 +2,7 @@ module;
 #include <functional>
 #include <stdexcept>
 #include <vulkan/vulkan.hpp>
-#include <vk_mem_alloc.h>
+#include "vma.hpp"
 export module obscure.vulkan.device;
 import obscure.vulkan.application_context;
 import obscure.properties;

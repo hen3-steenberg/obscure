@@ -1,7 +1,7 @@
 module;
 #include <array>
 #include <vulkan/vulkan.hpp>
-#include <vk_mem_alloc.h>
+#include "vma.hpp"
 export module obscure.vulkan.msaa_buffer;
 export import obscure.vulkan.device;
 export import obscure.vulkan.image_view;

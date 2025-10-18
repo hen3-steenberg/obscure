@@ -1,5 +1,6 @@
-add_library(helper_templates)
-target_sources(helper_templates
+add_library(obscure_helper_templates)
+add_library(obscure::helper_templates ALIAS obscure_helper_templates)
+target_sources(obscure_helper_templates
         PUBLIC
         FILE_SET CXX_MODULES FILES
         "obscure.helper_templates.array_initialize.cppm"

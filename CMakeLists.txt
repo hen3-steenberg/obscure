@@ -40,7 +40,7 @@ if(NOT TARGET GPUOpen::VulkanMemoryAllocator)
 	find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 endif()
 
-
+add_subdirectory("dependencies")
 add_subdirectory("shaders")
 add_subdirectory("utils")
 add_subdirectory("helper_templates")

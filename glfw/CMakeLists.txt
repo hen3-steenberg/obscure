@@ -1,4 +1,5 @@
 add_library(obscure_glfw)
+add_library(obscure::glfw ALIAS obscure_glfw)
 target_sources(obscure_glfw
         PUBLIC
         FILE_SET CXX_MODULES FILES
@@ -7,6 +8,5 @@ target_sources(obscure_glfw
         "obscure.glfw-window.cppm"
 )
 
-target_link_libraries(obscure_glfw PUBLIC glfw)
-target_link_libraries(obscure_glfw PUBLIC Vulkan::Vulkan)
-target_link_libraries(obscure_glfw PUBLIC config)
+target_link_libraries(obscure_glfw PUBLIC obscure::dependencies)
+target_link_libraries(obscure_glfw PUBLIC obscure::config)
