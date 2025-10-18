@@ -1,13 +1,12 @@
 module;
-#include <span>
 #include <cstdint>
+#include <span>
 export module obscure.builtin.shaders;
 export import obscure.vulkan.shader;
 
 export namespace obscure::builtin
 {
-    enum class shader
-    {
+    enum class shader {
         no_shader,
         color_fragment,
         test_triangle_vertex,
@@ -19,34 +18,43 @@ export namespace obscure::builtin
     };
 
     template<shader shader>
-    std::span<const uint32_t> get_data() = delete;
+    std::span<const uint32_t>
+    get_data() = delete;
 
     template<>
-    std::span<const uint32_t> get_data<shader::color_fragment>();
+    std::span<const uint32_t>
+    get_data<shader::color_fragment>();
 
     template<>
-    std::span<const uint32_t> get_data<shader::test_triangle_vertex>();
+    std::span<const uint32_t>
+    get_data<shader::test_triangle_vertex>();
 
     template<>
-    std::span<const uint32_t> get_data<shader::color_vertex>();
+    std::span<const uint32_t>
+    get_data<shader::color_vertex>();
 
     template<>
-    std::span<const uint32_t> get_data<shader::color_2d_vertex>();
+    std::span<const uint32_t>
+    get_data<shader::color_2d_vertex>();
 
     template<>
-    std::span<const uint32_t> get_data<shader::texture_2d2d_vertex>();
+    std::span<const uint32_t>
+    get_data<shader::texture_2d2d_vertex>();
 
     template<>
-    std::span<const uint32_t> get_data<shader::texture_2d_fragment>();
+    std::span<const uint32_t>
+    get_data<shader::texture_2d_fragment>();
 
     template<>
-    std::span<const uint32_t> get_data<shader::texture_2d_vertex>();
-}
+    std::span<const uint32_t>
+    get_data<shader::texture_2d_vertex>();
+} // namespace obscure::builtin
 
-export
-template<obscure::builtin::shader shader>
+export template<obscure::builtin::shader shader>
 struct shader_loader<shader> {
-    static obscure::vulkan::shader_data auto load_shader() {
+    static obscure::vulkan::shader_data auto
+    load_shader()
+    {
         return obscure::builtin::get_data<shader>();
     }
 };

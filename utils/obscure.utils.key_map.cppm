@@ -5,33 +5,35 @@ export import obscure.utils.key_set;
 
 namespace obscure
 {
-    export
-    template<template<auto> class TValue, auto ... Keys>
-    struct key_map : key_set<Keys...>
-    {
+    export template<template<auto> class TValue, auto... Keys>
+    struct key_map : key_set<Keys...> {
         std::tuple<TValue<Keys>...> data;
 
         key_map()
-            : data() {
+            : data()
+        {
         }
 
-        template<typename ... TParams>
-        key_map(TParams ... Parameters)
-            : data(std::make_tuple(TValue<Keys> {Parameters...}...)) {}
+        template<typename... TParams>
+        key_map(TParams... Parameters)
+            : data(std::make_tuple(TValue<Keys>{ Parameters... }...))
+        {
+        }
 
         template<auto Key>
-        TValue<Key> get_value() const&
+        TValue<Key>
+        get_value() const&
         {
             return std::get<TValue<Key>>(data);
         }
 
         template<auto Key>
-        TValue<Key>& get_value()&
+        TValue<Key>&
+        get_value() &
         {
             return std::get<TValue<Key>>(data);
         }
 
-        //template<auto ... SubKeys>
-
+        // template<auto ... SubKeys>
     };
-}
+} // namespace obscure

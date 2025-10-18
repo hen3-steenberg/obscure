@@ -1,22 +1,26 @@
 module;
+#include <array>
 #include <cstdint>
 #include <vulkan/vulkan.hpp>
-#include <array>
 export module obscure.properties;
 export import obscure.utils.version;
 
 export namespace obscure
 {
-    [[nodiscard]] consteval version obscure_version()
+    [[nodiscard]] consteval version
+    obscure_version()
     {
-        return version {1, 0, 0};
+        return version{ 1, 0, 0 };
     }
 
-    [[nodiscard]] consteval uint32_t vulkan_version() {
+    [[nodiscard]] consteval uint32_t
+    vulkan_version()
+    {
         return VK_API_VERSION_1_0;
     }
 
-    [[nodiscard]] consteval bool enable_debug_validation()
+    [[nodiscard]] consteval bool
+    enable_debug_validation()
     {
 #ifdef DEBUG
         return true;
@@ -25,23 +29,27 @@ export namespace obscure
 #endif
     }
 
-    [[nodiscard]] consteval const char* obscure_name()
+    [[nodiscard]] consteval const char*
+    obscure_name()
     {
         return "OBSCURE";
     }
 
-    [[nodiscard]] consteval auto required_device_extensions()
+    [[nodiscard]] consteval auto
+    required_device_extensions()
     {
-        return std::array<const char*, 1> { "VK_KHR_swapchain" };
+        return std::array<const char*, 1>{ "VK_KHR_swapchain" };
     }
 
-    [[nodiscard]] consteval vk::ClearColorValue get_clear_color()
+    [[nodiscard]] consteval vk::ClearColorValue
+    get_clear_color()
     {
-        return {0.0f, 0.0f, 0.0f, 1.0f};
+        return { 0.0f, 0.0f, 0.0f, 1.0f };
     }
 
-    [[nodiscard]] consteval std::size_t max_image_count()
+    [[nodiscard]] consteval std::size_t
+    max_image_count()
     {
         return 5;
     }
-}
+} // namespace obscure

@@ -1,15 +1,15 @@
 #include <GLFW/glfw3.h>
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <vulkan/vulkan.hpp>
-#include <filesystem>
 #include <iostream>
+#include <vulkan/vulkan.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
 #include "imgui.h"
+#include "tiny_obj_loader.h"
 
 import obscure.vulkan;
 import obscure.utils.stopwatch;
@@ -21,111 +21,97 @@ using pipeline_t = obscure::builtin::pipeline::texture_3d2d;
 using gfx_ctx_t = obscure::graphics_context<pipeline_t>;
 using vertex_t = obscure::builtin::pipeline::texture_3d2d_vertex;
 
-struct object_3d
-{
-	obscure::vulkan::vertex_buffer<vertex_t> vertex_buffer;
-	obscure::vulkan::index_buffer<uint32_t> index_buffer;
-	obscure::vulkan::rgba_2d_texture<> color_texture;
+struct object_3d {
+    obscure::vulkan::vertex_buffer<vertex_t> vertex_buffer;
+    obscure::vulkan::index_buffer<uint32_t> index_buffer;
+    obscure::vulkan::rgba_2d_texture<> color_texture;
 
-	static object_3d load(gfx_ctx_t const& ctx, std::filesystem::path obj_path)
-	{
-		if (!std::filesystem::exists(obj_path))
-		{
-			throw std::runtime_error("Object does not exist");
-		}
+    static object_3d
+    load(gfx_ctx_t const& ctx, std::filesystem::path obj_path)
+    {
+        if (!std::filesystem::exists(obj_path)) {
+            throw std::runtime_error("Object does not exist");
+        }
 
-		tinyobj::ObjReader reader;
-		if (!reader.ParseFromFile(obj_path))
-		{
-			throw std::runtime_error("Failed to parse obj file");
-		}
+        tinyobj::ObjReader reader;
+        if (!reader.ParseFromFile(obj_path)) {
+            throw std::runtime_error("Failed to parse obj file");
+        }
 
-		std::vector<vertex_t> vertices;
-		std::vector<uint32_t> indices;
+        std::vector<vertex_t> vertices;
+        std::vector<uint32_t> indices;
 
-		for (auto const& shape : reader.GetShapes())
-		{
-			for (auto index : shape.mesh.indices)
-			{
-				vertices.emplace_back(vertex_t {
-					{
-						reader.GetAttrib().vertices[3 * index.vertex_index + 0],
-						reader.GetAttrib().vertices[3 * index.vertex_index + 1],
-						reader.GetAttrib().vertices[3 * index.vertex_index + 2]
-					},
-					{
-						reader.GetAttrib().texcoords[2 * index.texcoord_index + 0],
-						1.0f - reader.GetAttrib().texcoords[2 * index.texcoord_index + 1]
-					}
-				});
+        for (auto const& shape : reader.GetShapes()) {
+            for (auto index : shape.mesh.indices) {
+                vertices.emplace_back(
+                    vertex_t{ { reader.GetAttrib().vertices[3 * index.vertex_index + 0],
+                                reader.GetAttrib().vertices[3 * index.vertex_index + 1],
+                                reader.GetAttrib().vertices[3 * index.vertex_index + 2] },
+                              { reader.GetAttrib().texcoords[2 * index.texcoord_index + 0],
+                                1.0f - reader.GetAttrib().texcoords[2 * index.texcoord_index + 1] } });
 
-				indices.emplace_back(indices.size());
-			}
-		}
+                indices.emplace_back(indices.size());
+            }
+        }
 
-		obj_path.replace_extension(".png");
-		if (!std::filesystem::exists(obj_path))
-		{
-			throw std::runtime_error("Texture does not exist");
-		}
-		std::cout << "Loading texture: " << obj_path << std::endl;
+        obj_path.replace_extension(".png");
+        if (!std::filesystem::exists(obj_path)) {
+            throw std::runtime_error("Texture does not exist");
+        }
+        std::cout << "Loading texture: " << obj_path << std::endl;
 
-		return object_3d {
-			ctx.init_vertex_buffer<vertex_t>(vertices),
-			ctx.init_index_buffer<uint32_t>(indices),
-			ctx.load_texture<pipeline_t>(obj_path, 0)
-		};
-	}
+        return object_3d{ ctx.init_vertex_buffer<vertex_t>(vertices),
+                          ctx.init_index_buffer<uint32_t>(indices),
+                          ctx.load_texture<pipeline_t>(obj_path, 0) };
+    }
 };
 
-
-int main()
+int
+main()
 {
-	obscure::initialize("Test App", obscure::version{1,0,0});
+    obscure::initialize("Test App", obscure::version{ 1, 0, 0 });
 
+    {
+        gfx_ctx_t app{};
+        obscure::imgui::ctx imgui_ctx{ app };
+        object_3d model_3d = object_3d::load(app, "viking_room.obj");
 
+        glm::mat4 view =
+            glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
+        obscure::stopwatch<float> frame_timer{};
+        while (!app.window.should_close()) {
+            glfwPollEvents();
+            if (app.window.isKeyPressed(GLFW_KEY_ESCAPE)) {
+                break;
+            }
+            {
+                auto frame = app.begin_frame();
+                {
+                    auto extent = frame.get_extent();
 
-	{
-		gfx_ctx_t app{};
-		obscure::imgui::ctx imgui_ctx{app};
-		object_3d model_3d = object_3d::load(app, "viking_room.obj");
+                    float time = frame_timer.total_time().count();
+                    glm::mat4 model =
+                        glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+                    glm::mat4 proj =
+                        glm::perspective(glm::radians(45.0f), extent.width / (float)extent.height, 0.1f, 10.0f);
+                    proj[1][1] *= -1;
 
-		glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+                    glm::mat4 viewproj = proj * view;
 
+                    frame.draw_texture_2d(
+                        viewproj, model, model_3d.vertex_buffer, model_3d.index_buffer, model_3d.color_texture);
+                }
+                {
+                    obscure::imgui::frame imgui_frame{ frame.get_command_buffer() };
+                    ImGui::ShowDemoWindow();
+                }
+            }
+            app.submit_frame();
+            app.draw_frame();
+        }
+    }
+    obscure::free_instance();
 
-		obscure::stopwatch<float> frame_timer{};
-		while (!app.window.should_close())
-		{
-			glfwPollEvents();
-			if (app.window.isKeyPressed(GLFW_KEY_ESCAPE))
-			{
-				break;
-			}
-			{
-				auto frame = app.begin_frame();
-				{
-					auto extent = frame.get_extent();
-
-					float time = frame_timer.total_time().count();
-					glm::mat4 model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-					glm::mat4 proj = glm::perspective(glm::radians(45.0f), extent.width / (float) extent.height, 0.1f, 10.0f);
-					proj[1][1]*= -1;
-
-					glm::mat4 viewproj = proj * view;
-
-					frame.draw_texture_2d(viewproj, model, model_3d.vertex_buffer, model_3d.index_buffer, model_3d.color_texture);
-				}
-				{
-					obscure::imgui::frame imgui_frame {frame.get_command_buffer()};
-					ImGui::ShowDemoWindow();
-				}
-			}
-			app.submit_frame();
-			app.draw_frame();
-		}
-	}
-	obscure::free_instance();
-
-	return 0;
+    return 0;
 }

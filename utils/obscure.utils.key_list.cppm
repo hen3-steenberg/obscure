@@ -1,98 +1,92 @@
 module;
-#include <type_traits>
-#include <tuple>
 #include <cstdint>
+#include <tuple>
+#include <type_traits>
 export module obscure.utils.key_list;
 
 export namespace obscure
 {
 
     template<auto Key1, auto Key2>
-    consteval bool is_equal() {
+    consteval bool
+    is_equal()
+    {
         if constexpr (std::is_same_v<decltype(Key1), decltype(Key2)>) {
             return Key1 == Key2;
-        }
-        else {
+        } else {
             return false;
         }
     }
 
-    template<auto Key, auto Key1, auto ... Keys>
-    constexpr bool has_key_impl()
+    template<auto Key, auto Key1, auto... Keys>
+    constexpr bool
+    has_key_impl()
     {
-        if constexpr (is_equal<Key, Key1>())
-        {
+        if constexpr (is_equal<Key, Key1>()) {
             return true;
-        }
-        else if constexpr (sizeof...(Keys))
-        {
+        } else if constexpr (sizeof...(Keys)) {
             return has_key_impl<Key, Keys...>();
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
 
-    template<std::size_t index, auto Key, auto Key1, auto ... Keys>
-    constexpr std::size_t get_index_impl()
+    template<std::size_t index, auto Key, auto Key1, auto... Keys>
+    constexpr std::size_t
+    get_index_impl()
     {
-        if constexpr (is_equal<Key, Key1>())
-        {
+        if constexpr (is_equal<Key, Key1>()) {
             return index;
-        }
-        else if constexpr (sizeof...(Keys))
-        {
+        } else if constexpr (sizeof...(Keys)) {
             return get_index_impl<index + 1, Key, Keys...>();
-        }
-        else
-        {
+        } else {
             static_assert(false, "The key was not found.");
             return -1;
         }
     }
 
-    template<std::size_t index, auto ... Keys>
-    constexpr auto get_at_index_impl()
+    template<std::size_t index, auto... Keys>
+    constexpr auto
+    get_at_index_impl()
     {
         auto values = std::make_tuple(Keys...);
         return std::get<index>(values);
     }
 
-    template<auto ... Keys>
-    struct key_list
-    {
+    template<auto... Keys>
+    struct key_list {
 
-        static constexpr std::size_t size()
+        static constexpr std::size_t
+        size()
         {
             return sizeof...(Keys);
         }
 
         template<auto Key>
-        static constexpr bool contains()
+        static constexpr bool
+        contains()
         {
-            if constexpr (size())
-            {
+            if constexpr (size()) {
                 return has_key_impl<Key, Keys...>();
-            }
-            else
-            {
+            } else {
                 return false;
             }
         }
 
         template<auto Key>
-        static constexpr std::size_t get_index()
+        static constexpr std::size_t
+        get_index()
         {
             static_assert(contains<Key>(), "This list does not contain the key.");
             return get_index_impl<0, Key, Keys...>();
         }
 
         template<std::size_t index>
-        static constexpr auto get_key()
+        static constexpr auto
+        get_key()
         {
             static_assert(index < sizeof...(Keys), "The index is out of bounds");
             return get_at_index_impl<index, Keys...>();
         }
     };
-}
+} // namespace obscure

@@ -4,63 +4,56 @@ export module obscure.vulkan.image_view;
 
 export namespace obscure::vulkan
 {
-    struct image_view : vk::ImageView
-    {
-    private:
-        static vk::ImageView create_image_view(vk::Device device, vk::Image image, vk::Format format)
+    struct image_view : vk::ImageView {
+      private:
+        static vk::ImageView
+        create_image_view(vk::Device device, vk::Image image, vk::Format format)
         {
             if (image) {
-                vk::ImageViewCreateInfo create_info
-                {
-						        {},
-                                image,
-                                vk::ImageViewType::e2D,
-                                format,
-                                vk::ComponentMapping
-                                {
-                                    vk::ComponentSwizzle::eIdentity,
-                                    vk::ComponentSwizzle::eIdentity,
-                                    vk::ComponentSwizzle::eIdentity,
-                                    vk::ComponentSwizzle::eIdentity
-                                },
-                                vk::ImageSubresourceRange
-                                {
-                                    vk::ImageAspectFlagBits::eColor,
-                                    0,
-                                    1,
-                                    0,
-                                    1
-                                }
-                };
+                vk::ImageViewCreateInfo create_info{ {},
+                                                     image,
+                                                     vk::ImageViewType::e2D,
+                                                     format,
+                                                     vk::ComponentMapping{ vk::ComponentSwizzle::eIdentity,
+                                                                           vk::ComponentSwizzle::eIdentity,
+                                                                           vk::ComponentSwizzle::eIdentity,
+                                                                           vk::ComponentSwizzle::eIdentity },
+                                                     vk::ImageSubresourceRange{
+                                                         vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 } };
                 return device.createImageView(create_info);
-            }
-            else return VK_NULL_HANDLE;
-
+            } else
+                return VK_NULL_HANDLE;
         }
 
-    public:
+      public:
         image_view()
             : vk::ImageView(VK_NULL_HANDLE)
-        {}
+        {
+        }
 
         image_view(vk::Device device, vk::Image image, vk::Format format)
             : vk::ImageView(create_image_view(device, image, format))
-        {}
+        {
+        }
 
-        [[nodiscard]] vk::ImageView get() const&
+        [[nodiscard]] vk::ImageView
+        get() const&
         {
             return static_cast<vk::ImageView>(*this);
         }
 
-        void free(vk::Device device) noexcept
+        void
+        free(vk::Device device) noexcept
         {
             if (get() != VK_NULL_HANDLE) {
                 device.destroyImageView(get());
             }
         }
 
-        [[nodiscard]] constexpr bool operator==(const image_view &other) const noexcept {
+        [[nodiscard]] constexpr bool
+        operator==(const image_view& other) const noexcept
+        {
             return get() == other.get();
         }
     };
-}
+} // namespace obscure::vulkan
