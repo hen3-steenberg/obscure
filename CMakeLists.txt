@@ -62,7 +62,7 @@ file(GLOB_RECURSE SHADER_FILES "*.vert" "*.frag")
 list(FILTER SHADER_FILES EXCLUDE REGEX "3rd_party/imgui")
 
 if(CLANG_FORMAT_EXE)
-	add_custom_target(FORMAT_CODE
+	add_custom_target(FORMAT_OBSCURE
 			COMMENT "Formatting files with clang-format..."
 			COMMAND ${CLANG_FORMAT_EXE} -i ${CXX_FILES} ${SHADER_FILES}
 	)
