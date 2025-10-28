@@ -6,3 +6,4 @@ export import obscure.utils.name_list;
 export import obscure.utils.stopwatch;
 export import obscure.utils.value_list;
 export import obscure.utils.version;
+export import obscure.utils.check_result;

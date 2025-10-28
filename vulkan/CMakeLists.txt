@@ -22,6 +22,7 @@ target_sources(obscure_vulkan
         "obscure.vulkan.pipeline-definition.cppm"
         "obscure.vulkan.pipeline-draw_call_base.cppm"
         "obscure.vulkan.transfer_session.cppm"
+        "obscure.vulkan.result.cppm"
         "obscure.vulkan.semaphore.cppm"
         "obscure.vulkan.shader.cppm"
         "obscure.vulkan.shader-data.cppm"

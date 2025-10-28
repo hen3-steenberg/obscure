@@ -1,7 +1,8 @@
 module;
+#include <vulkan/vulkan.hpp>
+
 #include <GLFW/glfw3.h>
 #include <tuple>
-#include <vulkan/vulkan.hpp>
 export module obscure.glfw:window;
 import :defaults;
 import obscure.properties;

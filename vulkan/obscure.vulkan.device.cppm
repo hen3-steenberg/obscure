@@ -6,6 +6,7 @@ module;
 export module obscure.vulkan.device;
 import obscure.vulkan.application_context;
 import obscure.properties;
+import obscure.vulkan.result;
 
 namespace obscure::vulkan
 {
@@ -30,10 +31,10 @@ namespace obscure::vulkan
 
         // check that the device has swap chain support
         uint32_t format_count = 0;
-        device.getSurfaceFormatsKHR(surface, &format_count, nullptr);
+        check(device.getSurfaceFormatsKHR(surface, &format_count, nullptr));
 
         uint32_t mode_count = 0;
-        device.getSurfacePresentModesKHR(surface, &mode_count, nullptr);
+        check(device.getSurfacePresentModesKHR(surface, &mode_count, nullptr));
 
         // check that all required features are supported.
         auto device_feutures = device.getFeatures();

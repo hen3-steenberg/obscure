@@ -14,3 +14,4 @@ export import obscure.vulkan.semaphore;
 export import obscure.vulkan.shader;
 export import obscure.vulkan.surface;
 export import obscure.vulkan.swap_chain;
+export import obscure.vulkan.result;

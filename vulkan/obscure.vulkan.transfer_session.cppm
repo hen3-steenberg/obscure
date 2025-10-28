@@ -5,6 +5,7 @@ export module obscure.vulkan.transfer_session;
 export import obscure.vulkan.device;
 export import obscure.vulkan.buffer;
 export import obscure.vulkan.texture;
+import obscure.vulkan.result;
 
 export namespace obscure::vulkan
 {
@@ -16,7 +17,7 @@ export namespace obscure::vulkan
             vk::CommandBufferAllocateInfo create_info{ pool, vk::CommandBufferLevel::ePrimary, 1 };
 
             vk::CommandBuffer copyCmd{};
-            device.allocateCommandBuffers(&create_info, &copyCmd);
+            check(device.allocateCommandBuffers(&create_info, &copyCmd));
 
             vk::CommandBufferBeginInfo begin_info{ vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
 

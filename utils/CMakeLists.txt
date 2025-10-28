@@ -3,6 +3,7 @@ add_library(obscure::utils ALIAS obscure_utils)
 target_sources(obscure_utils
         PUBLIC
         FILE_SET CXX_MODULES FILES
+        "obscure.utils.check_result.cppm"
         "obscure.utils.key_list.cppm"
         "obscure.utils.key_map.cppm"
         "obscure.utils.key_set.cppm"

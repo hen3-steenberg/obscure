@@ -7,6 +7,7 @@ export module obscure.vulkan.texture;
 export import obscure.vulkan.buffer;
 export import obscure.vulkan.device;
 import obscure.properties;
+import obscure.vulkan.result;
 
 export namespace obscure::vulkan
 {
@@ -186,7 +187,7 @@ export namespace obscure::vulkan
 
             vk::DescriptorSetAllocateInfo alloc_info{ pool, layouts };
 
-            device.allocateDescriptorSets(&alloc_info, result.data());
+            check(device.allocateDescriptorSets(&alloc_info, result.data()));
 
             return result;
         }

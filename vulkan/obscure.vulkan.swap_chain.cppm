@@ -11,6 +11,7 @@ import obscure.properties;
 export import obscure.vulkan.semaphore;
 export import obscure.vulkan.depth_buffer;
 export import obscure.vulkan.msaa_buffer;
+import obscure.vulkan.result;
 
 export namespace obscure::vulkan
 {
@@ -214,8 +215,8 @@ export namespace obscure::vulkan
         load_images(vk::Device device, vk::SwapchainKHR swapchain, uint32_t& image_count)
         {
             std::array<vk::Image, max_image_count()> result{};
-            auto err0 = device.getSwapchainImagesKHR(swapchain, &image_count, nullptr);
-            auto err1 = device.getSwapchainImagesKHR(swapchain, &image_count, result.data());
+            check(device.getSwapchainImagesKHR(swapchain, &image_count, nullptr));
+            check(device.getSwapchainImagesKHR(swapchain, &image_count, result.data()));
             return result;
         }
 

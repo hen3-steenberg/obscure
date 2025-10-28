@@ -4,6 +4,7 @@ module;
 export module obscure.vulkan.pipeline:collection;
 import :builder;
 import :definition;
+import obscure.vulkan.result;
 
 export namespace obscure::vulkan
 {
@@ -36,12 +37,12 @@ export namespace obscure::vulkan
                 static_cast<vk::GraphicsPipelineCreateInfo>(builders.get_create_info())...
             };
 
-            auto error = device.createGraphicsPipelines(
+            check(device.createGraphicsPipelines(
                 VK_NULL_HANDLE,
                 Size,
                 pipeline_create_infos.data(),
                 nullptr,
-                pipelines.data()); // createGraphicsPipelines(VK_NULL_HANDLE, Size, pipeline_create_infos.data(),
+                pipelines.data())); // createGraphicsPipelines(VK_NULL_HANDLE, Size, pipeline_create_infos.data(),
                                    // nullptr, pipeline_layouts.data());
         }
 
