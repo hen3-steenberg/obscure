@@ -6,9 +6,9 @@ export module obscure.vulkan.shader:modules;
 export import :data;
 
 export template<auto Key>
-struct shader_loader
-{
-    static obscure::vulkan::shader_data auto load_shader() = delete;
+struct shader_loader {
+    static obscure::vulkan::shader_data auto
+    load_shader() = delete;
 };
 
 export template<auto shader>

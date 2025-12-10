@@ -7,6 +7,12 @@ target_sources(obscure_vulkan
         FILE_SET CXX_MODULES FILES
         "obscure.vulkan.application_context.cppm"
         "obscure.vulkan.buffer.cppm"
+        "obscure.vulkan.buffer-impl.cppm"
+        "obscure.vulkan.buffer-index.cppm"
+        "obscure.vulkan.buffer-staging.cppm"
+        "obscure.vulkan.buffer-uniform.cppm"
+        "obscure.vulkan.buffer-utils.cppm"
+        "obscure.vulkan.buffer-vertex.cppm"
         "obscure.vulkan.command_pool.cppm"
         "obscure.vulkan.command_session.cppm"
         "obscure.vulkan.depth_buffer.cppm"

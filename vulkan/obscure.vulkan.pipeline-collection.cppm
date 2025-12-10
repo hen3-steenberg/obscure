@@ -38,12 +38,7 @@ export namespace obscure::vulkan
             };
 
             check(device.createGraphicsPipelines(
-                VK_NULL_HANDLE,
-                Size,
-                pipeline_create_infos.data(),
-                nullptr,
-                pipelines.data())); // createGraphicsPipelines(VK_NULL_HANDLE, Size, pipeline_create_infos.data(),
-                                   // nullptr, pipeline_layouts.data());
+                VK_NULL_HANDLE, Size, pipeline_create_infos.data(), nullptr, pipelines.data()));
         }
 
     public:

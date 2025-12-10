@@ -1,7 +1,7 @@
 module;
 #include <array>
-#include <source_location>
 #include <format>
+#include <source_location>
 
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_to_string.hpp>
@@ -9,11 +9,11 @@ export module obscure.vulkan.result;
 import obscure.utils.check_result;
 
 export template<>
-struct std::formatter<vk::Result, char>
-{
+struct std::formatter<vk::Result, char> {
 
     template<class ParseContext>
-    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    constexpr ParseContext::iterator
+    parse(ParseContext& ctx)
     {
         auto it = ctx.begin();
         while (it != ctx.end()) {
@@ -26,7 +26,8 @@ struct std::formatter<vk::Result, char>
     }
 
     template<class FmtContext>
-    constexpr FmtContext::iterator format(vk::Result const& res, FmtContext& ctx) const
+    constexpr FmtContext::iterator
+    format(vk::Result const& res, FmtContext& ctx) const
     {
         std::string result_string = vk::to_string(res);
 
@@ -37,25 +38,23 @@ struct std::formatter<vk::Result, char>
 namespace obscure::vulkan
 {
 
-    template<vk::Result ... Results>
+    template<vk::Result... Results>
     struct to_array;
 
-    template<vk::Result R1, vk::Result ... Results>
-    struct to_array<R1, Results...>
-    {
-        constexpr static std::array value = std::array{R1, Results...};
+    template<vk::Result R1, vk::Result... Results>
+    struct to_array<R1, Results...> {
+        constexpr static std::array value = std::array{ R1, Results... };
     };
 
     template<>
-    struct to_array<>
-    {
+    struct to_array<> {
         constexpr static std::array<vk::Result, 0> value{};
     };
 
-
-    export template<vk::Result ... Warn>
-    void check(vk::Result result, std::source_location location = std::source_location::current())
+    export template<vk::Result... Warn>
+    void
+    check(vk::Result result, std::source_location location = std::source_location::current())
     {
-        return obscure::check_result<std::array { vk::Result::eSuccess }, to_array<Warn...>::value>(result, location);
+        return obscure::check_result<std::array{ vk::Result::eSuccess }, to_array<Warn...>::value>(result, location);
     }
-}
+} // namespace obscure::vulkan
