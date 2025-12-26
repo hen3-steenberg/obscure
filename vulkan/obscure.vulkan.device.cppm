@@ -183,6 +183,7 @@ namespace obscure::vulkan
             static constexpr float priority = 1.0f;
 
             vk::PhysicalDeviceFeatures required_features{};
+            required_features.fillModeNonSolid = vk::True;
 
             std::array<vk::DeviceQueueCreateInfo, 3> queue_infos = { vk::DeviceQueueCreateInfo{
                                                                          {},
