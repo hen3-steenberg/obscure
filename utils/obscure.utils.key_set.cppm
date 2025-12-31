@@ -18,7 +18,7 @@ namespace obscure
     struct add_list_keys_impl<Tmap, TList<Key1, Keys...>> {
         using next_map = typename Tmap::template add_key<Key1>;
         using type =
-            std::conditional_t<sizeof...(Keys), typename add_list_keys_impl<next_map, TList<Keys...>>::type, next_map>;
+            std::conditional_t<sizeof...(Keys) != 0, typename add_list_keys_impl<next_map, TList<Keys...>>::type, next_map>;
     };
 
     export template<auto... Keys>

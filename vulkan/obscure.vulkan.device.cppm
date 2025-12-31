@@ -184,6 +184,7 @@ namespace obscure::vulkan
 
             vk::PhysicalDeviceFeatures required_features{};
             required_features.fillModeNonSolid = vk::True;
+            required_features.wideLines = vk::True;
 
             std::array<vk::DeviceQueueCreateInfo, 3> queue_infos = { vk::DeviceQueueCreateInfo{
                                                                          {},

@@ -56,6 +56,15 @@ export namespace obscure
             return device_ctx.template initialize_vertex_buffer<T>(data);
         }
 
+        template<typename T>
+        void reinitialize_vertex_buffer(
+            obscure::vulkan::staging_buffer<T> const& newdata,
+            std::size_t count,
+            obscure::vulkan::vertex_buffer<T> & vertex_buffer
+        ) const {
+            device_ctx.template reinitialize_vertex_buffer<T>(newdata, count, vertex_buffer);
+        }
+
         template<obscure::vulkan::vk_index T>
         [[nodiscard]] auto
         init_index_buffer(std::initializer_list<T> data) const

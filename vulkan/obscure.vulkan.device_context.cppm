@@ -122,6 +122,20 @@ export namespace obscure::vulkan
             return vertex_buffer;
         }
 
+        template<typename T>
+        void reinitialize_vertex_buffer(staging_buffer<T> const& newdata, std::size_t count, vertex_buffer<T> & vertex_buffer) const {
+            if(count > vertex_buffer.count()) {
+                vertex_buffer = obscure::vulkan::vertex_buffer<T>{ vk_device, newdata.count() };
+            }
+
+            vk_device.waitIdle();
+
+            {
+                transfer_session copy_session = begin_transfers();
+                copy_session.transfer_data(newdata, vertex_buffer, count);
+            }
+        }
+
         template<vk_index T>
         [[nodiscard]] obscure::vulkan::index_buffer<T>
         initialize_index_buffer(std::span<const T> data) const

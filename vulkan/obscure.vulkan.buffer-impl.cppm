@@ -4,6 +4,7 @@ module;
 export module obscure.vulkan.buffer:impl;
 export import obscure.vulkan.device;
 import :utils;
+import obscure.vulkan.result;
 
 export namespace obscure::vulkan
 {
@@ -35,11 +36,11 @@ export namespace obscure::vulkan
 
             if constexpr (Alignment == 1) {
 
-                vmaCreateBuffer(
-                    dev.get_vma_allocator(), &create_info, &alloc_info, buffer_ptr, &result.second, nullptr);
+                check(vmaCreateBuffer(
+                    dev.get_vma_allocator(), &create_info, &alloc_info, buffer_ptr, &result.second, nullptr));
             } else {
-                vmaCreateBufferWithAlignment(
-                    dev.get_vma_allocator(), &create_info, &alloc_info, Alignment, buffer_ptr, &result.second, nullptr);
+                check(vmaCreateBufferWithAlignment(
+                    dev.get_vma_allocator(), &create_info, &alloc_info, Alignment, buffer_ptr, &result.second, nullptr));
             }
 
             return result;
@@ -80,6 +81,8 @@ export namespace obscure::vulkan
         {
             other._size = 0;
         }
+
+        buffer_impl& operator=(buffer_impl && other) = default;
 
         [[nodiscard]] vk::Buffer
         get_buffer() const noexcept
