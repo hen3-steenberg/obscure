@@ -122,6 +122,24 @@ export namespace obscure::vulkan
             return vertex_buffer;
         }
 
+        template<typename T>
+        void
+        reinitialize_vertex_buffer(staging_buffer<T> const& newdata,
+                                   std::size_t count,
+                                   vertex_buffer<T>& vertex_buffer) const
+        {
+            if (count > vertex_buffer.count()) {
+                vertex_buffer = obscure::vulkan::vertex_buffer<T>{ vk_device, newdata.count() };
+            }
+
+            vk_device.waitIdle();
+
+            {
+                transfer_session copy_session = begin_transfers();
+                copy_session.transfer_data(newdata, vertex_buffer, count);
+            }
+        }
+
         template<vk_index T>
         [[nodiscard]] obscure::vulkan::index_buffer<T>
         initialize_index_buffer(std::span<const T> data) const
@@ -157,7 +175,13 @@ export namespace obscure::vulkan
         {
             constexpr size_t pipeline_idx = obscure::helper_templates::index_of<TPipeline, TPipelines...>();
             int texWidth, texHeight, texChannels;
+#if WIN32
+            stbi_uc* pixels =
+                stbi_load(image_path.string().c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+#else
             stbi_uc* pixels = stbi_load(image_path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+#endif
+
             size_t imageSize = texWidth * texHeight * 4;
             uint32_t mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
             vk::Extent3D image_extent{ static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1 };

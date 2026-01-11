@@ -1,5 +1,8 @@
+
 module;
 #include "vma.hpp"
+#include <cstring>
+#include <memory>
 #include <vulkan/vulkan.hpp>
 export module obscure.vulkan.buffer:staging;
 import :impl;
@@ -17,11 +20,41 @@ export namespace obscure::vulkan
     struct staging_buffer : public staging_buffer_impl<T> {
         size_t _count;
         T* _data;
+
+        staging_buffer()
+            : staging_buffer_impl<T>()
+            , _count(0)
+            , _data(nullptr)
+        {
+        }
+
         staging_buffer(const device& device, size_t count)
             : staging_buffer_impl<T>(device, count * sizeof(T))
             , _count(count)
             , _data(staging_buffer_impl<T>::template get_mapped_ptr<T>())
         {
+        }
+
+        staging_buffer(staging_buffer&& other)
+            : staging_buffer_impl<T>(std::move(other))
+            , _count(other._count)
+            , _data(other._data)
+        {
+            other._count = 0;
+            other._data = nullptr;
+        }
+
+        staging_buffer&
+        operator=(staging_buffer&& other) = default;
+
+        void
+        resize_up(const device& device, std::size_t new_count)
+        {
+            if (new_count > count()) {
+                staging_buffer<T> newbuffer{ device, new_count * sizeof(T) };
+                std::memcpy(newbuffer.data(), data(), count() * sizeof(T));
+                *this = std::move(newbuffer);
+            }
         }
 
         T*

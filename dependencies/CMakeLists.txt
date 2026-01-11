@@ -10,4 +10,3 @@ target_sources(obscure_deps
 target_link_libraries(obscure_deps PUBLIC glfw)
 target_link_libraries(obscure_deps PUBLIC glm::glm)
 target_link_libraries(obscure_deps PUBLIC Vulkan::Vulkan)
-target_link_libraries(obscure_deps PUBLIC GPUOpen::VulkanMemoryAllocator)

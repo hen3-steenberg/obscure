@@ -1,5 +1,5 @@
 module;
-#include <cstdint>
+#include <cstddef>
 export module obscure.helper_templates.index_of;
 
 namespace obscure::helper_templates
