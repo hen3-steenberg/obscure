@@ -91,3 +91,5 @@ But because the key has to be a compile time constant the shader could also be e
   - [ ] Add a way to couple a uniform buffer to the state of a pipeline instead of to the graphics context.
 - [ ] Properly implement window resizing
 - [ ] Add a way to customize the required extensions and features without having to edit the obscure source code.
+- [ ] Work through `The Modern Vulkan Cookbook` to improve obscure.
+   - [ ] Improve function loading to allow multi device applications.
