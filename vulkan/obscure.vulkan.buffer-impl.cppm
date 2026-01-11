@@ -39,8 +39,13 @@ export namespace obscure::vulkan
                 check(vmaCreateBuffer(
                     dev.get_vma_allocator(), &create_info, &alloc_info, buffer_ptr, &result.second, nullptr));
             } else {
-                check(vmaCreateBufferWithAlignment(
-                    dev.get_vma_allocator(), &create_info, &alloc_info, Alignment, buffer_ptr, &result.second, nullptr));
+                check(vmaCreateBufferWithAlignment(dev.get_vma_allocator(),
+                                                   &create_info,
+                                                   &alloc_info,
+                                                   Alignment,
+                                                   buffer_ptr,
+                                                   &result.second,
+                                                   nullptr));
             }
 
             return result;
@@ -82,7 +87,8 @@ export namespace obscure::vulkan
             other._size = 0;
         }
 
-        buffer_impl& operator=(buffer_impl && other) = default;
+        buffer_impl&
+        operator=(buffer_impl&& other) = default;
 
         [[nodiscard]] vk::Buffer
         get_buffer() const noexcept

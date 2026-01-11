@@ -58,9 +58,11 @@ namespace obscure::vulkan
         return obscure::check_result<std::array{ vk::Result::eSuccess }, to_array<Warn...>::value>(result, location);
     }
 
-    export
-    template<vk::Result... Warn>
-    void check(VkResult result, std::source_location location = std::source_location::current()) {
-        return obscure::check_result<std::array{ vk::Result::eSuccess }, to_array<Warn...>::value>(vk::Result{result} , location);
+    export template<vk::Result... Warn>
+    void
+    check(VkResult result, std::source_location location = std::source_location::current())
+    {
+        return obscure::check_result<std::array{ vk::Result::eSuccess }, to_array<Warn...>::value>(vk::Result{ result },
+                                                                                                   location);
     }
 } // namespace obscure::vulkan

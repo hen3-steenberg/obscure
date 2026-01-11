@@ -17,9 +17,10 @@ export namespace obscure::vulkan
         size_t _count;
 
         vertex_buffer()
-            : vertex_buffer_impl<T>(),
-              _count(0)
-        {}
+            : vertex_buffer_impl<T>()
+            , _count(0)
+        {
+        }
 
         vertex_buffer(const device& device, size_t count)
             : vertex_buffer_impl<T>(device, count * sizeof(T))
@@ -27,16 +28,15 @@ export namespace obscure::vulkan
         {
         }
 
-        vertex_buffer(vertex_buffer && other)
-            : vertex_buffer_impl<T>(std::move(other)),
-              _count(other._count)
+        vertex_buffer(vertex_buffer&& other)
+            : vertex_buffer_impl<T>(std::move(other))
+            , _count(other._count)
         {
             other._count = 0;
         }
 
-        vertex_buffer& operator=(vertex_buffer && other) = default;
-
-
+        vertex_buffer&
+        operator=(vertex_buffer&& other) = default;
 
         [[nodiscard]] size_t
         count() const noexcept

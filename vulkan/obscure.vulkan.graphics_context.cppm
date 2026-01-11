@@ -57,11 +57,11 @@ export namespace obscure
         }
 
         template<typename T>
-        void reinitialize_vertex_buffer(
-            obscure::vulkan::staging_buffer<T> const& newdata,
-            std::size_t count,
-            obscure::vulkan::vertex_buffer<T> & vertex_buffer
-        ) const {
+        void
+        reinitialize_vertex_buffer(obscure::vulkan::staging_buffer<T> const& newdata,
+                                   std::size_t count,
+                                   obscure::vulkan::vertex_buffer<T>& vertex_buffer) const
+        {
             device_ctx.template reinitialize_vertex_buffer<T>(newdata, count, vertex_buffer);
         }
 
