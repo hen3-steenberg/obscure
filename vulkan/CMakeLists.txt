@@ -28,7 +28,6 @@ target_sources(obscure_vulkan
         "obscure.vulkan.pipeline-definition.cppm"
         "obscure.vulkan.pipeline-draw_call_base.cppm"
         "obscure.vulkan.transfer_session.cppm"
-        "obscure.vulkan.result.cppm"
         "obscure.vulkan.semaphore.cppm"
         "obscure.vulkan.shader.cppm"
         "obscure.vulkan.shader-data.cppm"
@@ -44,4 +43,5 @@ target_link_libraries(obscure_vulkan PUBLIC obscure::dependencies)
 target_link_libraries(obscure_vulkan PUBLIC obscure::utils)
 target_link_libraries(obscure_vulkan PUBLIC obscure::helper_templates)
 target_link_libraries(obscure_vulkan PUBLIC obscure::config)
+target_link_libraries(obscure_vulkan PUBLIC obscure::vulkan_dispatch)
 target_link_libraries(obscure_vulkan PUBLIC obscure::glfw)
